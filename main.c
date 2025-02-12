@@ -1,3 +1,8 @@
+#include "lib/api.h"
 #include <stdlib.h>
+#include <sys/socket.h>
 
-int main(int argc, char *argv[]) { return EXIT_SUCCESS; }
+int main(int argc, char *argv[]) {
+    connectToKi();
+    return EXIT_SUCCESS;
+}

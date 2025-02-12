@@ -2,5 +2,4 @@
 #define API_H
 
 #endif
-void getResponse();
-void sendMessage(char message[]);
+void connectToKi();

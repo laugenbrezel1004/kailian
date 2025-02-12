@@ -1,4 +1,5 @@
 // safe respons in a file...
+#include "loadEnv.h"
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,11 +27,12 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
     return realsize;
 }
 
-int main(void) {
+int connectToKi(void) {
     CURL *curl;
     CURLcode res;
     struct MemoryStruct chunk;
 
+    /*Env env = readEnv();*/
     chunk.memory = malloc(1);
     chunk.size = 0;
 
