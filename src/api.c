@@ -1,6 +1,6 @@
 
-#include "cJSON/cJSON.h"
-#include "loadEnv.h"
+/*#include "../include/cJSON.h"*/
+#include <cjson/cJSON.h>
 #include <curl/curl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,8 +8,8 @@
 
 char buffer[100];
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
-                            void *userp) {
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
+    // void *userp
     size_t realsize = size * nmemb;
 
     // Temporären Puffer erstellen und nullterminieren
@@ -33,9 +33,9 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
     /*char *token = strtok(jSONbuffer, delimiter);*/
     /**/
     /*while (token != NULL) {*/
-    /*    /*if (strstr(token, "response") != NULL) {*/
-    /*    /*    printf("%s", strtok(token, delimiter2));*/
-    /*    /*}*/
+    /*    if (strstr(token, "response") != NULL) {*/
+    /*        printf("%s", strtok(token, delimiter2));*/
+    /*    }*/
     /*    printf("%s\n", token);*/
     /*    token = strtok(NULL, delimiter);*/
     /*}*/
