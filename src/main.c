@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
             strcat(buffer, argv[i]);
         }
 
-        printf("länge = %d\n", strlength);
-        printf("%s\n", buffer);
+        /*printf("länge = %d\n", strlength);*/
+        /*printf("%s\n", buffer);*/
     }
     connectToKi(buffer);
     free(buffer);

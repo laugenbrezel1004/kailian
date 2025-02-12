@@ -19,7 +19,7 @@ Env readEnv() {
     const char delim[] = "=";
     char *token;
 
-    fptr = fopen("../.env", "r");
+    fptr = fopen(".env", "r");
     if (fptr == NULL) {
         perror("Error reading .env file");
         return env;

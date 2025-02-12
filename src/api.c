@@ -30,7 +30,8 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
         perror("Error while parsing to json");
         return EXIT_FAILURE;
     }
-
+    cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
+    printf("%s", response->valuestring);
     free(buffer); // Speicher freigeben
     fflush(stdout);
     return realsize;
