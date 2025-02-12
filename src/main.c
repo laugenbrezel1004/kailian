@@ -1,4 +1,4 @@
-#include "lib/api.h"
+#include "../include/api.h"
 #include <stdlib.h>
 #include <sys/socket.h>
 

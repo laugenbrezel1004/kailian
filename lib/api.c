@@ -1,5 +1,5 @@
 
-#include "cJSON/cJSON.h"
+#include "../lib/cJSON/cJSON.h"
 #include "loadEnv.h"
 #include <curl/curl.h>
 #include <stdio.h>
@@ -42,7 +42,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
     /**/
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
     printf("%s", response->valuestring);
-
     free(buffer); // Speicher freigeben
     fflush(stdout);
     return realsize;
