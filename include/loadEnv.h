@@ -9,4 +9,4 @@ typedef struct {
 
 
 
-void* readEnv();
+Env readEnv();

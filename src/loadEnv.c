@@ -8,34 +8,44 @@ typedef struct {
         char endpoint[100];
 } Env;
 
+// prototype
+Env readEnv();
+static void removeSpaces(char *str);
+
 Env readEnv() {
     Env env = {"", ""}; // Initialize with empty strings
     FILE *fptr;
-    char line[256];           // Increased buffer size for safety
-    const char delim[] = "="; // Use '=' as delimiter
+    char line[256];
+    const char delim[] = "=";
     char *token;
 
-    fptr = fopen(".env", "r");
+    fptr = fopen("../.env", "r");
     if (fptr == NULL) {
         perror("Error reading .env file");
-        return env; // Return empty env if file can't be opened
+        return env;
     }
 
     while (fgets(line, sizeof(line), fptr)) {
         // Remove newline character if present
         line[strcspn(line, "\n")] = 0;
+        removeSpaces(line);
 
         token = strtok(line, delim);
         if (token != NULL) {
+
             if (strcmp(token, "name") == 0) {
                 token = strtok(NULL, delim);
                 if (token != NULL) {
                     strncpy(env.name, token, sizeof(env.name) - 1);
+                    env.name[sizeof(env.name) - 1] =
+                        '\0'; // Ensure null-termination
                 }
             } else if (strcmp(token, "endpoint") == 0) {
                 token = strtok(NULL, delim);
                 if (token != NULL) {
                     strncpy(env.endpoint, token, sizeof(env.endpoint) - 1);
+                    env.endpoint[sizeof(env.endpoint) - 1] =
+                        '\0'; // Ensure null-termination
                 }
             }
         }
@@ -45,9 +55,15 @@ Env readEnv() {
     return env;
 }
 
-/*int main() {*/
-/*    Env env = readEnv();*/
-/*    printf("Name: %s\n", env.name);*/
-/*    printf("Endpoint: %s\n", env.endpoint);*/
-/*    return 0;*/
-/*}*/
+static void removeSpaces(char *str) {
+    int count = 0; // Zähler für nicht-Leerzeichen
+
+    // Durchlaufen des Strings
+    for (int i = 0; str[i]; i++) {
+        if (str[i] != ' ') {
+            str[count++] = str[i]; // Verschieben des Zeichens nach vorne
+        }
+    }
+
+    str[count] = '\0'; // Neues Ende des Strings setzen
+}
