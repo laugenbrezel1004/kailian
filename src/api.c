@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 
 char buffer[100];
 
@@ -48,7 +49,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
     return realsize;
 }
 
-int connectToKi(void) {
+int connectToKi(char *buffer) {
     CURL *curl;
     CURLcode res;
 
@@ -56,9 +57,14 @@ int connectToKi(void) {
     if (curl) {
         curl_easy_setopt(curl, CURLOPT_URL,
                          "http://localhost:11434/api/generate");
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS,
-                         "{\"model\":\"deepseek-r1:1.5b\",\"prompt\":\"Why is "
-                         "the sky blue?\"}");
+
+        char postfields[1024]; // Stellen Sie sicher, dass dies groß genug
+        /*char *postfields = malloc(sizeof(buffer) + 100);*/
+        snprintf(postfields, sizeof(postfields),
+                 "{\"model\":\"deepseek-r1:latest\",\"prompt\":\"%s\"}",
+                 buffer);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields);
+
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
 
         res = curl_easy_perform(curl);

@@ -1,27 +1,38 @@
+
 #include "../include/api.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+
 int main(int argc, char *argv[]) {
-    int strlength = 0;
-    int count = 0;
+    char *buffer = malloc(sizeof(char));
     if (argc > 1) {
+        int strlength = 0;
         for (int i = 1; i < argc; i++) {
             strlength += strlen(argv[i]);
-            count++;
         }
-        char *buffer = malloc(strlength + sizeof(char));
-        if (buffer == NULL)
+        strlength += argc - 2; // Platz für Leerzeichen
+
+        buffer = realloc(buffer, strlength + 1); // +1 für Null-Terminator
+        if (buffer == NULL) {
             perror("Error while allocating memory");
-
-        for (int i = 0; i < count; i++) {
-            strcpy(buffer, argv[i]);
+            return EXIT_FAILURE;
         }
 
-        printf("länge = %d", strlength);
-        printf("%s", buffer);
+        buffer[0] = '\0'; // Initialisiere den String als leer
+        for (int i = 1; i < argc; i++) {
+            if (i > 1)
+                strcat(
+                    buffer,
+                    " "); // Füge Leerzeichen hinzu, außer vor dem ersten Wort
+            strcat(buffer, argv[i]);
+        }
+
+        printf("länge = %d\n", strlength);
+        printf("%s\n", buffer);
     }
-    connectToKi();
+    connectToKi(buffer);
+    free(buffer);
     return EXIT_SUCCESS;
 }

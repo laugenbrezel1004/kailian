@@ -1,5 +1,11 @@
+
 #ifndef API_H
 #define API_H
 
-#endif
-void connectToKi();
+#include <stdint.h> // Für uint
+
+// Deklaration der Funktion
+void connectToKi(char *buffer);
+
+#endif // API_H
+
