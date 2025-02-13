@@ -1,5 +1,4 @@
 
-/*#include "../include/cJSON.h"*/
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
@@ -8,30 +7,22 @@
 #include <string.h>
 #include <sys/types.h>
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
-                            void *userp);
-
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
-                                  void *userp);
-int connectToKi(char *buffer);
-
-static char buffer[100];
+typedef struct {
+        char *memory;
+        size_t size;
+} MemoryStruct;
 
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
                                   void *userp) {
     size_t realsize = size * nmemb;
-    typedef struct {
-            char *memory;
-            size_t size;
-    } MemoryStruct;
-
-    MemoryStruct *mem;
-    mem = (MemoryStruct *)userp;
+    MemoryStruct *mem = (MemoryStruct *)userp;
 
     char *ptr = realloc(mem->memory, mem->size + realsize + 1);
     if (!ptr) {
-        perror("realloc failed");
+        fprintf(stderr, "realloc failed\n");
+        return 0;
     }
+
     mem->memory = ptr;
     memcpy(&(mem->memory[mem->size]), contents, realsize);
     mem->size += realsize;
@@ -42,7 +33,6 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
 
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
                             void *userp) {
-
     size_t realsize = size * nmemb;
     char *buffer = malloc(realsize + 1);
 
@@ -52,49 +42,66 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
     }
 
     memcpy(buffer, contents, realsize);
+    buffer[realsize] = 0;
+
+    printf("Raw data received: %s\n", buffer);
+
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
-        perror("Error while parsing to json");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Error while parsing to json\n");
+        free(buffer);
+        return 0;
     }
+
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
 
     if (response != NULL && cJSON_IsString(response)) {
-        printf("%s", response->valuestring);
+        printf("Parsed response: %s\n", response->valuestring);
     } else {
-        perror("Response is not a valid string\n");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Response is not a valid string\n");
     }
 
-    free(buffer); // Speicher freigeben
+    cJSON_Delete(json);
+    free(buffer);
     fflush(stdout);
     return realsize;
 }
 
 int connectToKi(char *buffer) {
-    Env env = readEnv(); // Initialize with empty strings
+    Env env = readEnv();
     CURL *curl;
     CURLcode res;
 
     curl = curl_easy_init();
     if (curl) {
+        MemoryStruct chunk;
+        chunk.memory = malloc(1);
+        chunk.size = 0;
+
         curl_easy_setopt(curl, CURLOPT_URL, env.endpoint);
 
-        char postfields[1024]; // Stellen Sie sicher, dass dies groß genug
-        /*char *postfields = malloc(sizeof(buffer) + 100);*/
+        char postfields[1024];
         snprintf(postfields, sizeof(postfields),
                  "{\"model\":\"%s\",\"prompt\":\"%s\"}", env.name, buffer);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields);
 
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        // Use WriteMemoryCallback to store raw data
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
                     curl_easy_strerror(res));
+        } else {
+            printf("Raw response stored in memory: %s\n", chunk.memory);
+
+            // Now process the stored data with WriteCallback
+            WriteCallback(chunk.memory, 1, chunk.size, NULL);
         }
 
+        free(chunk.memory);
         curl_easy_cleanup(curl);
     }
 

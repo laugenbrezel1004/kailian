@@ -16,11 +16,15 @@
 *.gch
 *.pch
 
+#env files
+.env
+
 # Libraries
 *.lib
 *.a
 *.la
 *.lo
+lib/
 
 # Shared objects (inc. Windows DLLs)
 *.dll
@@ -51,5 +55,3 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# Libraries
-lib/
