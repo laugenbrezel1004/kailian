@@ -21,7 +21,8 @@ Env readEnv() {
 
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
-        perror("Error reading .env file");
+
+        fprintf(stderr, "Error reading .env file");
         return env;
     }
 
