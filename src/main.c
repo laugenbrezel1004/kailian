@@ -1,15 +1,16 @@
 #include "../include/api.h"
 #include "../include/checkArgument.h"
-#include "../include/help.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
-char *argumentstartDoubleDash = "--";
-char *argumentstartSingelDash = "-";
 int main(int argc, char *argv[]) {
     if (argc >= 2) {
+        if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
+            checkArgument(argv[1]);
+        }
+
         char *buffer = malloc(sizeof(char));
         int strlength = 0;
         for (int i = 1; i < argc; i++) {
@@ -25,10 +26,6 @@ int main(int argc, char *argv[]) {
 
         buffer[0] = '\0'; // Initialisiere den String als leer
         for (int i = 1; i < argc; i++) {
-            if ((argv[i] == argumentstartDoubleDash ||
-                 argv[i] == argumentstartSingelDash) == 0) {
-                checkArgument(argv[i]);
-            }
             if (i > 1)
                 strcat(
                     buffer,

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int help() {
+void help() {
     printf("Help is there\n");
     fprintf(stdout, "Usage: kailian [QUESTION]\n\n");
     fprintf(stdout, "-h\t --help\t\t get the help side\n");

@@ -1,8 +1,6 @@
-
 #include "../include/checkArgument.h"
-#include "../include/help.h"
-#include "../include/info.h"
-#include "../include/version.h"
+#include "../include/arguments/help.h"
+#include "../include/arguments/info.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> // Für strcmp
@@ -13,6 +11,8 @@ const char *VERSION = "--version";
 const char *V = "-v";
 const char *INFO = "--info";
 const char *I = "-i";
+const char *RUNNINGMODEL = "--running-model";
+const char *R = "-r";
 
 void checkArgument(char *argument) {
     if (strcmp(argument, HELP) == 0 || strcmp(argument, H) == 0) {
