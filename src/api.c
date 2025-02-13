@@ -8,17 +8,44 @@
 #include <string.h>
 #include <sys/types.h>
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb);
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
+                            void *userp);
+
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
+                                  void *userp);
 int connectToKi(char *buffer);
 
-char buffer[100];
+static char buffer[100];
 
-static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
-    // void *userp
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
+                                  void *userp) {
     size_t realsize = size * nmemb;
+    typedef struct {
+            char *memory;
+            size_t size;
+    } MemoryStruct;
 
-    // Temporären Puffer erstellen und nullterminieren
+    MemoryStruct *mem;
+    mem = (MemoryStruct *)userp;
+
+    char *ptr = realloc(mem->memory, mem->size + realsize + 1);
+    if (!ptr) {
+        perror("realloc failed");
+    }
+    mem->memory = ptr;
+    memcpy(&(mem->memory[mem->size]), contents, realsize);
+    mem->size += realsize;
+    mem->memory[mem->size] = 0;
+
+    return realsize;
+}
+
+static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
+                            void *userp) {
+
+    size_t realsize = size * nmemb;
     char *buffer = malloc(realsize + 1);
+
     if (buffer == NULL) {
         fprintf(stderr, "Malloc failed\n");
         return 0;
@@ -31,8 +58,14 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
         return EXIT_FAILURE;
     }
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
-    printf("%s", response->valuestring);
-    /*printf("Laurenz war hier:)");*/
+
+    if (response != NULL && cJSON_IsString(response)) {
+        printf("%s", response->valuestring);
+    } else {
+        perror("Response is not a valid string\n");
+        return EXIT_FAILURE;
+    }
+
     free(buffer); // Speicher freigeben
     fflush(stdout);
     return realsize;

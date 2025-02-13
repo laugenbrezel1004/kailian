@@ -31,8 +31,9 @@ int main(int argc, char *argv[]) {
 
         /*printf("länge = %d\n", strlength);*/
         /*printf("%s\n", buffer);*/
+        /*}*/
+        connectToKi(buffer);
+        free(buffer);
+        return EXIT_SUCCESS;
     }
-    connectToKi(buffer);
-    free(buffer);
-    return EXIT_SUCCESS;
 }
