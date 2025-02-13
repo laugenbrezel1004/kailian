@@ -6,6 +6,7 @@
 typedef struct {
         char name[100];
         char endpoint[100];
+        char info_endpoint[100];
 } Env;
 
 // prototype
@@ -21,7 +22,6 @@ Env readEnv() {
 
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
-
         fprintf(stderr, "kailian: no such file or directory: .env ");
         return env;
     }
@@ -46,6 +46,14 @@ Env readEnv() {
                 if (token != NULL) {
                     strncpy(env.endpoint, token, sizeof(env.endpoint) - 1);
                     env.endpoint[sizeof(env.endpoint) - 1] =
+                        '\0'; // Ensure null-termination
+                }
+            } else if (strcmp(token, "info_endpoint") == 0) {
+                token = strtok(NULL, delim);
+                if (token != NULL) {
+                    strncpy(env.info_endpoint, token,
+                            sizeof(env.info_endpoint) - 1);
+                    env.info_endpoint[sizeof(env.info_endpoint) - 1] =
                         '\0'; // Ensure null-termination
                 }
             }

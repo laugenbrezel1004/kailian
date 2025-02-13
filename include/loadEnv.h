@@ -5,6 +5,7 @@
 typedef struct {
         char name[100];
         char endpoint[100];
+        char info_endpoint[100];
 } Env;
 
 
