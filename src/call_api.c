@@ -157,8 +157,8 @@ int sendArgument(const char *argument) {
             curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
         }
         if (strcmp(argument, "--model") == 0) {
-            printf("%s\n", "http://10.0.0.7:11343/api/ps");
-            curl_easy_setopt(curl, CURLOPT_URL, ENV.model_endpoint);
+            /*curl_easy_setopt(curl, CURLOPT_URL, ENV.model_endpoint);*/
+            curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.0.7:11434/api/ps");
         }
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          sendArgumentWriteCallback);

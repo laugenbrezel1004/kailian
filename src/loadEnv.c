@@ -17,7 +17,7 @@ Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Env env = {"", ""}; // Initialize with empty strings
+    Env env = {"", "", "", "", ""}; // Initialize with empty strings
     FILE *fptr;
     char line[256];
     const char delim[] = "=";
@@ -25,7 +25,9 @@ Env readEnv() {
 
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
-        fprintf(stderr, "kailian: no such file or directory: .env ");
+        fprintf(stderr,
+                "kailian: no such file or directory: .env \nThere should be an "
+                ".env file in the root of the kailian directory.");
         exit(1);
     }
 

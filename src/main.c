@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
         free(buffer);
         return EXIT_SUCCESS;
     }
-    fprintf(stderr, "kailian: missing operand\n");
+    fprintf(stderr, "kailian: missing operand\nTry 'kailian --help' for more "
+                    "information\n");
     return EXIT_FAILURE;
 }

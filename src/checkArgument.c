@@ -26,7 +26,8 @@ void checkArgument(char *argument) {
     } else if (strcmp(argument, MODEL) == 0 || strcmp(argument, R) == 0) {
         sendArgument(MODEL);
     } else {
-        printf("kailian: Unknown argument\n");
+        printf("kailian: Unknown argument\nTry 'kailian --help' for more "
+               "information");
     }
     exit(0);
 }
