@@ -1,7 +1,6 @@
 #ifndef HELP_H
 #define HELP_H
 
-void help();
+int help();
 
 #endif // !HELP_H
-#define HELP_H

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,7 +6,11 @@ typedef struct {
         char name[100];
         char endpoint[100];
         char info_endpoint[100];
+        char model_endpoint[100];
+        char ollama_version_endpoint[100];
 } Env;
+
+// prototype
 
 // prototype
 Env readEnv();
@@ -23,7 +26,7 @@ Env readEnv() {
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
         fprintf(stderr, "kailian: no such file or directory: .env ");
-        return env;
+        exit(1);
     }
 
     while (fgets(line, sizeof(line), fptr)) {

@@ -43,30 +43,30 @@ all: $(TARGET)
 
 # Kompilieren der Haupt-Binärdatei
 $(TARGET): $(OBJ_FILES)
-	@echo "Linking: $@"
-	@mkdir -p $(BIN_DIR)
+	echo "Linking: $@"
+	mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 # Kompilieren einzelner Objektdateien
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
-	@echo "Compiling: $< -> $@"
+	echo "Compiling: $< -> $@"
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 $(BUILD_DIR)/arguments/%.o: $(SRC_DIR)/arguments/%.c | $(BUILD_DIR)/arguments
-	@echo "Compiling: $< -> $@"
+	echo "Compiling: $< -> $@"
 	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 # Verzeichnisse erstellen (falls nicht vorhanden)
 $(BUILD_DIR):
-	@mkdir -p $(BUILD_DIR)
+	mkdir -p $(BUILD_DIR)
 
 $(BUILD_DIR)/arguments:
-	@mkdir -p $(BUILD_DIR)/arguments
+	mkdir -p $(BUILD_DIR)/arguments
 
 # Bereinigen des Projekts (alle Build-Artefakte entfernen)
 clean:
-	@echo "Cleaning build files..."
-	@rm -rf build bin
+	echo "Cleaning build files..."
+	rm -rf build bin
 
 # Bereinigen und neu bauen
 rebuild: clean all
