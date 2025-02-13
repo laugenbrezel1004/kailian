@@ -22,7 +22,7 @@ Env readEnv() {
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
 
-        fprintf(stderr, "Error reading .env file");
+        fprintf(stderr, "kailian: no such file or directory: .env ");
         return env;
     }
 

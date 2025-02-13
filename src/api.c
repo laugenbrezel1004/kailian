@@ -1,7 +1,7 @@
-
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
+#include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +12,7 @@ typedef struct {
         size_t size;
 } MemoryStruct;
 
+// for debbuing curl
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
                                   void *userp) {
     size_t realsize = size * nmemb;
@@ -44,8 +45,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
     memcpy(buffer, contents, realsize);
     buffer[realsize] = 0;
 
-    printf("Raw data received: %s\n", buffer);
-
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
         fprintf(stderr, "Error while parsing to json\n");
@@ -56,9 +55,9 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
 
     if (response != NULL && cJSON_IsString(response)) {
-        printf("Parsed response: %s\n", response->valuestring);
+        fprintf(stdout, "%s", response->valuestring);
     } else {
-        fprintf(stderr, "Response is not a valid string\n");
+        fprintf(stderr, "kailian: error");
     }
 
     cJSON_Delete(json);
@@ -68,7 +67,8 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb,
 }
 
 int connectToKi(char *buffer) {
-    Env env = readEnv();
+    const Env ENV = readEnv();
+
     CURL *curl;
     CURLcode res;
 
@@ -78,15 +78,15 @@ int connectToKi(char *buffer) {
         chunk.memory = malloc(1);
         chunk.size = 0;
 
-        curl_easy_setopt(curl, CURLOPT_URL, env.endpoint);
+        curl_easy_setopt(curl, CURLOPT_URL, ENV.endpoint);
 
         char postfields[1024];
         snprintf(postfields, sizeof(postfields),
-                 "{\"model\":\"%s\",\"prompt\":\"%s\"}", env.name, buffer);
+                 "{\"model\":\"%s\",\"prompt\":\"%s\"}", ENV.name, buffer);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields);
 
         // Use WriteMemoryCallback to store raw data
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 
         res = curl_easy_perform(curl);
