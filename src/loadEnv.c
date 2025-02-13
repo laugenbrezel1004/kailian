@@ -13,7 +13,7 @@ Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Env env = {"empty", "empty"}; // Initialize with empty strings
+    Env env = {"", ""}; // Initialize with empty strings
     FILE *fptr;
     char line[256];
     const char delim[] = "=";
