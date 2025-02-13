@@ -32,6 +32,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb) {
     }
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
     printf("%s", response->valuestring);
+    /*printf("Laurenz war hier:)");*/
     free(buffer); // Speicher freigeben
     fflush(stdout);
     return realsize;
