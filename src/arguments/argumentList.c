@@ -16,3 +16,5 @@ Model argument_model = {
 ShowEnironment argument_showEnvironment = {.name = "showEnvironment",
                                            .long_form = "--show-environment",
                                            .short_form = "-e"};
+ShowModels argument_showModels = {
+    .name = "showModels", .long_form = "--show-models", .short_form = "-s"};

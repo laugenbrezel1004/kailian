@@ -35,7 +35,14 @@ typedef struct {
 } ShowEnironment;
 
 
+typedef struct {
+    const char *name;
+    const char *long_form;
+    const char *short_form;
+} ShowModels;
+
 extern Help argument_help;
+extern ShowModels argument_showModels;
 extern Info argument_info;
 extern Model argument_model;
 extern ShowEnironment argument_showEnvironment;

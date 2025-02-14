@@ -154,6 +154,9 @@ int sendArgument(const char *argument) {
         if (strcmp(argument, argument_info.long_form) == 0) {
             curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
         }
+        if (strcmp(argument, argument_showModels.long_form) == 0) {
+            curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
+        }
         if (strcmp(argument, argument_model.long_form) == 0) {
             /*curl_easy_setopt(curl, CURLOPT_URL, ENV.model_endpoint);*/
             curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.0.7:11434/api/ps");

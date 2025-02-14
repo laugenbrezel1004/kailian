@@ -35,8 +35,12 @@ void showEnvironment(void) {
     }
 
     char buffer[100];
-    while (fgets(buffer, sizeof(buffer), ptr))
+    while (fgets(buffer, sizeof(buffer), ptr)) {
+        if (strncmp(buffer, "#", 1) == 0) {
+            continue;
+        }
         printf("%s", buffer);
+    }
 
     fclose(ptr);
 }

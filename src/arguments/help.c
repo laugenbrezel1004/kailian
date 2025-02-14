@@ -16,7 +16,8 @@ int help() {
     fprintf(stdout, "%s,\t%s\tshow the current environment settings\n",
             argument_showEnvironment.short_form,
             argument_showEnvironment.long_form);
-    fprintf(stdout, "--set-model=MODEL\t set te model which should run\n");
+    fprintf(stdout, "%s,\t%s\t\tshow the available models\n",
+            argument_showModels.short_form, argument_showModels.long_form);
 
     exit(0);
 
