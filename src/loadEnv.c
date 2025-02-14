@@ -6,9 +6,8 @@ typedef struct {
         char name[100];
         char endpoint[100];
         char info_endpoint[100];
-        char model_endpoint[100];
+        char running_model_endpoint[100];
         char ollama_version_endpoint[100];
-        char set_model[110];
 } Env;
 
 // prototype
@@ -18,7 +17,7 @@ Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Env env = {"", "", "", "", "", ""}; // Initialize with empty strings
+    Env env = {"", "", "", "", ""}; // Initialize with empty strings
     FILE *fptr;
     char line[256];
     const char delim[] = "=";
@@ -60,6 +59,14 @@ Env readEnv() {
                     strncpy(env.info_endpoint, token,
                             sizeof(env.info_endpoint) - 1);
                     env.info_endpoint[sizeof(env.info_endpoint) - 1] =
+                        '\0'; // Ensure null-termination
+                }
+            } else if (strcmp(token, "running_model_endpoint") == 0) {
+                token = strtok(NULL, delim);
+                if (token != NULL) {
+                    strncpy(env.running_model_endpoint, token,
+                            sizeof(env.info_endpoint) - 1);
+                    env.info_endpoint[sizeof(env.running_model_endpoint) - 1] =
                         '\0'; // Ensure null-termination
                 }
             }

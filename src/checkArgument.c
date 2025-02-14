@@ -14,7 +14,7 @@
 // In der C-Datei
 //
 //
-static int matchesArgument(const char *argument, const Blaupause *compare) {
+int matchesArgument(const char *argument, const Blaupause *compare) {
     return (strcmp(argument, compare->long_form) == 0 ||
             strcmp(argument, compare->short_form) == 0);
 }

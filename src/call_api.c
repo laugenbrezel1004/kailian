@@ -1,4 +1,5 @@
 #include "../include/arguments/argumentList.h"
+#include "../include/checkArgument.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
@@ -12,6 +13,7 @@ typedef struct {
         char *memory;
         size_t size;
 } MemoryStruct;
+int i = 0;
 
 // for debbuing curl
 /*static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,*/
@@ -53,23 +55,35 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
         return 0;
     }
 
-    cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
-    char *formatted_json = cJSON_Print(json);
-    fprintf(stdout, "%s\n", formatted_json);
-    /*if (response != NULL &&
-     * cJSON_IsString(response)) {*/
-    /*    fprintf(stdout, "%s",
-     * response->valuestring);*/
-    /*} else {*/
-    /*    fprintf(stderr, "kailian: error");*/
-    /*}*/
+    if (i) { // Use the global i variable
+        cJSON *models = cJSON_GetObjectItemCaseSensitive(json, "models");
+        if (cJSON_IsArray(models)) {
+            int modelCount = cJSON_GetArraySize(models);
+            for (int j = 0; j < modelCount; j++) {
+                cJSON *model = cJSON_GetArrayItem(models, j);
+                cJSON *name = cJSON_GetObjectItemCaseSensitive(model, "name");
+                if (cJSON_IsString(name) && (name->valuestring != NULL)) {
+                    fprintf(stdout, "Model Name: %s\n", name->valuestring);
+                }
+            }
+        } else {
+            fprintf(stderr, "No models array found or it's not an array\n");
+        }
+    } else {
+        char *jsonString = cJSON_Print(json);
+        if (jsonString) {
+            fprintf(stdout, "%s\n", jsonString); // print out info
+            free(jsonString);
+        } else {
+            fprintf(stderr, "Failed to print JSON\n");
+        }
+    }
 
     cJSON_Delete(json);
     free(buffer);
     fflush(stdout);
     return realsize;
 }
-
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
@@ -142,35 +156,36 @@ int connectToKi(char *buffer) {
 
     return 0;
 }
+
 int sendArgument(const char *argument) {
-
     const Env ENV = readEnv();
-
     CURL *curl;
     CURLcode res;
 
     curl = curl_easy_init();
     if (curl) {
-        if (strcmp(argument, argument_info.long_form) == 0) {
-            curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
+        const char *url = NULL;
+        if (strcmp(argument, argument_model.long_form) == 0) {
+            url = ENV.running_model_endpoint;
         }
         if (strcmp(argument, argument_showModels.long_form) == 0) {
-            curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
+            i = 1; // for sendArgumentWriteCallback to know that i want only the
+                   // model and not everything
+            url = ENV.info_endpoint;
         }
-        if (strcmp(argument, argument_model.long_form) == 0) {
-            /*curl_easy_setopt(curl, CURLOPT_URL, ENV.model_endpoint);*/
-            curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.0.7:11434/api/ps");
+        if (strcmp(argument, argument_info.long_form) == 0) {
+            url = ENV.info_endpoint;
         }
+        curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          sendArgumentWriteCallback);
-        res = curl_easy_perform(curl);
 
+        res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
                     curl_easy_strerror(res));
         }
+        curl_easy_cleanup(curl);
     }
-
-    curl_easy_cleanup(curl);
     exit(0);
 }

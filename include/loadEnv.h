@@ -7,9 +7,8 @@ typedef struct {
         char name[MAXSIZE];
         char endpoint[MAXSIZE];
         char info_endpoint[MAXSIZE];
-        char model_endpoint[MAXSIZE];
+        char running_model_endpoint[MAXSIZE];
         char ollama_version_endpoint[MAXSIZE];
-        char set_mdoel[MAXSIZE];
 } Env;
 
 
