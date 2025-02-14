@@ -169,6 +169,5 @@ int sendArgument(const char *argument) {
     }
 
     curl_easy_cleanup(curl);
-
-    return EXIT_SUCCESS;
+    exit(0);
 }

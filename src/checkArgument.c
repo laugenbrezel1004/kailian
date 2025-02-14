@@ -11,32 +11,24 @@
 #include "../include/arguments/help.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
+// In der C-Datei
+//
+//
+static int matchesArgument(const char *argument, const Blaupause *compare) {
+    return (strcmp(argument, compare->long_form) == 0 ||
+            strcmp(argument, compare->short_form) == 0);
+}
 
-/**/
-/*const char *HELP = "--help";*/
-/*const char *H = "-h";*/
-/*const char *VERSION = "--version";*/
-/*const char *V = "-v";*/
-/*const char *INFO = "--info";*/
-/*const char *I = "-i";*/
-/*const char *MODEL = "--model";*/
-/*const char *R = "-r";*/
-/*const char *SETMODEL = "--set-model";*/
-/**/
 void checkArgument(const char *argument) {
-    if (strcmp(argument, argument_help.long_form) == 0 ||
-        strcmp(argument, argument_help.short_form) == 0) {
+    if (matchesArgument(argument, (Blaupause *)&argument_help)) {
         help();
-    } /* else if (strcmp(argument, arguments[1].long_form) == 0 ||
-                strcmp(argument, arguments[1].short_form) == 0) {
-          version();};*/
-
-    else if (strcmp(argument, argument_info.long_form) == 0 ||
-             strcmp(argument, argument_info.short_form) == 0) {
+    } else if (matchesArgument(argument, (Blaupause *)&argument_info)) {
         sendArgument(argument_info.long_form);
-    } else if (strcmp(argument, argument_model.long_form) == 0 ||
-               strcmp(argument, argument_model.short_form) == 0) {
+    } else if (matchesArgument(argument, (Blaupause *)&argument_model)) {
         sendArgument(argument_model.long_form);
+    } else if (matchesArgument(argument,
+                               (Blaupause *)&argument_showEnvironment)) {
+        showEnvironment();
     } else {
         fprintf(stderr,
                 "kailian: Unknown argument\nTry 'kailian --help' for more "

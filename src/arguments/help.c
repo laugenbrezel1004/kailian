@@ -13,6 +13,9 @@ int help() {
             "%s,\t%s\t\t\tget running model info -> Ask a question if 'model' "
             "is empty\n",
             argument_model.short_form, argument_model.long_form);
+    fprintf(stdout, "%s,\t%s\tshow the current environment settings\n",
+            argument_showEnvironment.short_form,
+            argument_showEnvironment.long_form);
     fprintf(stdout, "--set-model=MODEL\t set te model which should run\n");
 
     exit(0);
