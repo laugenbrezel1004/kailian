@@ -3,8 +3,13 @@
 #include <stdlib.h>
 
 int help() {
-    fprintf(stdout,
-            "Usage: \n\tkailian [ARGUMENT]\n\tkailian [YOUR_QUESTION]\n\n\n");
+    fprintf(stdout, "Usage: \n\tkailian [ARGUMENT]\n\tkailian\n\tkailian "
+                    "[YOUR_QUESTION]\n\n\n");
+    fprintf(
+        stdout,
+        "%s\t\t\tJust call kailian without anything. He than looks up the last "
+        "shellcommand to provide you some feedback.\n",
+        argument_askError.name);
     fprintf(stdout, "%s,\t%s\t\t\tget the help side\n",
             argument_help.short_form, argument_help.long_form);
     fprintf(stdout, "%s,\t%s\t\t\tget generall infos\n",
@@ -18,6 +23,9 @@ int help() {
             argument_showEnvironment.long_form);
     fprintf(stdout, "%s,\t%s\t\tshow the available models\n",
             argument_showModels.short_form, argument_showModels.long_form);
+
+    fprintf(stdout, "\t%s\tchange current model(under construction)\n",
+            argument_changeModel.long_form);
 
     exit(0);
 

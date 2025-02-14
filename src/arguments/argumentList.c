@@ -18,3 +18,8 @@ ShowEnironment argument_showEnvironment = {.name = "showEnvironment",
                                            .short_form = "-e"};
 ShowModels argument_showModels = {
     .name = "showModels", .long_form = "--show-models", .short_form = "-s"};
+ChangeModel argument_changeModel = {.name = "changeModel",
+                                    .long_form = "--change-model=MODEL",
+                                    .short_form = NULL};
+AskError argument_askError = {
+    .name = "AskError", .long_form = NULL, .short_form = NULL};

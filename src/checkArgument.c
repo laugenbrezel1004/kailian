@@ -34,7 +34,7 @@ void checkArgument(const char *argument) {
     } else {
         fprintf(stderr,
                 "kailian: Unknown argument\nTry 'kailian --help' for more "
-                "information");
+                "information\n");
     }
     exit(0);
 }

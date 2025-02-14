@@ -17,7 +17,6 @@
 *.pch
 
 #env files
-.env
 
 # Libraries
 *.lib

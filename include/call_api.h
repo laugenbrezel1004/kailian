@@ -7,5 +7,6 @@
 void connectToKi(const char *buffer);
 void sendArgument(const char *buffer);
 
+
 #endif // API_H
 
