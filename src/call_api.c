@@ -1,3 +1,4 @@
+#include "../include/arguments/argumentList.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
@@ -132,9 +133,6 @@ int connectToKi(char *buffer) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
                     curl_easy_strerror(res));
         } else {
-            printf("Raw response stored in memory: %s\n", chunk.memory);
-
-            // Now process the stored data with WriteCallback
             connectToKiWriteCallback(chunk.memory, 1, chunk.size, NULL);
         }
 
@@ -153,10 +151,10 @@ int sendArgument(const char *argument) {
 
     curl = curl_easy_init();
     if (curl) {
-        if (strcmp(argument, "--info") == 0) {
+        if (strcmp(argument, argument_info.long_form) == 0) {
             curl_easy_setopt(curl, CURLOPT_URL, ENV.info_endpoint);
         }
-        if (strcmp(argument, "--model") == 0) {
+        if (strcmp(argument, argument_model.long_form) == 0) {
             /*curl_easy_setopt(curl, CURLOPT_URL, ENV.model_endpoint);*/
             curl_easy_setopt(curl, CURLOPT_URL, "http://10.0.0.7:11434/api/ps");
         }

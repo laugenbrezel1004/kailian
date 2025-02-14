@@ -8,6 +8,7 @@
 int main(int argc, char *argv[]) {
     if (argc >= 2) {
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
+            /*printf("Argument == %s\n", argv[1]);*/
             checkArgument(argv[1]);
         }
 

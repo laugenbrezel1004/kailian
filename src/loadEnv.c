@@ -8,6 +8,7 @@ typedef struct {
         char info_endpoint[100];
         char model_endpoint[100];
         char ollama_version_endpoint[100];
+        char set_model[110];
 } Env;
 
 // prototype
@@ -17,7 +18,7 @@ Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Env env = {"", "", "", "", ""}; // Initialize with empty strings
+    Env env = {"", "", "", "", "", ""}; // Initialize with empty strings
     FILE *fptr;
     char line[256];
     const char delim[] = "=";
@@ -69,7 +70,7 @@ Env readEnv() {
     return env;
 }
 
-static void removeSpaces(char *str) {
+void removeSpaces(char *str) {
     int count = 0; // Zähler für nicht-Leerzeichen
 
     // Durchlaufen des Strings
