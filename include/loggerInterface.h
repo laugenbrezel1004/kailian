@@ -1,11 +1,13 @@
+
+// logger.h
 #ifndef LOGGERINTERFACE_H
 #define LOGGERINTERFACE_H
 
+typedef struct Logger Logger;
 
-typedef struct {
-    void (*debugConsole)(const char *log_info);
-} Log;
+Logger* Logger_create(const char* filename);
+void Logger_destroy(Logger* logger);
+void Logger_log(Logger* logger, const char* message);
 
-Log initLogger();
-/*void debugConsole(const char *log_info);*/
-#endif // !LOGGERINTERFACE_H
+#endif
+

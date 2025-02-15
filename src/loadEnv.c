@@ -1,4 +1,3 @@
-#include "../include/loggerInterface.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +17,6 @@ Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Log logger = initLogger();
     Env env = {"", "", "", "", ""}; // Initialize with empty strings
     FILE *fptr;
     char line[256];
@@ -27,9 +25,8 @@ Env readEnv() {
 
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
-        logger.debugConsole(
-            "kailian: no such file or directory: .env \nThere should be an "
-            ".env file in the root of the kailian directory.");
+        /*LOG("kailian: no such file or directory: .env \nThere should be an "*/
+        /*".env file in the root of the kailian directory.");*/
         exit(1);
     }
 
