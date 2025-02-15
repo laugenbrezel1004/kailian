@@ -1,8 +1,10 @@
 #include "../include/arguments/argumentList.h"
 #include "../include/checkArgument.h"
 #include "../include/loadEnv.h"
+#include "../include/loggerInterface.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
+#include <curl/easy.h>
 #include <execinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,10 +40,11 @@ int i = 0;
 static size_t sendArgumentWriteCallback(void *contents, size_t size,
                                         size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
+    Log logger = initLogger();
     char *buffer = malloc(realsize + 1);
 
     if (buffer == NULL) {
-        fprintf(stderr, "Malloc failed\n");
+        logger.debugConsole("Malloc failed\n");
         return 0;
     }
 
@@ -50,7 +53,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
 
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
-        fprintf(stderr, "Error while parsing to json\n");
+        logger.debugConsole("Error while parsing to json\n");
         free(buffer);
         return 0;
     }
@@ -67,7 +70,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
                 }
             }
         } else {
-            fprintf(stderr, "No models array found or it's not an array\n");
+            logger.debugConsole("No models array found or it's not an array\n");
         }
     } else {
         char *jsonString = cJSON_Print(json);
@@ -75,7 +78,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
             fprintf(stdout, "%s\n", jsonString); // print out info
             free(jsonString);
         } else {
-            fprintf(stderr, "Failed to print JSON\n");
+            logger.debugConsole("Failed to print JSON\n");
         }
     }
 
@@ -87,10 +90,11 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
+    Log logger = initLogger();
     char *buffer = malloc(realsize + 1);
 
     if (buffer == NULL) {
-        fprintf(stderr, "Malloc failed\n");
+        logger.debugConsole("Malloc failed\n");
         return 0;
     }
 
@@ -99,7 +103,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
 
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
-        fprintf(stderr, "Error while parsing to json\n");
+        logger.debugConsole("Error while parsing to json\n");
         free(buffer);
         return 0;
     }
@@ -109,7 +113,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
     if (response != NULL && cJSON_IsString(response)) {
         fprintf(stdout, "%s", response->valuestring);
     } else {
-        fprintf(stderr, "kailian: error");
+        logger.debugConsole("kailian: error");
     }
 
     cJSON_Delete(json);
@@ -119,6 +123,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
 }
 
 int connectToKi(char *buffer) {
+    Log logger = initLogger();
     const Env ENV = readEnv();
 
     CURL *curl;
@@ -144,8 +149,8 @@ int connectToKi(char *buffer) {
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                    curl_easy_strerror(res));
+            logger.debugConsole("curl_easy_perform() has failed\n");
+            fprintf(stderr, "%s\n", curl_easy_strerror(res));
         } else {
             connectToKiWriteCallback(chunk.memory, 1, chunk.size, NULL);
         }
@@ -159,6 +164,7 @@ int connectToKi(char *buffer) {
 
 int sendArgument(const char *argument) {
     const Env ENV = readEnv();
+    Log logger = initLogger();
     CURL *curl;
     CURLcode res;
 
@@ -182,8 +188,8 @@ int sendArgument(const char *argument) {
 
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                    curl_easy_strerror(res));
+            logger.debugConsole("curl_easy_perform() has failed\n");
+            fprintf(stderr, "%s\n", curl_easy_strerror(res));
         }
         curl_easy_cleanup(curl);
     }

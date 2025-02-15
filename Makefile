@@ -9,7 +9,7 @@ LDFLAGS = -lcurl -lcjson
 # Compiler und Flags
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11
-LDFLAGS = -lcurl -lcjson -lreadline
+LDFLAGS = -lcurl -lcjson -lreadline -llogger
 
 # Build-Modus (Debug oder Release)
 BUILD_MODE ?= debug

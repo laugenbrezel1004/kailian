@@ -11,6 +11,7 @@
 #include "../include/arguments/help.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
+#include "../include/loggerInterface.h"
 // In der C-Datei
 //
 //
@@ -20,6 +21,7 @@ int matchesArgument(const char *argument, const Blaupause *compare) {
 }
 
 void checkArgument(const char *argument) {
+    Log logger = initLogger();
     if (matchesArgument(argument, (Blaupause *)&argument_help)) {
         help();
     } else if (matchesArgument(argument, (Blaupause *)&argument_info)) {
@@ -32,9 +34,9 @@ void checkArgument(const char *argument) {
     } else if (matchesArgument(argument, (Blaupause *)&argument_showModels)) {
         sendArgument(argument_showModels.long_form);
     } else {
-        fprintf(stderr,
-                "kailian: Unknown argument\nTry 'kailian --help' for more "
-                "information\n");
+        logger.debugConsole(
+            "kailian: Unknown argument\nTry 'kailian --help' for more "
+            "information\n");
     }
     exit(0);
 }

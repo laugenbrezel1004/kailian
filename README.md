@@ -4,6 +4,5 @@ cli api for ollama
 ## dependencies
 # lib
 cJSON
+c-logger
 
-# programms
-fc

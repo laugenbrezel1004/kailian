@@ -1,12 +1,15 @@
 #include "../include/askError.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
+#include "../include/loggerInterface.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
 
 int main(int argc, char *argv[]) {
+    Log logger = initLogger();
+
     if (argc >= 2) {
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
             /*printf("Argument == %s\n", argv[1]);*/
@@ -22,7 +25,7 @@ int main(int argc, char *argv[]) {
 
         buffer = realloc(buffer, strlength + 1); // +1 für Null-Terminator
         if (buffer == NULL) {
-            fprintf(stderr, "Error while allocating memory");
+            logger.debugConsole("Error while realloc()");
             return EXIT_FAILURE;
         }
 
@@ -41,8 +44,7 @@ int main(int argc, char *argv[]) {
         free(buffer);
         return EXIT_SUCCESS;
     }
-    ask_error();
-
+    logger.debugConsole("test");
     /*fprintf(stderr, "kailian: missing operand\nTry 'kailian --help' for more
      * "*/
     /*                "information\n");*/
