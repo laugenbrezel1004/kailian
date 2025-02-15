@@ -54,3 +54,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
+# personal
+tmp/

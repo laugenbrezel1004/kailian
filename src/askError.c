@@ -4,7 +4,7 @@
 #include <readline/readline.h>
 #include <stdlib.h>
 
-int main() {
+int ask_error() {
     char *input;
 
     // Initialize the history
