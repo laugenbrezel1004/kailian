@@ -31,9 +31,13 @@ void checkArgument(const char *argument) {
         showEnvironment();
     } else if (matchesArgument(argument, (Blaupause *)&argument_showModels)) {
         sendArgument(argument_showModels.long_form);
+    } else if (matchesArgument(argument,
+                               (Blaupause *)&argument_changeEnvironment)) {
+        changeEnvironment();
     } else {
-        /*LOG("kailian: Unknown argument\nTry 'kailian --help' for more "*/
-        /*"information\n");*/
+        fprintf(stderr,
+                "kailian: Unknown argument\nTry 'kailian --help' for more "
+                "information\n");
     }
     exit(0);
 }

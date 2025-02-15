@@ -14,7 +14,7 @@ typedef struct {
     const char *name;
     const char *long_form;
     const char *short_form;
-} ChangeModel;
+} ChangeEnvironment;
 
 typedef struct {
     const char *name;
@@ -54,7 +54,7 @@ typedef struct {
 } ShowModels;
 
 extern Help argument_help;
-extern ChangeModel argument_changeModel;
+extern ChangeEnvironment argument_changeEnvironment;
 extern ShowModels argument_showModels;
 extern Info argument_info;
 extern Model argument_model;

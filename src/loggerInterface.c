@@ -9,7 +9,6 @@ static void debugConsole(const char *log_info) {
     logger_setLevel(LogLevel_DEBUG);
     LOG_INFO(log_info);
 }
-
 // strukt implementieren
 Log initLogger() {
     Log logger = {.debugConsole = debugConsole};

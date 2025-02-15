@@ -1,7 +1,7 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-void changeEnvironment(const char *buffer);
+void changeEnvironment();
 void showEnvironment(void);
 
 #endif // SETENVIRONMENT_H

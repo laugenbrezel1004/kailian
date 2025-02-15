@@ -11,8 +11,8 @@
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 int main(int argc, char *argv[]) {
-    Log logger = initLogger();
-    logger.debugConsole("hi");
+    /*Log logger = initLogger();*/
+    /*logger.debugConsole("hi");*/
     if (argc >= 2) {
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
             /*printf("Argument == %s\n", argv[1]);*/

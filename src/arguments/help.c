@@ -24,8 +24,9 @@ int help() {
     fprintf(stdout, "%s,\t%s\t\tshow the available models\n",
             argument_showModels.short_form, argument_showModels.long_form);
 
-    fprintf(stdout, "\t%s\tchange current model(under construction)\n",
-            argument_changeModel.long_form);
+    fprintf(stdout, "%s,\t%s\tchange environmentsettings\n",
+            argument_changeEnvironment.short_form,
+            argument_changeEnvironment.long_form);
 
     exit(0);
 

@@ -10,6 +10,8 @@
 #include <string.h>
 #include <sys/types.h>
 
+#define MELDUNG(text)                                                          \
+    fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 typedef struct {
         char *memory;
         size_t size;
@@ -42,7 +44,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
     char *buffer = malloc(realsize + 1);
 
     if (buffer == NULL) {
-        /*LOG("Malloc failed\n");*/
+        fprintf(stderr, "Malloc failed\n");
         return 0;
     }
 
@@ -51,7 +53,8 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
 
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
-        /*LOG("Error while parsing to json\n");*/
+        fprintf(stderr, "Error while parsing to json\n");
+        MELDUNG("Error");
         free(buffer);
         return 0;
     }
@@ -68,7 +71,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
                 }
             }
         } else {
-            /*LOG("No models array found or it's not an array\n");*/
+            fprintf(stderr, "No models array found or it's not an array\n");
         }
     } else {
         char *jsonString = cJSON_Print(json);
@@ -76,7 +79,8 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
             fprintf(stdout, "%s\n", jsonString); // print out info
             free(jsonString);
         } else {
-            /*LOG("Failed to print JSON\n");*/
+            fprintf(stderr, "Failed to print JSON\n");
+            MELDUNG("Error");
         }
     }
 
@@ -91,7 +95,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
     char *buffer = malloc(realsize + 1);
 
     if (buffer == NULL) {
-        /*LOG("Malloc failed\n");*/
+        fprintf(stderr, "Malloc failed\n");
         return 0;
     }
 
@@ -100,7 +104,9 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
 
     cJSON *json = cJSON_Parse(buffer);
     if (json == NULL) {
-        /*LOG("Error while parsing to json\n");*/
+        // error because of EOF?
+        fprintf(stderr, "Error while parsing to json\n");
+        MELDUNG("Error");
         free(buffer);
         return 0;
     }
@@ -110,7 +116,8 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
     if (response != NULL && cJSON_IsString(response)) {
         fprintf(stdout, "%s", response->valuestring);
     } else {
-        /*LOG("kailian: error");*/
+        fprintf(stderr, "kailian: error");
+        MELDUNG("Error");
     }
 
     cJSON_Delete(json);
@@ -145,8 +152,8 @@ int connectToKi(char *buffer) {
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK) {
-            /*LOG("curl_easy_perform() has failed\n");*/
-            fprintf(stderr, "%s\n", curl_easy_strerror(res));
+            fprintf(stderr, "curl_easy_perform() has failed%s\n",
+                    curl_easy_strerror(res));
         } else {
             connectToKiWriteCallback(chunk.memory, 1, chunk.size, NULL);
         }
@@ -183,8 +190,8 @@ int sendArgument(const char *argument) {
 
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
-            /*LOG("curl_easy_perform() has failed\n");*/
-            fprintf(stderr, "%s\n", curl_easy_strerror(res));
+            fprintf(stderr, "curl_easy_perform() has failed %s\n",
+                    curl_easy_strerror(res));
         }
         curl_easy_cleanup(curl);
     }

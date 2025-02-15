@@ -10,7 +10,8 @@ typedef struct {
         char ollama_version_endpoint[100];
 } Env;
 
-// prototype
+#define MELDUNG(text)                                                          \
+    fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 // prototype
 Env readEnv();
@@ -25,8 +26,10 @@ Env readEnv() {
 
     fptr = fopen(".env", "r");
     if (fptr == NULL) {
-        /*LOG("kailian: no such file or directory: .env \nThere should be an "*/
-        /*".env file in the root of the kailian directory.");*/
+        fprintf(stderr,
+                "kailian: no such file or directory: .env \nThere should be an "
+                ".env file in the root of the kailian directory.");
+
         exit(1);
     }
 
