@@ -1,30 +1,17 @@
 
 // logger.c
 #include "../include/loggerInterface.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <logger.h>
+#include <loggerconf.h>
 
-struct Logger {
-        FILE *file;
-};
+static void debugConsole(const char *log_info) {
+    logger_initConsoleLogger(stderr);
+    logger_setLevel(LogLevel_DEBUG);
+    LOG_INFO(log_info);
+}
 
-Logger *Logger_create(const char *filename) {
-    Logger *logger = malloc(sizeof(Logger));
-    logger->file = fopen(filename, "a");
+// strukt implementieren
+Log initLogger() {
+    Log logger = {.debugConsole = debugConsole};
     return logger;
-}
-
-void Logger_destroy(Logger *logger) {
-    if (logger) {
-        fclose(logger->file);
-        free(logger);
-    }
-}
-
-void Logger_log(Logger *logger, const char *message) {
-    time_t now;
-    time(&now);
-    fprintf(logger->file, "[%s] %s\n", ctime(&now), message);
-    fflush(logger->file);
 }

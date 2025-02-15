@@ -1,6 +1,7 @@
 #include "../include/askError.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
+#include "../include/loggerInterface.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,8 +11,8 @@
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 int main(int argc, char *argv[]) {
-    /*LOG("Test");*/
-    MELDUNG("laurenz war hier");
+    Log logger = initLogger();
+    logger.debugConsole("hi");
     if (argc >= 2) {
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
             /*printf("Argument == %s\n", argv[1]);*/
