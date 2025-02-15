@@ -120,7 +120,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
         MELDUNG("Error");
     }
 
-    cJSON_Delete(json);
+    /*cJSON_Delete(json);*/
     free(buffer);
     fflush(stdout);
     return realsize;
