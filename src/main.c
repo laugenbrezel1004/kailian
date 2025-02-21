@@ -108,51 +108,11 @@ int main(int argc, char *argv[]) {
                     buffer,
                     " "); // Füge Leerzeichen hinzu, außer vor dem ersten Wort
             strcat(buffer, argv[i]);
-            /*printf("%s", argv[i]);*/
         }
 
-        /*printf("%s \n", buffer);*/
         connectToKi(buffer);
         free(buffer);
         return EXIT_SUCCESS;
     }
-    /*CURL *curl;*/
-    /*CURLcode res;*/
-    /**/
-    /*const char *filename = ".env";*/
-    /*char *file_content = read_file(filename);*/
-    /*if (!file_content) {*/
-    /*    printf("Fehler beim Lesen der Datei.\n");*/
-    /*    return 1;*/
-    /*}*/
-    /**/
-    /*char *json_body = create_json_body(file_content);*/
-    /*free(file_content);*/
-    /**/
-    /*curl = curl_easy_init();*/
-    /*if (curl) {*/
-    /*    struct curl_slist *headers = NULL;*/
-    /*    headers = curl_slist_append(headers, "Content-Type:
-     * application/json");*/
-    /**/
-    /*    curl_easy_setopt(curl, CURLOPT_URL,*/
-    /*                     "http://10.0.0.7:11434/api/generate");*/
-    /*    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_body);*/
-    /*    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);*/
-    /**/
-    /*    res = curl_easy_perform(curl);*/
-    /*    if (res != CURLE_OK)*/
-    /*        fprintf(stderr, "curl_easy_perform() failed: %s\n",*/
-    /*                curl_easy_strerror(res));*/
-    /**/
-    /*    curl_easy_cleanup(curl);*/
-    /*    curl_slist_free_all(headers);*/
-    /*}*/
-    /**/
-    /*free(json_body);*/
-    /*LOG("test");*/
-    /*fprintf(stderr, "kailian: missing operand\nTry 'kailian --help' for more
-     * "*/
-    /*                "information\n");*/
     return EXIT_SUCCESS;
 }

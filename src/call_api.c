@@ -19,24 +19,24 @@ typedef struct {
 int i = 0;
 
 // for debbuing curl
-/*static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,*/
-/*                                  void *userp) {*/
-/*    size_t realsize = size * nmemb;*/
-/*    MemoryStruct *mem = (MemoryStruct *)userp;*/
-/**/
-/*    char *ptr = realloc(mem->memory, mem->size + realsize + 1);*/
-/*    if (!ptr) {*/
-/*        fprintf(stderr, "realloc failed\n");*/
-/*        return 0;*/
-/*    }*/
-/**/
-/*    mem->memory = ptr;*/
-/*    memcpy(&(mem->memory[mem->size]), contents, realsize);*/
-/*    mem->size += realsize;*/
-/*    mem->memory[mem->size] = 0;*/
-/**/
-/*    return realsize;*/
-/*}*/
+static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
+                                  void *userp) {
+    size_t realsize = size * nmemb;
+    MemoryStruct *mem = (MemoryStruct *)userp;
+
+    char *ptr = realloc(mem->memory, mem->size + realsize + 1);
+    if (!ptr) {
+        fprintf(stderr, "realloc failed\n");
+        return 0;
+    }
+
+    mem->memory = ptr;
+    memcpy(&(mem->memory[mem->size]), contents, realsize);
+    mem->size += realsize;
+    mem->memory[mem->size] = 0;
+
+    return realsize;
+}
 
 static size_t sendArgumentWriteCallback(void *contents, size_t size,
                                         size_t nmemb, void *userp) {
@@ -89,6 +89,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
     fflush(stdout);
     return realsize;
 }
+
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
@@ -104,24 +105,25 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
 
     cJSON *json = cJSON_Parse(buffer);
 
-    if (json == NULL) {
-        // error because of EOF?
-        fprintf(stderr, "Error while parsing to json\n");
-        MELDUNG("Error");
-        free(buffer);
-        return 0;
-    }
-
+    /*if (json == NULL) {*/
+    /*    // error because of EOF?*/
+    /*    fprintf(stderr, "Error while parsing to json\n");*/
+    /*    MELDUNG("Error");*/
+    /*    free(buffer);*/
+    /*    return 0;*/
+    /*}*/
+    /**/
     cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
 
     if (response != NULL && cJSON_IsString(response)) {
         fprintf(stdout, "%s", response->valuestring);
-    } else {
-        fprintf(stderr, "kailian: error");
-        MELDUNG("Error");
     }
+    /*else {*/
+    /*      fprintf(stderr, "kailian: error");*/
+    /*      MELDUNG("Error");*/
+    /*  }*/
 
-    /*cJSON_Delete(json);*/
+    cJSON_Delete(json);
     free(buffer);
     fflush(stdout);
     return realsize;
@@ -155,10 +157,13 @@ int connectToKi(char *buffer) {
         if (res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() has failed%s\n",
                     curl_easy_strerror(res));
-        } else {
-            connectToKiWriteCallback(chunk.memory, 1, chunk.size, NULL);
         }
-
+        /*else {*/
+        /**/
+        /*connectToKiWriteCallback(chunk.memory, 1, chunk.size,
+         * NULL);*/
+        /*    }*/
+        printf("\n");
         free(chunk.memory);
         curl_easy_cleanup(curl);
     }
@@ -189,6 +194,7 @@ int sendArgument(const char *argument) {
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
                          sendArgumentWriteCallback);
 
+        /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);*/
         res = curl_easy_perform(curl);
         if (res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() has failed %s\n",
