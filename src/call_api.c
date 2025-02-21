@@ -103,6 +103,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
     buffer[realsize] = 0;
 
     cJSON *json = cJSON_Parse(buffer);
+
     if (json == NULL) {
         // error because of EOF?
         fprintf(stderr, "Error while parsing to json\n");

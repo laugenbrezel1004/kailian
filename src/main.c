@@ -82,8 +82,6 @@ char *create_json_body(const char *file_content) {
     return json_body;
 }
 int main(int argc, char *argv[]) {
-    /*Log logger = initLogger();*/
-    /*logger.debugConsole("hi");*/
     if (argc >= 2) {
         if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
             /*printf("Argument == %s\n", argv[1]);*/
@@ -156,5 +154,5 @@ int main(int argc, char *argv[]) {
     /*fprintf(stderr, "kailian: missing operand\nTry 'kailian --help' for more
      * "*/
     /*                "information\n");*/
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
 }
