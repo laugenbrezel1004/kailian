@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Send to API
-    connectToKi(buffer);
+    int result = connectToKi(buffer);
 
     free(buffer);
     return EXIT_SUCCESS;

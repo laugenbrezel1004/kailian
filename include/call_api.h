@@ -4,7 +4,7 @@
 
 
 // Deklaration der Funktion
-void connectToKi(const char *buffer);
+int connectToKi(const char *buffer);
 void sendArgument(const char *buffer);
 
 

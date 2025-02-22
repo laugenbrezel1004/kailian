@@ -154,7 +154,8 @@ int connectToKi(char *buffer) {
 
     // Build prompt
     const char *question = "What is the purpose of this command?";
-    size_t prompt_len = strlen(buffer) + strlen(question) + 32;
+    size_t prompt_len =
+        strlen(buffer) + strlen(question) + 64; // some extra space to be sure
     char *prompt = malloc(prompt_len);
     if (!prompt) {
         fprintf(stderr, "malloc failed for prompt\n");
