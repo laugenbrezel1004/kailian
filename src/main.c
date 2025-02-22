@@ -17,15 +17,17 @@
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "To few arguments!");
-        fprintf(stderr, "Usage: \n");
+        fprintf(stderr, "To few arguments!\n");
         help();
         return EXIT_FAILURE;
     }
 
-    if (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0) {
+    // to make sure that something is in argv[1]
+    if (argc == 2 &&
+        (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
         checkArgument(argv[1]);
     }
+
     // Calculate total length of arguments
     size_t strlength = 0;
     for (int i = 1; i < argc; i++) {
@@ -42,6 +44,7 @@ int main(int argc, char *argv[]) {
     char *buffer = malloc(strlength + 1); // +1 for null terminator
     if (!buffer) {
         MELDUNG("Failed to allocate memory for buffer");
+        free(buffer);
         return EXIT_FAILURE;
     }
     buffer[0] = '\0';
@@ -55,8 +58,16 @@ int main(int argc, char *argv[]) {
     }
 
     // Send to API
+
     int result = connectToKi(buffer);
+    if (result) {
+        fprintf(stderr, "Something went wrong!!!\n");
+        free(buffer);
+        return EXIT_FAILURE;
+    }
 
     free(buffer);
+
+    /*free(buffer);*/
     return EXIT_SUCCESS;
 }

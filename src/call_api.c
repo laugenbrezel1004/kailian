@@ -54,8 +54,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
     if (!json) {
         fprintf(stderr, "Error parsing JSON: %s\n", cJSON_GetErrorPtr());
         MELDUNG("JSON parsing failed");
-        free(buffer);
-        return 0;
+        return 1;
     }
 
     if (*showModels) { // Show only model names
@@ -84,142 +83,121 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
     }
 
     cJSON_Delete(json);
-    free(buffer);
     fflush(stdout);
     return realsize;
 }
 
 // Callback for connectToKi: extracts "response" from Ollama
+// Callback for curl: Extracts "response" from JSON or handles raw text
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    MemoryStruct *mem = (MemoryStruct *)userp;
+    /*MemoryStruct *mem = (MemoryStruct *)userp;*/
 
+    // Allocate temp buffer for received data
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
-        fprintf(stderr, "Malloc failed\n");
-        return 0;
+        fprintf(stderr, "Malloc failed in callback\n");
+        return 0; // Tell curl to abort
     }
     memcpy(buffer, contents, realsize);
-    buffer[realsize] = 0;
+    buffer[realsize] = '\0';
 
+    // Try parsing as JSON
     cJSON *json = cJSON_Parse(buffer);
     if (json) {
         cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
         if (response && cJSON_IsString(response)) {
-            size_t len = strlen(response->valuestring);
-            char *ptr = realloc(mem->memory, mem->size + len + 1);
-            if (!ptr) {
-                fprintf(stderr, "realloc failed\n");
-                cJSON_Delete(json);
-                free(buffer);
-                return 0;
-            }
-            mem->memory = ptr;
-            memcpy(&(mem->memory[mem->size]), response->valuestring, len);
-            mem->size += len;
-            mem->memory[mem->size] = 0;
+            // Print the response directly (or store if needed)
+            printf("%s", response->valuestring);
+            fflush(stdout);
+        } else {
+            fprintf(stderr, "JSON parsing succeeded but no valid 'response' "
+                            "string found\n");
+            printf("%s", buffer); // Fallback to raw buffer
+            fflush(stdout);
         }
         cJSON_Delete(json);
     } else {
-        // If parsing fails, treat as raw text (Ollama might not always send
-        // JSON)
-        char *ptr = realloc(mem->memory, mem->size + realsize + 1);
-        if (!ptr) {
-            fprintf(stderr, "realloc failed\n");
-            free(buffer);
-            return 0;
-        }
-        mem->memory = ptr;
-        memcpy(&(mem->memory[mem->size]), buffer, realsize);
-        mem->size += realsize;
-        mem->memory[mem->size] = 0;
+        // If not JSON, treat as raw text and print
+        printf("%s", buffer);
+        fflush(stdout);
     }
-
     free(buffer);
-    fflush(stdout);
-    return realsize;
+    return realsize; // Success: processed all bytes
 }
 
 int connectToKi(char *buffer) {
     const Env ENV = readEnv();
-    CURL *curl;
-    CURLcode res;
+    CURL *curl = NULL;
+    CURLcode res = CURLE_OK;
+    cJSON *root = NULL;
+    char *json_str = NULL;
+    char *postfield = NULL;
+    MemoryStruct chunk = {.memory = NULL, .size = 0};
 
+    // Initialize CURL
     curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl_easy_init failed\n");
         return 1;
     }
 
-    // Build prompt
-    const char *question = "What is the purpose of this command?";
-    size_t prompt_len =
-        strlen(buffer) + strlen(question) + 64; // some extra space to be sure
-    char *prompt = malloc(prompt_len);
-    if (!prompt) {
-        fprintf(stderr, "malloc failed for prompt\n");
-        curl_easy_cleanup(curl);
-        return 1;
-    }
-    snprintf(prompt, prompt_len, "Here is the content: %s\n\nQuestion: %s",
-             buffer, question);
+    // Build JSON payload
+    /*root = cJSON_CreateObject();*/
+    /*if (!root) {*/
+    /*    fprintf(stderr, "cJSON_CreateObject failed\n");*/
+    /*    goto cleanup;*/
+    /*}*/
+    /*cJSON_AddStringToObject(root, "prompt", buffer);*/
+    /**/
+    /*json_str = cJSON_PrintUnformatted(root);*/
+    /*if (!json_str) {*/
+    /*    fprintf(stderr, "cJSON_PrintUnformatted failed\n");*/
+    /*    goto cleanup;*/
+    /*}*/
 
-    // Create JSON payload
-    cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, "model", ENV.name);
-    cJSON_AddStringToObject(root, "prompt", prompt);
-    char *json_str = cJSON_PrintUnformatted(root);
-    if (!json_str) {
-        fprintf(stderr, "cJSON_PrintUnformatted failed\n");
-        free(prompt);
-        cJSON_Delete(root);
-        curl_easy_cleanup(curl);
-        return 1;
+    // Allocate postfield with precise size
+    size_t postfield_size =
+        strlen(ENV.name) + strlen(buffer) + 64; // Extra for JSON structure
+    postfield = malloc(postfield_size);
+    if (!postfield) {
+        fprintf(stderr, "malloc failed for postfield\n");
+        goto cleanup;
     }
-
-    // Set up curl
-    MemoryStruct chunk = {.memory = malloc(1), .size = 0};
-    if (!chunk.memory) {
-        fprintf(stderr, "malloc failed for chunk\n");
-        free(prompt);
-        free(json_str);
-        cJSON_Delete(root);
-        curl_easy_cleanup(curl);
-        return 1;
-    }
-    chunk.memory[0] = 0;
-
+    snprintf(postfield, postfield_size, "{\"model\":\"%s\",\"prompt\":\"%s\"}",
+             ENV.name, buffer);
+    printf("%s\n", postfield);
+    // Configure CURL options
     curl_easy_setopt(curl, CURLOPT_URL, ENV.endpoint);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
-
-    struct curl_slist *headers = NULL;
-    headers = curl_slist_append(headers, "Content-Type: application/json");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, connectToKiWriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfield);
+    curl_easy_setopt(
+        curl, CURLOPT_WRITEFUNCTION,
+        connectToKiWriteCallback); // which function to call whenever it
+                                   // receives data from the server
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA,
+                     &chunk); // Pass MemoryStruct to callback
 
     // Perform request
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform failed: %s\n",
                 curl_easy_strerror(res));
-    } else {
-        fprintf(stdout, "%s\n", chunk.memory); // Print the accumulated response
+        goto cleanup;
     }
 
-    // Cleanup
-    free(chunk.memory);
-    free(prompt);
+    // Success: Response already printed by callback
+    // Optionally, you could access chunk.memory here if storing instead of
+    // printing
+
+cleanup:
+    free(chunk.memory); // Free if allocated (though not used in this version)
+    free(postfield);
     free(json_str);
     cJSON_Delete(root);
-    curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
-
     return (res == CURLE_OK) ? 0 : 1;
 }
-
 int sendArgument(const char *argument) {
     const Env ENV = readEnv();
     CURL *curl;
