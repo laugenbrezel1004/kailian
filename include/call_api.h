@@ -4,7 +4,7 @@
 
 
 // Deklaration der Funktion
-int connectToKi(const char *buffer);
+int connectToKi(const char *promptBuffer, const char *fileBuffer);
 void sendArgument(const char *buffer);
 
 

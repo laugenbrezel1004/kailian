@@ -10,6 +10,9 @@ typedef struct {
     const char *short_form;
 } Blaupause;
 
+
+
+
 typedef struct {
     const char *name;
     const char *long_form;

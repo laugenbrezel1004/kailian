@@ -2,6 +2,7 @@
 #include "../include/checkArgument.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
+#include <cmark.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <stdio.h>
@@ -17,24 +18,39 @@ typedef struct {
 } MemoryStruct;
 
 // General-purpose callback to store response
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
-                                  void *userp) {
-    size_t realsize = size * nmemb;
-    MemoryStruct *mem = (MemoryStruct *)userp;
-
-    char *ptr = realloc(mem->memory, mem->size + realsize + 1);
-    if (!ptr) {
-        fprintf(stderr, "realloc failed\n");
-        return 0;
-    }
-
-    mem->memory = ptr;
-    memcpy(&(mem->memory[mem->size]), contents, realsize);
-    mem->size += realsize;
-    mem->memory[mem->size] = 0;
-
-    return realsize;
-}
+/*static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,*/
+/*                                  void *userp) {*/
+/*    size_t realsize = size * nmemb;*/
+/*    MemoryStruct *mem = (MemoryStruct *)userp;*/
+/**/
+/*    char *ptr = realloc(mem->memory, mem->size + realsize + 1);*/
+/*    if (!ptr) {*/
+/*        fprintf(stderr, "realloc failed\n");*/
+/*        return 0;*/
+/*    }*/
+/**/
+/*    mem->memory = ptr;*/
+/*    memcpy(&(mem->memory[mem->size]), contents, realsize);*/
+/*    mem->size += realsize;*/
+/*    mem->memory[mem->size] = 0;*/
+/*    char *markdown = mem->memory;*/
+/*    char *html = cmark_markdown_to_html(markdown, strlen(markdown), 0);*/
+/*    printf("html -> \n%s", html);*/
+/*    char *ptrhtml = html;*/
+/*    while (*ptrhtml) {*/
+/*        if (*ptrhtml == '<') {*/
+/*            while (*ptrhtml && *ptr != '>')*/
+/*                ptrhtml++; // Skip tags*/
+/*            ptrhtml++;*/
+/*        } else {*/
+/*            putchar(*ptrhtml++);*/
+/*        }*/
+/*    }*/
+/**/
+/*    free(html); // Free memory allocated by cmark*/
+/**/
+/*    return realsize;*/
+/*}*/
 
 // Callback for sendArgument: handles model listing or full info
 static size_t sendArgumentWriteCallback(void *contents, size_t size,
@@ -92,12 +108,12 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    /*MemoryStruct *mem = (MemoryStruct *)userp;*/
 
     // Allocate temp buffer for received data
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
         fprintf(stderr, "Malloc failed in callback\n");
+        MELDUNG("error");
         return 0; // Tell curl to abort
     }
     memcpy(buffer, contents, realsize);
@@ -112,8 +128,9 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
             printf("%s", response->valuestring);
             fflush(stdout);
         } else {
-            fprintf(stderr, "JSON parsing succeeded but no valid 'response' "
+            fprintf(stderr, "JSON parsing succeeded but no valid 'respons"
                             "string found\n");
+            MELDUNG("error");
             printf("%s", buffer); // Fallback to raw buffer
             fflush(stdout);
         }
@@ -127,7 +144,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
     return realsize; // Success: processed all bytes
 }
 
-int connectToKi(char *buffer) {
+int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     const Env ENV = readEnv();
     CURL *curl = NULL;
     CURLcode res = CURLE_OK;
@@ -140,49 +157,51 @@ int connectToKi(char *buffer) {
     curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl_easy_init failed\n");
+        MELDUNG("error");
         return 1;
     }
 
-    // Build JSON payload
-    /*root = cJSON_CreateObject();*/
-    /*if (!root) {*/
-    /*    fprintf(stderr, "cJSON_CreateObject failed\n");*/
-    /*    goto cleanup;*/
-    /*}*/
-    /*cJSON_AddStringToObject(root, "prompt", buffer);*/
-    /**/
-    /*json_str = cJSON_PrintUnformatted(root);*/
-    /*if (!json_str) {*/
-    /*    fprintf(stderr, "cJSON_PrintUnformatted failed\n");*/
-    /*    goto cleanup;*/
-    /*}*/
-
     // Allocate postfield with precise size
-    size_t postfield_size =
-        strlen(ENV.name) + strlen(buffer) + 64; // Extra for JSON structure
+    size_t postfield_size = strlen(ENV.name) + strlen(promptBuffer) +
+                            128; // Extra for JSON structure
     postfield = malloc(postfield_size);
     if (!postfield) {
         fprintf(stderr, "malloc failed for postfield\n");
+        MELDUNG("error");
         goto cleanup;
     }
-    snprintf(postfield, postfield_size, "{\"model\":\"%s\",\"prompt\":\"%s\"}",
-             ENV.name, buffer);
-    printf("%s\n", postfield);
+
+    // evtl noch gucken ob fileBuffer valid json ist
+    printf("FileBuffer -> %s\n", fileBuffer);
+    if (fileBuffer != NULL) {
+        snprintf(postfield, postfield_size,
+                 "{\"model\":\"%s\",\"prompt\":\"%s %s\"}", ENV.name,
+                 promptBuffer, fileBuffer);
+    } else {
+
+        snprintf(postfield, postfield_size,
+                 "{\"model\":\"%s\",\"prompt\":\"%s\"}", ENV.name,
+                 promptBuffer);
+    }
+    printf("Hole Prompt -> %s\n", postfield);
+    /*printf("%s\n", postfield);*/
     // Configure CURL options
     curl_easy_setopt(curl, CURLOPT_URL, ENV.endpoint);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfield);
     curl_easy_setopt(
         curl, CURLOPT_WRITEFUNCTION,
         connectToKiWriteCallback); // which function to call whenever it
-                                   // receives data from the server
+    // receives data from the server
     curl_easy_setopt(curl, CURLOPT_WRITEDATA,
                      &chunk); // Pass MemoryStruct to callback
 
     // Perform request
     res = curl_easy_perform(curl);
+    printf("\n");
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform failed: %s\n",
                 curl_easy_strerror(res));
+        MELDUNG("error");
         goto cleanup;
     }
 

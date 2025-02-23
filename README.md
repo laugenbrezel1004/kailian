@@ -5,4 +5,5 @@
 # some dependencies
 cJSON
 c-logger
+cmark
 

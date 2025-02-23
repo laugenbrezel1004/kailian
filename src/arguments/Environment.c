@@ -30,8 +30,8 @@ void changeEnvironment() {
     FILE *fTemp;
 
     char buffer[BUFFER_SIZE];
-    char newline[BUFFER_SIZE];
-    int line, count;
+    /*char newline[BUFFER_SIZE];*/
+    /*int line, count;*/
 
     /*  Open all required files */
     fPtr = fopen(".env", "r");
