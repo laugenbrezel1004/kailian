@@ -39,5 +39,4 @@ void checkArgument(const char *argument) {
                 "kailian: Unknown argument\nTry 'kailian --help' for more "
                 "information\n");
     }
-    exit(0);
 }

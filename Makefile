@@ -1,11 +1,3 @@
-
-# Compiler und Flags
-CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c11
-LDFLAGS = -lcurl -lcjson
-
-
-
 # Compiler und Flags
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11
@@ -17,9 +9,13 @@ BUILD_MODE ?= debug
 ifeq ($(BUILD_MODE), debug)
     CFLAGS += -g
     BUILD_DIR = build/debug
+    INSTALL_DIR = bin
+    CONF_DIR = etc/kailian
 else ifeq ($(BUILD_MODE), release)
     CFLAGS += -O2
     BUILD_DIR = build/release
+    INSTALL_DIR = /bin
+    CONF_DIR = /etc/kailian
 else
     $(error Unbekannter BUILD_MODE: $(BUILD_MODE). Verwenden Sie 'debug' oder 'release'.)
 endif
@@ -30,7 +26,9 @@ INCLUDE_DIR = include
 BIN_DIR = bin
 
 # Ziel-Binärdatei
-TARGET = $(BIN_DIR)/kailian
+TARGET = $(INSTALL_DIR)/kailian
+CONF_FILE = kailian.conf
+CONF_TARGET = $(CONF_DIR)/$(CONF_FILE)
 
 # Automatische Erkennung der Quell- und Header-Dateien
 SRC_FILES := $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/arguments/*.c)
@@ -41,11 +39,20 @@ OBJ_FILES += $(patsubst $(SRC_DIR)/arguments/%.c,$(BUILD_DIR)/arguments/%.o,$(wi
 # Standardziel
 all: $(TARGET)
 
+# Installation im Release-Modus (inkl. Konfigurationsdatei)
+install: $(TARGET) $(CONF_TARGET)
+
 # Kompilieren der Haupt-Binärdatei
 $(TARGET): $(OBJ_FILES)
 	echo "Linking: $@"
-	mkdir -p $(BIN_DIR)
+	mkdir -p $(INSTALL_DIR)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+
+# Kopieren der Konfigurationsdatei
+$(CONF_TARGET): $(CONF_FILE)
+	echo "Installing config: $@"
+	mkdir -p $(CONF_DIR)
+	cp $(CONF_FILE) $(CONF_TARGET)
 
 # Kompilieren einzelner Objektdateien
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
@@ -63,10 +70,15 @@ $(BUILD_DIR):
 $(BUILD_DIR)/arguments:
 	mkdir -p $(BUILD_DIR)/arguments
 
-# Bereinigen des Projekts (alle Build-Artefakte entfernen)
+# Bereinigen des Projekts
 clean:
 	echo "Cleaning build files..."
-	rm -rf build bin
+	rm -rf build $(BIN_DIR)
+ifeq ($(BUILD_MODE), release)
+	echo "Removing installed files..."
+	rm -f $(TARGET)
+	rm -f $(CONF_TARGET)
+endif
 
 # Bereinigen und neu bauen
 rebuild: clean all
@@ -77,8 +89,8 @@ debug:
 
 # Hilfsziel für Release-Builds
 release:
-	$(MAKE) BUILD_MODE=release
+	$(MAKE) BUILD_MODE=release clean install
 
 # Phony-Ziele
-.PHONY: all clean rebuild debug release
+.PHONY: all clean rebuild debug release install
 

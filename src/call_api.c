@@ -133,8 +133,8 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
 }
 
 int connectToKi(const char *promptBuffer, const char *fileBuffer) {
-    CURL *curl = NULL;
     const Env ENV = readEnv();
+    CURL *curl = NULL;
     CURLcode res = CURLE_OK;
     cJSON *root = cJSON_CreateObject();
     char *json_str = NULL;
@@ -147,24 +147,21 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
 
     cJSON_AddStringToObject(root, "model", ENV.name);
 
+    // Combine prompt and fileBuffer with a newline separator
     char *full_prompt = NULL;
+    size_t prompt_len = strlen(promptBuffer) + 1; // Prompt + null
+    if (fileBuffer)
+        prompt_len += strlen(fileBuffer) + 1; // Space + fileBuffer
+    full_prompt = malloc(prompt_len);
+    if (!full_prompt) {
+        fprintf(stderr, "malloc failed for full_prompt\n");
+        cJSON_Delete(root);
+        return 1;
+    }
     if (fileBuffer) {
-        size_t prompt_len =
-            strlen(promptBuffer) + strlen(fileBuffer) + 2; // Space + null
-        full_prompt = malloc(prompt_len);
-        if (!full_prompt) {
-            fprintf(stderr, "malloc failed for full_prompt\n");
-            cJSON_Delete(root);
-            return 1;
-        }
-        snprintf(full_prompt, prompt_len, "%s %s", promptBuffer, fileBuffer);
+        snprintf(full_prompt, prompt_len, "%s\n%s", promptBuffer, fileBuffer);
     } else {
-        full_prompt = strdup(promptBuffer);
-        if (!full_prompt) {
-            fprintf(stderr, "strdup failed for promptBuffer\n");
-            cJSON_Delete(root);
-            return 1;
-        }
+        strcpy(full_prompt, promptBuffer);
     }
 
     cJSON_AddStringToObject(root, "prompt", full_prompt);

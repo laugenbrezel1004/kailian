@@ -24,11 +24,11 @@ Env readEnv() {
     const char delim[] = "=";
     char *token;
 
-    fptr = fopen(".env", "r");
+    fptr = fopen("/etc/kailian/kailian.conf", "r");
     if (fptr == NULL) {
-        fprintf(stderr,
-                "kailian: no such file or directory: .env \nThere should be an "
-                ".env file in the root of the kailian directory.");
+        fprintf(
+            stderr,
+            "kailian: no such file or directory: /etc/kailian/kailian.conf \n");
 
         exit(1);
     }
