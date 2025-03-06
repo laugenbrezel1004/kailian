@@ -2,168 +2,128 @@
 
 "kailian" is a command-line interface (CLI) written in C that provides an API for interacting with ollama via the cli. Ollama is a popular open-source tool for running large language models (LLMs) locally on your machine. 
 
-
-
 # Kailian Project
 
-This repository contains the source code for the Kailian application. It is written in C and requires some prerequisites to build. The Makefile provided automates the build process, including compilation, installation
-, and cleaning.
+A C-based project that utilizes cURL and cJSON libraries for HTTP requests and JSON handling.
 
-## Table of Contents
-1. [Prerequisites](#prerequisites)
-2. [Installation](#installation)
-3. [Building the Project](#building-the-project)
-4. [Using the Application](#using-the-application)
-5. [Troubleshooting](#troubleshooting)
+## Features
 
----
+- **Modular Build System**: Supports both Debug and Release builds with automatic configuration based on `BUILD_MODE`.
+- **Dependency Management**: Handles external libraries (cURL, cJSON) through linker flags.
+- **Configuration Handling**: Includes a configuration file (`kailian.conf`) that can be installed to system or user directories based on bui
+ld mode.
+- **Clean Build Process**: Uses Make targets for building, installing, cleaning, and uninstalling.
 
 ## Prerequisites
 
-Before building the project, ensure you have the following installed:
+### Dependencies
+- GCC compiler
+- cURL library
+- cJSON library
+- liblogger (for logging functionality)
 
-- **C Compiler (GCC)**
-- **Make工具**
-- **cURL Development Libraries**: `libcurl-dev` or similar package for your OS
-- **JSON Development Libraries**: `libcjson-dev` or similar package for your OS
-- **Logger Library**: Ensure you have the logger library installed
+### Installation Steps
 
-On Ubuntu/Debian, install these dependencies using:
-
+1. Clone the repository:
 ```bash
-sudo apt-get update && sudo apt-get install gcc make libcurl-dev libcjson-dev
+git clone https://github.com/yourusername/kailian.git
+cd kailian
 ```
 
----
-
-## Installation
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/yourusername/kailian.git
-   cd kailian
-   ```
-
-2. Build the project by running:
-   ```bash
-   make all
-   ```
-
-3. Install the built files (for release mode):
-   ```bash
-   make install
-   ```
-
----
-
-## Building the Project
-
-The Makefile provides several targets to manage the build process:
-
-### Targets
-
-- `make all`: Compiles the project in the specified build mode (debug by default).
-- `make debug`: Builds the project in debug mode with debugging symbols.
-- `make release`: Builds the project in release mode and installs it.
-- `make install`: Installs the built files in the target directory.
-- `make clean`: Removes all generated files, including object files and build directories.
-- `make rebuild`: Cleans and rebuilds the project.
-
-### Build Modes
-
-The project supports two build modes:
-
-1. **Debug Mode**:
-   - Enables debugging symbols.
-   - Places the output in `build/debug`.
-   - Uses a development-friendly configuration directory (`etc/kailian`).
-
-2. **Release Mode**:
-   - Optimizes the code for performance.
-   - Places the output in `/bin`.
-   - Uses a system-wide configuration directory (`/etc/kailian`).
-
-To switch between modes, use:
-
+2. Install dependencies if needed:
 ```bash
-make BUILD_MODE=debug  # Forces debug mode
-make BUILD_MODE=release # Forces release mode
+sudo apt-get install gcc curl libcurl-dev libcjson-dev
 ```
 
----
-
-## Using the Application
-
-### Overview
-
-Kailian is a command-line application that provides functionality to interact with various services. It reads configuration from `kailian.conf` by default.
-
-### Configuration File
-
-The application expects a configuration file named `kailian.conf` in the directory:
-
-- Debug Mode: `etc/kailian/`
-- Release Mode: `/etc/kailian/`
-
-Example configuration file:
-
+3. Build and install in Debug mode:
 ```bash
-# Sample kailian.conf
-OPTION1=value1
-OPTION2=value2
+make debug
 ```
 
-### Usage
-
-After building and installing, you can run the application as follows:
-
-#### In Debug Mode:
+Or build and install in Release mode (recommended for production):
 ```bash
-./bin/kailian --config etc/kailian/kailian.conf
+make release
 ```
 
-#### In Release Mode:
+## Usage
+
+### Building the Project
+
+- To build without installing:
 ```bash
-kailian --config /etc/kailian/kailian.conf
+make all
 ```
 
-### Command-Line Arguments
-
-The application supports basic command-line arguments, which are documented in the source code. Use `-h` or `--help` to view available options:
-
+- To rebuild from scratch:
 ```bash
-kailian -h
+make clean && make all
 ```
 
----
+### Installing the Project
 
-## Troubleshooting
+- Install to default directories (/usr/local/bin, /etc/kailian) in Release mode:
+```bash
+make install
+```
 
-### Common Issues
+- Install in Debug mode (installs to local bin directory):
+```bash
+make debug install
+```
 
-1. **Missing Dependencies**:
-   Ensure all required libraries (cURL, cJSON, logger) are installed.
+### Running the Project
 
-2. **Permission Denied During Installation**:
-   Run the Makefile with superuser privileges:
-   ```bash
-   sudo make install
-   ```
+Run the compiled binary from its installation location. For example, in Debug mode:
+```bash
+./bin/kailian
+```
 
-3. **Build Errors**:
-   Check the error messages for missing files or compilation issues.
-   If you encounter library-related errors, verify the installation of dependencies.
+In Release mode:
+```bash
+/usr/local/bin/kailian
+```
 
-### Reporting Issues
+## Configuration File
 
-If you encounter any bugs or issues, please open an issue on the [GitHub Issue Tracker](https://github.com/yourusername/kailian/issues).
+The project includes a configuration file (`kailian.conf`) that needs to be installed alongside the binary.
 
----
+- In Debug mode:
+```bash
+cp kailian.conf bin/etc/kailian/
+```
 
-## Acknowledgments
+- In Release mode:
+```bash
+sudo cp kailian.conf /etc/kailian/
+```
 
-- Thanks to the maintainers of cURL and cJSON for their excellent libraries.
-- Special thanks to the contributors who helped improve this project.
+## Build Targets
 
---- 
+Here are some of the key Make targets you might find useful:
+
+| Target      | Description |
+|-------------|-------------|
+| `all`       | Compiles the project without installing. |
+| `install`   | Installs the compiled binary and configuration file to target directories based on BUILD_MODE. |
+| `clean`     | Removes all build artifacts. |
+| `rebuild`   | Cleans and rebuilds everything from scratch. |
+| `debug`     | Switches to Debug mode and runs `make all`. |
+| `release`   | Switches to Release mode, cleans, builds, and installs the project. |
+| `uninstall` | Uninstalls the previously installed binary and configuration file. |
+
+## Development
+
+### Contributing
+
+- Fork the repository.
+- Create a feature branch.
+- Commit your changes with clear commit messages.
+- Push to the branch and create a Pull Request.
+
+### Testing
+
+The project should include unit tests for better reliability. You can run tests using:
+```bash
+make test
+```
 
