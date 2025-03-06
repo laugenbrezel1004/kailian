@@ -53,6 +53,7 @@ Command    | What It Does
 `--info`     | Get some basic info about me
 `--show-environment`     | Peek into the kailian.conf file
 `cat error.log`\| kailian "Fix this!"| :) 
+`man yes`\| kailian Explain me this command| Yes!
 
 ## Configuration
 
@@ -104,7 +105,7 @@ Kailian tidies up your thoughts.
 
 ## Troubleshooting
 
-“Config’s gone!”: Check `/etc/kailian/kailian.conf` (release) or `./kailian.conf` (debug). Make one if it’s lost.
+“Config’s gone!”: Check `/etc/kailian/kailian.conf`. Make one if it’s lost.
 
 “Ollama’s napping!”: Ping it: `curl http://localhost:11434`. Wake it up if it’s snoozing.
 
