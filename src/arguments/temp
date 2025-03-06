@@ -63,7 +63,7 @@ sudo apt install gcc make git libcurl4-openssl-dev libcjson-dev
 1. **Clone the repository:**
 
  ```bash
- git clone https://github.com/YOUR_USERNAME/kailian.git 
+ git clone https://github.com/laugenbrezel1004/kailian.git 
  cd kailian 
  ```
 
