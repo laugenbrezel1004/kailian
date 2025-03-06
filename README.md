@@ -36,14 +36,10 @@ $ make BUILD_MODE=release     # Build in release mode (optimized)
 The final compiled binary is named `kailian`.
 
 ## Build Commands
-By default, running `make` will compile the project for a debug build and create the 
-binary file `bin/kailian`. If you want to create the release build, use `make BUILD_M
-ODE=release`. To install the compiled binary in the appropriate system directory (for
- release builds only), run `make install`.
+By default, running `make` will compile the project for a debug build and create the binary file `bin/kailian`. If you want to create the release build, use `make release`. To install the compiled binary in the appropriate system directory (for release builds only), run `make install`.
 
-If you wish to clean the build files or rebuild the project from scratch, use `make c
-lean` or `make rebuild`, respectively. To specifically build for debug or release mod
-e without building anything else, use `make debug` or `make release`, respectively.
+
+If you wish to clean the build files or rebuild the project from scratch, use `make clean` or `make rebuild`, respectively. To specifically build for debug or release mode without building anything else, use `make debug` or `make release`, respectively.
 
 ## Notes
 - The Makefile uses wildcards and pattern rules to automatically detect source files 
