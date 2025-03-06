@@ -52,7 +52,7 @@ Command    | What It Does
 `--help`     | If you're lost and need directions to fun town
 `--info`     | Get some basic info about me
 `--show-environment`     | Peek into the kailian.conf file
-`cat error.log`| kailian "Fix this!", but I'm learning, so bear with me!!"
+`cat error.log`\| kailian "Fix this!"| :) 
 
 ## Configuration
 
@@ -77,28 +77,30 @@ Hack It: Change the system prompt to make the AI chatty, curt, or downright sarc
 Ask Something Smart:
 ```bash
 kailian "How do I kill a zombie process?"
-Output: kill -9 <pid> (AI: "It’s dead now. Next!")
 ```
 Check the Model:
 ```bash
 kailian --model
-See what’s powering the magic.
 ```
+See what’s powering the magic.
+
 Model Lineup:
 ```bash
 kailian --show-models
-Meet the AI crew.
 ```
+Meet the AI crew.
+
 Coffee Time:
 ```bash
 kailian --coffee
-Sip virtually while you debug.
 ```
+Sip virtually while you debug.
+
 Pipe Dreams:
 ```bash
 tree | kailian "Summarize this directory mess"
-Kailian tidies up your thoughts.
 ```
+Kailian tidies up your thoughts.
 
 ## Troubleshooting
 
