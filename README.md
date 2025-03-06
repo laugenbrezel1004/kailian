@@ -1,7 +1,7 @@
 
 # Kailian
 
-**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by Ollama  (https://ollama.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—all from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `liblogger` to handle HTTP requests, JSON parsing, and logging.
+**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by Ollama  (https://ollama.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—all from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `llogger` to handle HTTP requests, JSON parsing, and logging.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -38,12 +38,12 @@ The project uses a Makefile for building in debug or release modes and is design
 
 To build and run Kailian, you need:
 
-- **Operating System**: Linux (e.g., Ubuntu 22.04)
+- **Operating System**: Linux (e.g., Gentoo)
 - **Compiler**: GCC (version 7.5 or later)
 - **Libraries**:
   - `libcurl` (for HTTP requests to Ollama)
   - `cJSON` (for JSON parsing)
-  - `liblogger` (for logging, optional depending on setup)
+  - `lloger` (for logging, optional depending on setup)
 - **Ollama**: Installed and running locally on `http://localhost:11434`
 - **Tools**: `make`, `git`
 
@@ -54,7 +54,7 @@ On Ubuntu/Debian:
 sudo apt update
 sudo apt install gcc make git libcurl4-openssl-dev libcjson-dev 
 ```
-**Note:** `liblogger` might not be available in default repositories. You may need to find and install it separately.
+**Note:** `lloger` might not be available in default repositories. You may need to find and install it separately.
 
 ## Installation
 
