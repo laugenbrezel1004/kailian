@@ -1,9 +1,7 @@
+
 # Kailian
 
-**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by [Ollama](https://olla
-ma.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—a
-ll from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `liblogger` to hand
-le HTTP requests, JSON parsing, and logging.
+**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by Ollama  (https://ollama.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—all from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `liblogger` to handle HTTP requests, JSON parsing, and logging.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -120,6 +118,46 @@ system="You are a linux admin who answers correctly and without markdown" ; Syst
 ```
 
 
+
+## Examples
+
+- **Ask a Question:**
+ ```bash
+ kailian "How do I list all running processes on Linux?"
+ ```
+
+- **Show Running Model:**
+ ```bash
+ kailian --model 
+ ```
+
+- **List Available Models:**
+
+ ```bash
+ kailian --show-models 
+ ```
+
+- **Coffee Animation:**
+ ```bash
+ kailian --coffee
+ ```
+
+- **Piped Input:**
+
+ ```bash
+ tree | kailian "Summarize this directory structure"
+ ```
+
+
+
+## Troubleshooting
+
+- **"No such file or directory: /etc/kailian/kailian.conf"**: Ensure the configuration file exists and is correctly formatted. For debug buil
+ds, place it in the current directory.
+- **Connection Errors:** Verify that Ollama is running on `http://localhost:11434` (use `curl http://localhost:11434`).
+
+- **Build Failures**: Confirm all dependencies are installed (`libcurl`, `cJSON`, etc.). Check `LDFLAGS` in the Makefile if linking fails.
+- **Permission Denied**: Use `sudo` for release builds to install to `/usr/local/bin` and `/etc/kailian`.
 
 ## Examples
 
