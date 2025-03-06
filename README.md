@@ -4,46 +4,166 @@
 
 
 
+# Kailian Project
 
- # Kailian Project Makefile
+This repository contains the source code for the Kailian application. It is written in C and requires some prerequisites to build. The Makefile provided automates the build process, including compilation, installation
+, and cleaning.
 
-This project uses a Makefile to build and manage its source files. Here's how to use 
-the provided Makefile to compile and run this project:
+## Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Installation](#installation)
+3. [Building the Project](#building-the-project)
+4. [Using the Application](#using-the-application)
+5. [Troubleshooting](#troubleshooting)
 
-## Compiler and Flags
-- The default compiler is `gcc`.
-- The C flags used are `-Wall -Wextra -pedantic -std=c11` for better code quality.
-- Additional libraries `-lcurl`, `-lcjson`, and `-llogger` are linked.
-- To build in debug mode, use `-g` flag for debugging information. In release mode, u
-se the `-O2` flag for optimized performance.
+---
 
-## Build Modes (Debug or Release)
-You can choose to build either in **debug** or **release** mode by specifying the app
-ropriate BUILD_MODE variable before running make commands:
+## Prerequisites
 
-```sh
-$ make BUILD_MODE=debug        # Build in debug mode
-$ make BUILD_MODE=release     # Build in release mode (optimized)
+Before building the project, ensure you have the following installed:
+
+- **C Compiler (GCC)**
+- **Make工具**
+- **cURL Development Libraries**: `libcurl-dev` or similar package for your OS
+- **JSON Development Libraries**: `libcjson-dev` or similar package for your OS
+- **Logger Library**: Ensure you have the logger library installed
+
+On Ubuntu/Debian, install these dependencies using:
+
+```bash
+sudo apt-get update && sudo apt-get install gcc make libcurl-dev libcjson-dev
 ```
 
-## Directories and Files
-- Source files are located in the `src` directory.
-- Header files are found in the `include` directory.
-- The compiled binary is placed in the `bin` directory for debug builds or system directories for release builds (`/bin` and `/etc/kailian`).
-- Configuration files are stored in the `etc/kailian` directory during a release build, and in the project root for debug builds.
+---
 
-## Target
-The final compiled binary is named `kailian`.
+## Installation
 
-## Build Commands
-By default, running `make` will compile the project for a debug build and create the binary file `bin/kailian`. If you want to create the release build, use `make release`. To install the compiled binary in the appropriate system directory (for release builds only), run `make install`.
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yourusername/kailian.git
+   cd kailian
+   ```
 
+2. Build the project by running:
+   ```bash
+   make all
+   ```
 
-If you wish to clean the build files or rebuild the project from scratch, use `make clean` or `make rebuild`, respectively. To specifically build for debug or release mode without building anything else, use `make debug` or `make release`, respectively.
+3. Install the built files (for release mode):
+   ```bash
+   make install
+   ```
 
-## Notes
-- The Makefile uses wildcards and pattern rules to automatically detect source files 
-during the build process.
-- The project will fail if an unrecognized BUILD_MODE is specified (e.g., using `make
- BUILD_MODE=unknown`). Use either `debug` or `release`.
+---
+
+## Building the Project
+
+The Makefile provides several targets to manage the build process:
+
+### Targets
+
+- `make all`: Compiles the project in the specified build mode (debug by default).
+- `make debug`: Builds the project in debug mode with debugging symbols.
+- `make release`: Builds the project in release mode and installs it.
+- `make install`: Installs the built files in the target directory.
+- `make clean`: Removes all generated files, including object files and build directories.
+- `make rebuild`: Cleans and rebuilds the project.
+
+### Build Modes
+
+The project supports two build modes:
+
+1. **Debug Mode**:
+   - Enables debugging symbols.
+   - Places the output in `build/debug`.
+   - Uses a development-friendly configuration directory (`etc/kailian`).
+
+2. **Release Mode**:
+   - Optimizes the code for performance.
+   - Places the output in `/bin`.
+   - Uses a system-wide configuration directory (`/etc/kailian`).
+
+To switch between modes, use:
+
+```bash
+make BUILD_MODE=debug  # Forces debug mode
+make BUILD_MODE=release # Forces release mode
+```
+
+---
+
+## Using the Application
+
+### Overview
+
+Kailian is a command-line application that provides functionality to interact with various services. It reads configuration from `kailian.conf` by default.
+
+### Configuration File
+
+The application expects a configuration file named `kailian.conf` in the directory:
+
+- Debug Mode: `etc/kailian/`
+- Release Mode: `/etc/kailian/`
+
+Example configuration file:
+
+```bash
+# Sample kailian.conf
+OPTION1=value1
+OPTION2=value2
+```
+
+### Usage
+
+After building and installing, you can run the application as follows:
+
+#### In Debug Mode:
+```bash
+./bin/kailian --config etc/kailian/kailian.conf
+```
+
+#### In Release Mode:
+```bash
+kailian --config /etc/kailian/kailian.conf
+```
+
+### Command-Line Arguments
+
+The application supports basic command-line arguments, which are documented in the source code. Use `-h` or `--help` to view available options:
+
+```bash
+kailian -h
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Missing Dependencies**:
+   Ensure all required libraries (cURL, cJSON, logger) are installed.
+
+2. **Permission Denied During Installation**:
+   Run the Makefile with superuser privileges:
+   ```bash
+   sudo make install
+   ```
+
+3. **Build Errors**:
+   Check the error messages for missing files or compilation issues.
+   If you encounter library-related errors, verify the installation of dependencies.
+
+### Reporting Issues
+
+If you encounter any bugs or issues, please open an issue on the [GitHub Issue Tracker](https://github.com/yourusername/kailian/issues).
+
+---
+
+## Acknowledgments
+
+- Thanks to the maintainers of cURL and cJSON for their excellent libraries.
+- Special thanks to the contributors who helped improve this project.
+
+--- 
 
