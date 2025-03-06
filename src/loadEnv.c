@@ -74,7 +74,6 @@ Env readEnv() {
                         '\0'; // Ensure null-termination
                 }
             } else if (strcmp(token, "system") == 0) {
-                printf("hallo -> %s", env.system);
                 token = strtok(NULL, delim);
                 if (token != NULL) {
                     strncpy(env.system, token, sizeof(env.system) - 1);

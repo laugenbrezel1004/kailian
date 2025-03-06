@@ -13,11 +13,6 @@ typedef struct {
 
 
 
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} ChangeEnvironment;
 
 typedef struct {
     const char *name;
@@ -62,7 +57,6 @@ typedef struct {
     const char *short_form;
 } Coffee;
 extern Help argument_help;
-extern ChangeEnvironment argument_changeEnvironment;
 extern ShowModels argument_showModels;
 extern Info argument_info;
 extern Model argument_model;

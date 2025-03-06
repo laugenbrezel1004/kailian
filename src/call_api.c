@@ -126,6 +126,7 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
         cJSON_Delete(json);
     } else {
         // If not JSON, treat as raw text and print
+        MELDUNG("error");
         printf("%s", buffer);
         fflush(stdout);
     }
@@ -184,7 +185,6 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
         cJSON_Delete(root);
         return 1;
     }
-    printf("json -> %s", json_str);
     curl_easy_setopt(curl, CURLOPT_URL,
                      ENV.endpoint); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
@@ -195,24 +195,25 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform failed: %s\n",
                 curl_easy_strerror(res));
-    } else {
-        printf("Raw response: %s\n", chunk.memory ? chunk.memory : "NULL");
-        cJSON *json = cJSON_Parse(chunk.memory);
-        if (!json) {
-            fprintf(stderr, "JSON parse failed: %s\n", cJSON_GetErrorPtr());
-            printf("%s", chunk.memory);
-        } else {
-            cJSON *response =
-                cJSON_GetObjectItemCaseSensitive(json, "response");
-            if (response && cJSON_IsString(response)) {
-                printf("%s", response->valuestring);
-            } else {
-                printf("No valid response field in JSON\n");
-                printf("%s", chunk.memory);
-            }
-            cJSON_Delete(json);
-        }
-    }
+    } /*else {*/
+    /*    printf("Raw response: %s\n", chunk.memory ? chunk.memory : "NULL");*/
+    /*    cJSON *json = cJSON_Parse(chunk.memory);*/
+    /*    if (!json) {*/
+    /*        fprintf(stderr, "JSON parse failed: %s\n", cJSON_GetErrorPtr());*/
+    /*        printf("%s", chunk.memory);*/
+    /*        ;*/
+    /*    } else {*/
+    /*        cJSON *response =*/
+    /*            cJSON_GetObjectItemCaseSensitive(json, "response");*/
+    /*        if (response && cJSON_IsString(response)) {*/
+    /*            printf("%s", response->valuestring);*/
+    /*        } else {*/
+    /*            printf("No valid response field in JSON\n");*/
+    /*            printf("%s", chunk.memory);*/
+    /*        }*/
+    /*        cJSON_Delete(json);*/
+    /*    }*/
+    /*}*/
     printf("\n"); // to remote the "%" after the ki answer
     free(chunk.memory);
     free(json_str);

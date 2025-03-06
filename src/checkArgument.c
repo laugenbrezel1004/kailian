@@ -32,9 +32,6 @@ void checkArgument(const char *argument) {
         showEnvironment();
     } else if (matchesArgument(argument, (Blaupause *)&argument_showModels)) {
         sendArgument(argument_showModels.long_form);
-    } else if (matchesArgument(argument,
-                               (Blaupause *)&argument_changeEnvironment)) {
-        changeEnvironment();
     } else if (matchesArgument(argument, (Blaupause *)&argument_coffee)) {
         coffee();
     } else {

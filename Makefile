@@ -1,7 +1,7 @@
 # Compiler und Flags
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11
-LDFLAGS = -lcurl -lcjson -llogger -lcmark
+LDFLAGS = -lcurl -lcjson -llogger 
 
 # Build-Modus (Debug oder Release)
 BUILD_MODE ?= debug
