@@ -1,153 +1,100 @@
+ # Kailian
 
-# Kailian
-
-**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by Ollama  (https://ollama.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—all from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `llogger` to handle HTTP requests, JSON parsing, and logging.
-
-## Table of Contents
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Examples](#examples)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-
-## Project Overview
-
-Kailian is a lightweight CLI utility that connects to a local Ollama instance to:
-
-- Query an AI model with natural language questions.
-- Display information about the running model or available models.
-- Provide a fun coffee animation in the terminal.
-- Handle piped input for contextual queries (e.g., analyzing command output).
-
-The project uses a Makefile for building in debug or release modes and is designed for Linux environments, adhering to the C11 standard.
-
-## Features
-- **AI Queries**: Ask questions to a local Ollama AI model and get responses.
-- **Model Management**: Retrieve details about the current model or list available models.
-- **Coffee Animation**: Enjoy a terminal-based coffee cup animation.
-- **Piped Input**: Process input from other commands (e.g., `tree | kailian "Summarize this"`).
-- **Configurable**: Customize via a configuration file.
-- **Debug/Release Builds**: Build with debugging symbols or optimized for production.
-
-## Prerequisites
-
-To build and run Kailian, you need:
-
-- **Operating System**: Linux (e.g., Gentoo)
-- **Compiler**: GCC (version 7.5 or later)
-- **Libraries**:
-  - `libcurl` (for HTTP requests to Ollama)
-  - `cJSON` (for JSON parsing)
-  - `lloger` (for logging, optional depending on setup)
-- **Ollama**: Installed and running locally on `http://localhost:11434`
-- **Tools**: `make`, `git`
-
-### Installing Dependencies
-On Ubuntu/Debian:
-
-```bash
-sudo apt update
-sudo apt install gcc make git libcurl4-openssl-dev libcjson-dev 
-```
-**Note:** `lloger` might not be available in default repositories. You may need to find and install it separately.
+**Kailian** isn’t just a command-line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by [Ollama](https://ollama.com/). Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in comma
+nd output for sage advice, Kailian’s got your back. It leans on `libcurl` for HTTP wizardry, `cJSON` for JSON crunching, and optionally `ncurses` for a graphical interface, and `pthread` for multi-threading.
 
 ## Installation
 
-1. **Clone the repository:**
+Clone the repository:
+```bash
+git clone https://github.com/yourusername/kailian.git
+cd kailian
+```
+### Dependencies (for Linux)
 
- ```bash
- git clone https://github.com/laugenbrezel1004/kailian.git 
- cd kailian 
- ```
+Install required libraries:
+```bash
+sudo apt-get install libcurl4-openssl-dev libncurses5-dev pthread-win32
+```
+### Compile and Install
 
-2. **Build Kailian:**
-
- ```bash
- make
- ```
-
-3. **(Optional) Install Kailian (requires sudo):**
-
- ```bash
- sudo make install 
- ```
-
-
+Compile the source code:
+```bash
+make
+```
+(Optional) Install it:
+```bash
+sudo make install
+```
+Drops Kailian into `/usr/local/bin` and the config into `/etc/kailian`. You’re official now.
 
 ## Usage
 
-```
-kailian [command] [arguments]
-```
+Use the following commands to interact with Kailian:
 
-**Commands:**
+- `kailian [command] [arguments]` : Ask it stuff with quotes: `kailian "Why’s my Wi-Fi flaky?"`
+- Flags for flair: `--help`, `--coffee`, you name it.
+- Pipe in chaos: `cat error.log | kailian "Fix this!"`
 
-- `kailian "question"`: Ask a question to the AI model.
-- `kailian --model`: Display information about the running AI model.
-- `kailian --show-models`: List all available AI models in Ollama.
-- `kailian --coffee`: Show an animated coffee cup.
+## Commands to Tickle Your Fancy
 
-**Example:**
-
-```bash
-kailian "What is the capital of France?"
-```
+Command    | What It Does
+------------|-----------------
+`kailian "question"`  | Ask the AI anything—serious or silly
+`--model`    | Flex the current model’s stats
+`--show-models`   | Parade all available AI models
+`--coffee`     | Brew a terminal coffee—decaf, sadly
 
 ## Configuration
 
-Kailian uses a configuration file located at `/etc/kailian/kailian.conf` (for release builds) or in the current directory (for debug builds).
+Kailian's config file hangs out at:
 
+- `/etc/kailian/kailian.conf` (release builds)
+- `./kailian.conf` (debug builds)
 
-The configuration file should contain the following settings:
-
-```ini
+Sample Config (With Attitude)
+```bash
 [general]
-name = "deepseek-r1:14" ; The AI model to use 
-endpoint = "http://localhost:11434/api/generate" ; API endpoint for generating responses
-info_endpoint = "http://localhost:11434/api/tags" ; Endpoint for model information
-running_model_endpoint = "http://localhost:11434/api/ps" ; Endpoint for the running model
-
-ollama_version_endpoint = "http://localhost:11434/api/version" ; Endpoint for Ollama version info
-
-system="You are a linux admin who answers correctly and without markdown" ; System prompt to guide AI responses
+name = "deepseek-r1:14" ; The AI’s stage name—sounds edgy
+endpoint = "http://localhost:11434/api/generate" ; Where answers are born
+info_endpoint = "http://localhost:11434/api/tags" ; Model gossip hub
+running_model_endpoint = "http://localhost:11434/api/ps" ; Who’s awake?
+ollama_version_endpoint = "http://localhost:11434/api/version" ; Ollama’s flex
+system="You are a linux admin who answers correctly and without markdown" ; AI’s vibe—gruff but helpful
 ```
-
-
+Hack It: Change the system prompt to make the AI chatty, curt, or downright sarcastic.
 
 ## Examples
 
-- **Ask a Question:**
- ```bash
- kailian "How do I list all running processes on Linux?"
- ```
+Ask Something Smart:
+```bash
+kailian "How do I kill a zombie process?"
+Output: kill -9 <pid> (AI: "It’s dead now. Next!")
+```
+Check the Model:
+```bash
+kailian --model
+See what’s powering the magic.
+```
+Model Lineup:
+```bash
+kailian --show-models
+Meet the AI crew.
+```
+Coffee Time:
+```bash
+kailian --coffee
+Sip virtually while you debug.
+```
+Pipe Dreams:
+```bash
+tree | kailian "Summarize this directory mess"
+Kailian tidies up your thoughts.
+```
 
-- **Show Running Model:**
- ```bash
- kailian --model 
- ```
+## Troubleshooting
 
-- **List Available Models:**
-
- ```bash
- kailian --show-models 
- ```
-
-- **Coffee Animation:**
- ```bash
- kailian --coffee
- ```
-
-- **Piped Input:**
-
- ```bash
- tree | kailian "Summarize this directory structure"
- ```
-
-
-
-
+“Config’s gone!”: Check `/etc/kailian/kailian.conf` (release) or `./kailian.conf` (debug). Make one if it’s lost.
+“Ollama’s napping!”: Ping it: `curl http://localhost:11434`. Wake it up if it’s snoozing.
+Build Blues: Missing libs? Install libcurl or cJSON. Makefile moaning? Edit LDFLAGS.
+“Access denied!”: Sudo up for release installs. You’re the boss—prove it.
