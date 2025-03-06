@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
     // to check for argument size
     if (argc < 2) {
         fprintf(stderr, "Too few arguments!\n");
+        fprintf(stdout, "Try maybe \"-h\"\n");
         return 1;
     }
 

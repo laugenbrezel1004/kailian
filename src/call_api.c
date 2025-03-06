@@ -14,14 +14,9 @@
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
-typedef struct {
-        char *memory;
-        size_t size;
-} MemoryStruct;
-
 // Callback for sendArgument: handles model listing or full info
-static size_t sendArgumentWriteCallback(void *contents, size_t size,
-                                        size_t nmemb, void *userp) {
+static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
+                             void *userp) {
     size_t realsize = size * nmemb;
     int *showModels = (int *)userp;
 
@@ -30,7 +25,7 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
         fprintf(stderr, "Malloc failed\n");
         return 0;
     }
-    memcpy(buffer, contents, realsize);
+    memcpy(buffer, data, realsize);
     buffer[realsize] = 0;
 
     cJSON *json = cJSON_Parse(buffer);
@@ -74,30 +69,30 @@ static size_t sendArgumentWriteCallback(void *contents, size_t size,
 // Callback for curl: Extracts "response" from JSON or handles raw text
 // MemoryStruct for accumulating response
 /*typedef struct {*/
-/*    char *memory;*/
-/*    size_t size;*/
+/*        char *memory;*/
+/*        size_t size;*/
 /*} MemoryStruct;*/
 
 // Callback to append data to MemoryStruct
-static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
-                                  void *userp) {
-    size_t realsize = size * nmemb;
-    MemoryStruct *mem = (MemoryStruct *)userp;
+/*static size_t cbWriteMemory(void *data, size_t size, size_t nmemb,*/
+/*                            void *userp) {*/
+/*    size_t realsize = size * nmemb;*/
+/*    MemoryStruct *mem = (MemoryStruct *)userp;*/
+/**/
+/*    char *ptr = realloc(mem->memory, mem->size + realsize + 1);*/
+/*    if (!ptr) {*/
+/*        fprintf(stderr, "Realloc failed in callback\n");*/
+/*        return 0;*/
+/*    }*/
+/*    mem->memory = ptr;*/
+/*    memcpy(mem->memory + mem->size, data, realsize);*/
+/*    mem->size += realsize;*/
+/*    mem->memory[mem->size] = '\0';*/
+/*    printf("%s", mem->memory);*/
+/*    return realsize;*/
+/*}*/
 
-    char *ptr = realloc(mem->memory, mem->size + realsize + 1);
-    if (!ptr) {
-        fprintf(stderr, "Realloc failed in callback\n");
-        return 0;
-    }
-    mem->memory = ptr;
-    memcpy(mem->memory + mem->size, contents, realsize);
-    mem->size += realsize;
-    mem->memory[mem->size] = '\0';
-
-    return realsize;
-}
-static size_t connectToKiWriteCallback(void *contents, size_t size,
-                                       size_t nmemb, void *userp) {
+static size_t cbKi(void *data, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
 
     // Allocate temp buffer for received data plus nullterminator
@@ -108,26 +103,33 @@ static size_t connectToKiWriteCallback(void *contents, size_t size,
         return 0; // Tell curl to abort
     }
 
-    memcpy(buffer, contents, realsize);
+    memcpy(buffer, data, realsize);
+    /*printf("buffer -> %s", buffer);*/
     cJSON *json = cJSON_Parse(buffer);
+    const char *errorKi = "{\"error}";
     if (json) {
+        if (strncmp(errorKi, buffer, 6) == 0) {
+            fprintf(stderr, "%s\n", buffer);
+            exit(1);
+        }
+
         cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
         if (response && cJSON_IsString(response)) {
             // Print the response directly (or store if needed)
             printf("%s", response->valuestring);
             fflush(stdout);
         } else {
-            fprintf(stderr, "JSON parsing succeeded but no valid 'respons"
-                            "string found\n");
-            MELDUNG("error");
-            printf("%s", buffer); // Fallback to raw buffer
-            fflush(stdout);
+            /*fprintf(stderr, "JSON parsing succeeded but no valid 'respons"*/
+            /*                "string found\n");*/
+            /*MELDUNG("error");*/
+            /*printf("%s", buffer); // Fallback to raw buffer*/
+            /*fflush(stdout);*/
         }
         cJSON_Delete(json);
     } else {
         // If not JSON, treat as raw text and print
-        MELDUNG("error");
-        printf("%s", buffer);
+        /*MELDUNG("error");*/
+        /*printf("%s", buffer);*/
         fflush(stdout);
     }
     free(buffer);
@@ -140,7 +142,6 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     CURLcode res = CURLE_OK;
     cJSON *root = cJSON_CreateObject();
     char *json_str = NULL;
-    MemoryStruct chunk = {.memory = NULL, .size = 0};
 
     if (!root) {
         fprintf(stderr, "cJSON_CreateObject failed\n");
@@ -189,8 +190,10 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     curl_easy_setopt(curl, CURLOPT_URL,
                      ENV.endpoint); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, connectToKiWriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);
+    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);*/
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);
+
+    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);*/
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
@@ -216,12 +219,12 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     /*    }*/
     /*}*/
     printf("\n"); // to remote the "%" after the ki answer
-    free(chunk.memory);
     free(json_str);
     cJSON_Delete(root);
     curl_easy_cleanup(curl);
     return (res == CURLE_OK) ? 0 : 1;
 }
+
 int sendArgument(const char *argument) {
     const Env ENV = readEnv();
     CURL *curl;
@@ -234,23 +237,21 @@ int sendArgument(const char *argument) {
     }
 
     const char *url = NULL;
-    int showModels = 0;
     if (strcmp(argument, argument_model.long_form) == 0) {
         url = ENV.running_model_endpoint;
     } else if (strcmp(argument, argument_showModels.long_form) == 0) {
-        showModels = 1;
         url = ENV.info_endpoint;
     } else if (strcmp(argument, argument_info.long_form) == 0) {
         url = ENV.info_endpoint;
     } else {
-        fprintf(stderr, "Unknown argument: %s\n", argument);
         curl_easy_cleanup(curl);
         return 1;
     }
 
     curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, sendArgumentWriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &showModels);
+    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+     * sendArgumentWriteCallback);*/
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbSendArgument);
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
