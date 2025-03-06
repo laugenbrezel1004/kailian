@@ -20,37 +20,39 @@ doas emerge dev-libs/cJSON
 
 Install llogger
 ```bash
-https://github.com/yksz/c-logger
+-> https://github.com/yksz/c-logger
 ```
 
 ### Compile and Install
 
-Compile the source code:
+Compile and install the source code:
 ```bash
-make
-```
-(Optional) Install it:
-```bash
-sudo make install
+doas make
 ```
 Drops Kailian into `/usr/local/bin` and the config into `/etc/kailian`. You’re official now.
 
+
+
+Compile for debugging in local dir: 
+```bash
+make debug
+```
+Installs the bin and config file in the local dir.
+
 ## Usage
-
-Use the following commands to interact with Kailian:
-
-- `kailian [command] [arguments]` : Ask it stuff with quotes: `kailian "Why’s my Wi-Fi flaky?"`
-- Flags for flair: `--help`, `--coffee`, you name it.
-- Pipe in chaos: `cat error.log | kailian "Fix this!"`
 
 ## Commands to Tickle Your Fancy
 
 Command    | What It Does
 ------------|-----------------
-`kailian "question"`  | Ask the AI anything—serious or silly
-`--model`    | Flex the current model’s stats
-`--show-models`   | Parade all available AI models
-`--coffee`     | Brew a terminal coffee—decaf, sadly
+`kailian "question"`  | Ask the AI anything—from the profound to the preposterous (Just put "" if you don't want to activate shellglobbing, but remember, it's a party here!)
+`--model`    | Flaunt the AI's muscle (stats)
+`--show-models`   | Put all the AI models on the catwalk, strutting their stuff
+`--coffee`     | Boil some liquid happiness for your terminal—alas, it's decaf
+`--help`     | If you're lost and need directions to fun town
+`--info`     | Get some basic info about me
+`--show-environment`     | Peek into the kailian.conf file
+`cat error.log`| kailian "Fix this!", but I'm learning, so bear with me!!"
 
 ## Configuration
 
@@ -61,7 +63,6 @@ Kailian's config file hangs out at:
 
 Sample Config (With Attitude)
 ```bash
-[general]
 name = "deepseek-r1:14" ; The AI’s stage name—sounds edgy
 endpoint = "http://localhost:11434/api/generate" ; Where answers are born
 info_endpoint = "http://localhost:11434/api/tags" ; Model gossip hub
