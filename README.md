@@ -1,129 +1,162 @@
-# What is "kailian"?
+# Kailian
 
-"kailian" is a command-line interface (CLI) written in C that provides an API for interacting with ollama via the cli. Ollama is a popular open-source tool for running large language models (LLMs) locally on your machine. 
+**Kailian** is a command-line tool written in C for Linux systems, designed to interact with local AI models powered by [Ollama](https://olla
+ma.com/). It enables users to ask questions to a locally running AI model, retrieve model information, display a coffee animation, and more—a
+ll from the terminal. Built with portability and flexibility in mind, Kailian uses libraries like `libcurl`, `cJSON`, and `liblogger` to hand
+le HTTP requests, JSON parsing, and logging.
 
-# Kailian Project
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
 
-A C-based project that utilizes cURL and cJSON libraries for HTTP requests and JSON handling.
+## Project Overview
+
+Kailian is a lightweight CLI utility that connects to a local Ollama instance to:
+
+- Query an AI model with natural language questions.
+- Display information about the running model or available models.
+- Provide a fun coffee animation in the terminal.
+- Handle piped input for contextual queries (e.g., analyzing command output).
+
+The project uses a Makefile for building in debug or release modes and is designed for Linux environments, adhering to the C11 standard.
 
 ## Features
-
-- **Modular Build System**: Supports both Debug and Release builds with automatic configuration based on `BUILD_MODE`.
-- **Dependency Management**: Handles external libraries (cURL, cJSON) through linker flags.
-- **Configuration Handling**: Includes a configuration file (`kailian.conf`) that can be installed to system or user directories based on bui
-ld mode.
-- **Clean Build Process**: Uses Make targets for building, installing, cleaning, and uninstalling.
+- **AI Queries**: Ask questions to a local Ollama AI model and get responses.
+- **Model Management**: Retrieve details about the current model or list available models.
+- **Coffee Animation**: Enjoy a terminal-based coffee cup animation.
+- **Piped Input**: Process input from other commands (e.g., `tree | kailian "Summarize this"`).
+- **Configurable**: Customize via a configuration file.
+- **Debug/Release Builds**: Build with debugging symbols or optimized for production.
 
 ## Prerequisites
 
-### Dependencies
-- GCC compiler
-- cURL library
-- cJSON library
-- liblogger (for logging functionality)
+To build and run Kailian, you need:
 
-### Installation Steps
+- **Operating System**: Linux (e.g., Ubuntu 22.04)
+- **Compiler**: GCC (version 7.5 or later)
+- **Libraries**:
+  - `libcurl` (for HTTP requests to Ollama)
+  - `cJSON` (for JSON parsing)
+  - `liblogger` (for logging, optional depending on setup)
+- **Ollama**: Installed and running locally on `http://localhost:11434`
+- **Tools**: `make`, `git`
 
-1. Clone the repository:
+### Installing Dependencies
+On Ubuntu/Debian:
+
 ```bash
-git clone https://github.com/yourusername/kailian.git
-cd kailian
+sudo apt update
+sudo apt install gcc make git libcurl4-openssl-dev libcjson-dev 
 ```
+**Note:** `liblogger` might not be available in default repositories. You may need to find and install it separately.
 
-2. Install dependencies if needed:
-```bash
-sudo apt-get install gcc curl libcurl-dev libcjson-dev
-```
+## Installation
 
-3. Build and install in Debug mode:
-```bash
-make debug
-```
+1. **Clone the repository:**
 
-Or build and install in Release mode (recommended for production):
-```bash
-make release
-```
+ ```bash
+ git clone https://github.com/laugenbrezel1004/kailian.git 
+ cd kailian 
+ ```
+
+2. **Build Kailian:**
+
+ ```bash
+ make
+ ```
+
+3. **(Optional) Install Kailian (requires sudo):**
+
+ ```bash
+ sudo make install 
+ ```
+
+
 
 ## Usage
 
-### Building the Project
-
-- To build without installing:
-```bash
-make all
+```
+kailian [command] [arguments]
 ```
 
-- To rebuild from scratch:
+**Commands:**
+
+- `kailian "question"`: Ask a question to the AI model.
+- `kailian --model`: Display information about the running AI model.
+- `kailian --show-models`: List all available AI models in Ollama.
+- `kailian --coffee`: Show an animated coffee cup.
+
+**Example:**
+
 ```bash
-make clean && make all
+kailian "What is the capital of France?"
 ```
 
-### Installing the Project
+## Configuration
 
-- Install to default directories (/usr/local/bin, /etc/kailian) in Release mode:
-```bash
-make install
+Kailian uses a configuration file located at `/etc/kailian/kailian.conf` (for release builds) or in the current directory (for debug builds).
+
+
+The configuration file should contain the following settings:
+
+```ini
+[general]
+name = "deepseek-r1:14" ; The AI model to use 
+endpoint = "http://localhost:11434/api/generate" ; API endpoint for generating responses
+info_endpoint = "http://localhost:11434/api/tags" ; Endpoint for model information
+running_model_endpoint = "http://localhost:11434/api/ps" ; Endpoint for the running model
+
+ollama_version_endpoint = "http://localhost:11434/api/version" ; Endpoint for Ollama version info
+
+system="You are a linux admin who answers correctly and without markdown" ; System prompt to guide AI responses
 ```
 
-- Install in Debug mode (installs to local bin directory):
-```bash
-make debug install
-```
 
-### Running the Project
 
-Run the compiled binary from its installation location. For example, in Debug mode:
-```bash
-./bin/kailian
-```
+## Examples
 
-In Release mode:
-```bash
-/usr/local/bin/kailian
-```
+- **Ask a Question:**
+ ```bash
+ kailian "How do I list all running processes on Linux?"
+ ```
 
-## Configuration File
+- **Show Running Model:**
+ ```bash
+ kailian --model 
+ ```
 
-The project includes a configuration file (`kailian.conf`) that needs to be installed alongside the binary.
+- **List Available Models:**
 
-- In Debug mode:
-```bash
-cp kailian.conf bin/etc/kailian/
-```
+ ```bash
+ kailian --show-models 
+ ```
 
-- In Release mode:
-```bash
-sudo cp kailian.conf /etc/kailian/
-```
+- **Coffee Animation:**
+ ```bash
+ kailian --coffee
+ ```
 
-## Build Targets
+- **Piped Input:**
 
-Here are some of the key Make targets you might find useful:
+ ```bash
+ tree | kailian "Summarize this directory structure"
+ ```
 
-| Target      | Description |
-|-------------|-------------|
-| `all`       | Compiles the project without installing. |
-| `install`   | Installs the compiled binary and configuration file to target directories based on BUILD_MODE. |
-| `clean`     | Removes all build artifacts. |
-| `rebuild`   | Cleans and rebuilds everything from scratch. |
-| `debug`     | Switches to Debug mode and runs `make all`. |
-| `release`   | Switches to Release mode, cleans, builds, and installs the project. |
-| `uninstall` | Uninstalls the previously installed binary and configuration file. |
 
-## Development
 
-### Contributing
+## Troubleshooting
 
-- Fork the repository.
-- Create a feature branch.
-- Commit your changes with clear commit messages.
-- Push to the branch and create a Pull Request.
+- **"No such file or directory: /etc/kailian/kailian.conf"**: Ensure the configuration file exists and is correctly formatted. For debug buil
+ds, place it in the current directory.
+- **Connection Errors:** Verify that Ollama is running on `http://localhost:11434` (use `curl http://localhost:11434`).
 
-### Testing
-
-The project should include unit tests for better reliability. You can run tests using:
-```bash
-make test
-```
-
+- **Build Failures**: Confirm all dependencies are installed (`libcurl`, `cJSON`, etc.). Check `LDFLAGS` in the Makefile if linking fails.
+- **Permission Denied**: Use `sudo` for release builds to install to `/usr/local/bin` and `/etc/kailian`.
