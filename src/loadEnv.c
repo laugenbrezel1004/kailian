@@ -3,22 +3,22 @@
 #include <string.h>
 
 typedef struct {
-        char name[100];
-        char endpoint[100];
-        char info_endpoint[100];
-        char running_model_endpoint[100];
-        char ollama_version_endpoint[100];
+        char name[300];
+        char endpoint[300];
+        char info_endpoint[300];
+        char running_model_endpoint[300];
+        char ollama_version_endpoint[300];
+        char system[300];
 } Env;
 
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 // prototype
-Env readEnv();
 static void removeSpaces(char *str);
 
 Env readEnv() {
-    Env env = {"", "", "", "", ""}; // Initialize with empty strings
+    Env env; // Initialize with empty strings
     FILE *fptr;
     char line[256];
     const char delim[] = "=";
@@ -67,14 +67,23 @@ Env readEnv() {
                 token = strtok(NULL, delim);
                 if (token != NULL) {
                     strncpy(env.running_model_endpoint, token,
-                            sizeof(env.info_endpoint) - 1);
-                    env.info_endpoint[sizeof(env.running_model_endpoint) - 1] =
+                            sizeof(env.running_model_endpoint) - 1);
+                    env.running_model_endpoint[sizeof(
+                                                   env.running_model_endpoint) -
+                                               1] =
+                        '\0'; // Ensure null-termination
+                }
+            } else if (strcmp(token, "system") == 0) {
+                printf("hallo -> %s", env.system);
+                token = strtok(NULL, delim);
+                if (token != NULL) {
+                    strncpy(env.system, token, sizeof(env.system) - 1);
+                    env.system[sizeof(env.system) - 1] =
                         '\0'; // Ensure null-termination
                 }
             }
         }
     }
-
     fclose(fptr);
     return env;
 }

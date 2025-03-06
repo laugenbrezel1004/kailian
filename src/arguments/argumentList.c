@@ -24,3 +24,6 @@ ChangeEnvironment argument_changeEnvironment = {.name = "ChangeEnvironment",
                                                 .short_form = "-E"};
 AskError argument_askError = {
     .name = "AskError", .long_form = NULL, .short_form = NULL};
+
+Coffee argument_coffee = {
+    .name = "coffee", .long_form = "--coffee", .short_form = "-c"};

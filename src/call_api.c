@@ -6,6 +6,7 @@
 #include <cmark.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -98,15 +99,15 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb,
 static size_t connectToKiWriteCallback(void *contents, size_t size,
                                        size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    /*MemoryStruct *mem = (MemoryStruct *)userp;*/
 
-    // Allocate temp buffer for received data
+    // Allocate temp buffer for received data plus nullterminator
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
         fprintf(stderr, "Malloc failed in callback\n");
         MELDUNG("error");
         return 0; // Tell curl to abort
     }
+
     memcpy(buffer, contents, realsize);
     cJSON *json = cJSON_Parse(buffer);
     if (json) {
@@ -146,6 +147,8 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
     }
 
     cJSON_AddStringToObject(root, "model", ENV.name);
+    /*cJSON_AddBoolToObject(root, "raw", cJSON_True);*/
+    cJSON_AddStringToObject(root, "system", ENV.system);
 
     // Combine prompt and fileBuffer with a newline separator
     char *full_prompt = NULL;
@@ -174,8 +177,6 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
         return 1;
     }
 
-    printf("Sending JSON: %s\n", json_str);
-
     curl = curl_easy_init();
     if (!curl) {
         fprintf(stderr, "curl_easy_init failed\n");
@@ -183,7 +184,7 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
         cJSON_Delete(root);
         return 1;
     }
-
+    printf("json -> %s", json_str);
     curl_easy_setopt(curl, CURLOPT_URL,
                      ENV.endpoint); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
@@ -212,7 +213,7 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
             cJSON_Delete(json);
         }
     }
-
+    printf("\n"); // to remote the "%" after the ki answer
     free(chunk.memory);
     free(json_str);
     cJSON_Delete(root);

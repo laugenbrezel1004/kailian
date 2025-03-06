@@ -8,6 +8,7 @@
 // Projekt-spezifische Header
 #include "../include/arguments/Environment.h"
 #include "../include/arguments/argumentList.h"
+#include "../include/arguments/coffee.h"
 #include "../include/arguments/help.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
@@ -34,6 +35,8 @@ void checkArgument(const char *argument) {
     } else if (matchesArgument(argument,
                                (Blaupause *)&argument_changeEnvironment)) {
         changeEnvironment();
+    } else if (matchesArgument(argument, (Blaupause *)&argument_coffee)) {
+        coffee();
     } else {
         fprintf(stderr,
                 "kailian: Unknown argument\nTry 'kailian --help' for more "

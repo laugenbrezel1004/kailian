@@ -1,7 +1,7 @@
 #ifndef LOADENV_H
 #define LOADENV_H
 
-#define MAXSIZE 100
+#define MAXSIZE 300
 
 typedef struct {
         char name[MAXSIZE];
@@ -9,6 +9,7 @@ typedef struct {
         char info_endpoint[MAXSIZE];
         char running_model_endpoint[MAXSIZE];
         char ollama_version_endpoint[MAXSIZE];
+        char system[MAXSIZE];
 } Env;
 
 

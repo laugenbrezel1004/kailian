@@ -56,6 +56,11 @@ typedef struct {
     const char *short_form;
 } ShowModels;
 
+typedef struct {
+    const char *name;
+    const char *long_form;
+    const char *short_form;
+} Coffee;
 extern Help argument_help;
 extern ChangeEnvironment argument_changeEnvironment;
 extern ShowModels argument_showModels;
@@ -64,6 +69,7 @@ extern Model argument_model;
 extern ShowEnironment argument_showEnvironment;
 extern Blaupause argument_blaupause;
 extern AskError argument_askError;
+extern Coffee argument_coffee;
 
 #endif // ARGUMENTLIST_H
 

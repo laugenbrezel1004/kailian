@@ -28,6 +28,8 @@ int help() {
             argument_changeEnvironment.short_form,
             argument_changeEnvironment.long_form);
 
+    fprintf(stdout, "%s,\t%s\t\tcoffee\n", argument_coffee.short_form,
+            argument_coffee.long_form);
     exit(0);
 
     /*return EXIT_FAILURE;*/
