@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,8 +30,7 @@ Env readEnv() {
         fprintf(
             stderr,
             "kailian: no such file or directory: /etc/kailian/kailian.conf \n");
-
-        exit(1);
+        exit(ENOENT);
     }
 
     while (fgets(line, sizeof(line), fptr)) {

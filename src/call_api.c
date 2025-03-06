@@ -185,6 +185,7 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
         cJSON_Delete(root);
         return 1;
     }
+
     curl_easy_setopt(curl, CURLOPT_URL,
                      ENV.endpoint); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);

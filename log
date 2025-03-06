@@ -1,9 +1,0 @@
-echo "Compiling: src/arguments/coffee.c -> build/debug/arguments/coffee.o"
-Compiling: src/arguments/coffee.c -> build/debug/arguments/coffee.o
-gcc -Wall -Wextra -pedantic -std=c11 -g -Iinclude -c src/arguments/coffee.c -o build/debug/arguments/coffee.o
-src/arguments/coffee.c: In function ‘coffee’:
-src/arguments/coffee.c:56:9: error: implicit declaration of function ‘usleep’; did you mean ‘sleep’? [-Wimplicit-function-declaration]
-   56 |         usleep(100);
-      |         ^~~~~~
-      |         sleep
-make: *** [Makefile:64: build/debug/arguments/coffee.o] Error 1
