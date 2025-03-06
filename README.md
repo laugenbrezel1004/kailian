@@ -1,21 +1,28 @@
  # Kailian
 
-**Kailian** isn’t just a command-line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by [Ollama](https://ollama.com/). Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in comma
-nd output for sage advice, Kailian’s got your back. It leans on `libcurl` for HTTP wizardry, `cJSON` for JSON crunching, and optionally `ncurses` for a graphical interface, and `pthread` for multi-threading.
+**Kailian** isn’t just a command-line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by [Ollama](https://ollama.com/). Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in command output for sage advice, Kailian’s got your back. It leans on `libcurl` for HTTP wizardry, `cJSON` for JSON crunching and `llogger` for logging.
 
 ## Installation
 
 Clone the repository:
 ```bash
-git clone https://github.com/yourusername/kailian.git
+git clone https://github.com/laugenbrezel1004/kailian.git
 cd kailian
 ```
 ### Dependencies (for Linux)
 
 Install required libraries:
 ```bash
-sudo apt-get install libcurl4-openssl-dev libncurses5-dev pthread-win32
+doas emerge --sync -all
+doas emerge net-misc/curl
+doas emerge dev-libs/cJSON
 ```
+
+Install llogger
+```bash
+https://github.com/yksz/c-logger
+```
+
 ### Compile and Install
 
 Compile the source code:
