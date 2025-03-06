@@ -105,6 +105,9 @@ Kailian tidies up your thoughts.
 ## Troubleshooting
 
 “Config’s gone!”: Check `/etc/kailian/kailian.conf` (release) or `./kailian.conf` (debug). Make one if it’s lost.
+
 “Ollama’s napping!”: Ping it: `curl http://localhost:11434`. Wake it up if it’s snoozing.
+
 Build Blues: Missing libs? Install libcurl or cJSON. Makefile moaning? Edit LDFLAGS.
+
 “Access denied!”: Sudo up for release installs. You’re the boss—prove it.
