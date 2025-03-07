@@ -11,9 +11,7 @@
 #include "../include/arguments/help.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
-// In der C-Datei
-//
-//
+
 int matchesArgument(const char *argument, const Blaupause *compare) {
     return (strcmp(argument, compare->long_form) == 0 ||
             strcmp(argument, compare->short_form) == 0);

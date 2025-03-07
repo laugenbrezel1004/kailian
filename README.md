@@ -2,12 +2,8 @@
 
 **Kailian** isn’t just a command-line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by [Ollama](https://ollama.com/). Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in command output for sage advice, Kailian’s got your back. It leans on `libcurl` for HTTP wizardry, `cJSON` for JSON crunching and `llogger` for logging.
 
-## Installation
-
-### Dependencies (for Linux)
 
 ## Prerequisites
-- CMake 3.10 or higher
 - GCC or another C compiler
 - Libraries:
   - `cJSON` (e.g., `sudo pacman -S cjson` or `sudo apt-get install libcjson-dev`)
@@ -20,12 +16,12 @@ Compile and install the source code:
 ```bash
 git clone https://github.com/laugenbrezel1004/kailian.git
 cd kailian
-mkdir build && cd build
-make .. -DCMAKE_BUILD_TYPE=Release
-make
+make 
+sudo make install
 ```
 
 Drops Kailian into `/usr/local/bin` and the config into `/etc/kailian`. You’re official now.
+
 
 
 
