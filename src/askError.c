@@ -2,7 +2,6 @@
 //
 #include <readline/history.h>
 #include <readline/readline.h>
-#include <stdlib.h>
 
 int ask_error() {
     /*char *input;*/

@@ -4,44 +4,34 @@
 
 ## Installation
 
-Clone the repository:
-```bash
-git clone https://github.com/laugenbrezel1004/kailian.git
-cd kailian
-```
 ### Dependencies (for Linux)
 
-Install required libraries:
-```bash
-doas emerge --sync -all
-doas emerge net-misc/curl
-doas emerge dev-libs/cJSON
-```
+## Prerequisites
+- CMake 3.10 or higher
+- GCC or another C compiler
+- Libraries:
+  - `cJSON` (e.g., `sudo pacman -S cjson` or `sudo apt-get install libcjson-dev`)
+  - `libcurl` (e.g., `sudo pacman -S curl` or `sudo apt-get install libcurl4-openssl-dev`)
 
-Install llogger
-```bash
--> https://github.com/yksz/c-logger
-```
 
-### Compile and Install
+## Building
 
 Compile and install the source code:
 ```bash
-doas make
+git clone https://github.com/laugenbrezel1004/kailian.git
+cd kailian
+mkdir build && cd build
+make .. -DCMAKE_BUILD_TYPE=Release
+make
 ```
+
 Drops Kailian into `/usr/local/bin` and the config into `/etc/kailian`. You’re official now.
 
 
 
-Compile for debugging in local dir: 
-```bash
-make debug
-```
 Installs the bin and config file in the local dir.
 
 ## Usage
-
-## Commands to Tickle Your Fancy
 
 Command    | What It Does
 ------------|-----------------
@@ -60,7 +50,6 @@ Command    | What It Does
 Kailian's config file hangs out at:
 
 - `/etc/kailian/kailian.conf` (release builds)
-- `./kailian.conf` (debug builds)
 
 Sample Config (With Attitude)
 ```bash
@@ -77,7 +66,7 @@ Hack It: Change the system prompt to make the AI chatty, curt, or downright sarc
 
 Ask Something Smart:
 ```bash
-kailian "How do I kill a zombie process?"
+kailian "How do I kill systemd?"
 ```
 Check the Model:
 ```bash

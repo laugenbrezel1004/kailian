@@ -8,7 +8,9 @@ void showEnvironment(void) {
 
     FILE *ptr = fopen("/etc/kailian/kailian.conf", "r");
     if (ptr == NULL) {
-        fprintf(stderr, "Error opening the .env file\n");
+        fprintf(
+            stderr,
+            "kailian: /etc/kailian/kailian.conf: No such file or directory\n");
         exit(1);
     }
 

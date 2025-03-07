@@ -29,7 +29,7 @@ Env readEnv() {
     if (fptr == NULL) {
         fprintf(
             stderr,
-            "kailian: no such file or directory: /etc/kailian/kailian.conf \n");
+            "kailian: /etc/kailian/kailian.conf: No such file or directory\n");
         exit(ENOENT);
     }
 
