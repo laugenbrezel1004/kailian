@@ -18,4 +18,7 @@ Arguments arguments = {
     .coffee = {.name = "coffee", .long_form = "--coffee", .short_form = "-c"},
     .startOllama = {.name = "startOllama",
                     .long_form = "--start-ollama",
-                    .short_form = "-o"}};
+                    .short_form = "-o"},
+    .killOllama = {.name = "killOllama",
+                   .long_form = "--kill-ollama",
+                   .short_form = "-k"}};

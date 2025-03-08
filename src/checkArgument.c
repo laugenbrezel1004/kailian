@@ -32,7 +32,9 @@ int checkArgument(const char *argument) {
     } else if (matchesArgument(argument, &arguments.coffee)) {
         coffee();
     } else if (matchesArgument(argument, &arguments.startOllama)) {
-        return startServer();
+        startServer();
+    } else if (matchesArgument(argument, &arguments.killOllama)) {
+        return killServer();
     }
 
     else {

@@ -18,6 +18,7 @@ typedef struct {
     Argument showModels;
     Argument coffee;
     Argument startOllama;
+    Argument killOllama;
 } Arguments;
 
 // Declare the global variable for arguments

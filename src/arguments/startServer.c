@@ -5,53 +5,65 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int startServer() {
+void startServer() {
     pid_t pid;
 
-    // Schritt 1: Erster Fork
+    // first fork
     pid = fork();
     if (pid < 0) {
-        perror("Erster Fork fehlgeschlagen");
+        perror("fork syscall went wrong");
         exit(1);
     }
     if (pid > 0) {
-        printf("Elternprozess (PID %d) beendet sich.\n", getpid());
-        exit(0); // Elternprozess beenden
+        exit(0); // kill parentprocess
     }
 
-    // Schritt 2: Neue Session erstellen
+    // create new sesssion
     if (setsid() < 0) {
-        perror("setsid fehlgeschlagen");
+        perror("setsid went wrong");
         exit(1);
     }
 
-    // Schritt 3: Zweiter Fork
+    // second fork
     pid = fork();
     if (pid < 0) {
-        perror("Zweiter Fork fehlgeschlagen");
+        perror("fork syscall went wrong");
         exit(1);
     }
     if (pid > 0) {
-        exit(0); // Zweiter Elternprozess beenden
+        exit(0); // kill second parentprocess
     }
 
-    // Schritt 4: Arbeitsverzeichnis ändern
+    // change working directory
     chdir("/");
 
-    // Schritt 5: Dateideskriptoren umleiten
+    // redirect fd's
+    /*close(STDIN_FILENO);*/
+    /*open("/dev/null", O_RDWR); // STDIN to /dev/null*/
+    /*int log_fd = open("/run/ollama.log", O_WRONLY | O_CREAT | O_APPEND,
+     * 0644);*/
+    /*if (log_fd < 0) {*/
+    /*    fprintf(stderr, "unable to write to ollama.log");*/
+    /*    exit(1);*/
+    /*}*/
+    /*dup2(log_fd, STDOUT_FILENO);*/
+    /*dup2(log_fd, STDERR_FILENO);*/
+    /*close(log_fd);*/
+
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
-    open("/dev/null", O_RDWR); // STDIN
-    dup(0);                    // STDOUT
-    dup(0);                    // STDERR
+    open("/dev/null", O_RDWR); // STDIN == 0 smallest free fd
+    dup(0); // STDOUT copies 0 and creates new smallest fd (1) which points to 0
+    dup(0); // STDERR copies 0 and creates new smallest fd (2) which points to 0
 
-    // Schritt 6: ollama serve starten
-    execl("/usr/local/bin/ollama", "ollamad", "serve", (char *)NULL);
+    // start "ollama serve"
+    execl("/usr/local/bin/ollama", "ollama", "serve", (char *)NULL);
 
-    // Wenn execl fehlschlägt, wird dieser Code erreicht
+    // something weng wrong
     perror("execl fehlgeschlagen");
     exit(1);
-
-    return 0; // Wird nie erreicht, da execl den Prozess ersetzt
+}
+int killServer() {
+    return execl("/usr/bin/killall", "/usr/bin/killall", "ollama");
 }

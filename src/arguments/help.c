@@ -3,7 +3,7 @@
 #include <stdlib.h>
 
 int help() {
-    fprintf(stdout, "Usage: \n\tkailian [ARGUMENT]\n\tkailian\n\tkailian "
+    fprintf(stdout, "Usage: \n\tkailian [ARGUMENT]\n\tkailian "
                     "[YOUR_QUESTION]\n\n\n");
     /*fprintf(*/
     /*    stdout,*/
@@ -28,6 +28,10 @@ int help() {
             arguments.coffee.long_form);
     fprintf(stdout, "%s,\t%s\t\tstart local ollama instance\n",
             arguments.startOllama.short_form, arguments.startOllama.long_form);
+    fprintf(stdout, "%s,\t%s\t\tkill local ollama instance\n\n",
+            arguments.killOllama.short_form, arguments.killOllama.long_form);
+    fprintf(stdout,
+            "Exaple: \t\t\tman man | kailian explain me the man command\n");
     exit(0);
 
     /*return EXIT_FAILURE;*/

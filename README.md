@@ -38,6 +38,8 @@ Command    | What It Does
 `--help`     | If you're lost and need directions to fun town
 `--info`     | Get some basic info about me
 `--show-environment`     | Peek into the kailian.conf file
+`--start-ollama`     | Start a local ollama instance
+`--kill-ollama`     | Kill a local ollama instance
 `cat error.log`\| kailian "Fix this!"| :) 
 `man yes`\| kailian Explain me this command| Yes!
 
