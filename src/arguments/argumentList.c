@@ -1,26 +1,21 @@
+
+// argumentList.c
 #include "../../include/arguments/argumentList.h"
 #include <stdlib.h>
 
-Blaupause argument_blaupause = {
-    .name = NULL, .long_form = NULL, .short_form = NULL};
-
-Help argument_help = {
-    .name = "help", .long_form = "--help", .short_form = "-h"};
-
-Info argument_info = {
-    .name = "info", .long_form = "--info", .short_form = "-i"};
-
-Model argument_model = {
-    .name = "model", .long_form = "--model", .short_form = "-m"};
-
-ShowEnironment argument_showEnvironment = {.name = "showEnvironment",
-                                           .long_form = "--show-environment",
-                                           .short_form = "-e"};
-ShowModels argument_showModels = {
-    .name = "showModels", .long_form = "--show-models", .short_form = "-s"};
-
-AskError argument_askError = {
-    .name = "AskError", .long_form = NULL, .short_form = NULL};
-
-Coffee argument_coffee = {
-    .name = "coffee", .long_form = "--coffee", .short_form = "-c"};
+// Define and initialize the global variable for arguments
+Arguments arguments = {
+    .askError = {.name = "AskError", .long_form = NULL, .short_form = NULL},
+    .help = {.name = "help", .long_form = "--help", .short_form = "-h"},
+    .info = {.name = "info", .long_form = "--info", .short_form = "-i"},
+    .model = {.name = "model", .long_form = "--model", .short_form = "-m"},
+    .showEnvironment = {.name = "showEnvironment",
+                        .long_form = "--show-environment",
+                        .short_form = "-e"},
+    .showModels = {.name = "showModels",
+                   .long_form = "--show-models",
+                   .short_form = "-s"},
+    .coffee = {.name = "coffee", .long_form = "--coffee", .short_form = "-c"},
+    .startOllama = {.name = "startOllama",
+                    .long_form = "--start-ollama",
+                    .short_form = "-o"}};

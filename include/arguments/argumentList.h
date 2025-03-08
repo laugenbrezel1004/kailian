@@ -3,67 +3,24 @@
 #ifndef ARGUMENTLIST_H
 #define ARGUMENTLIST_H
 
+typedef struct {
+    const char *name;       // Descriptive name of the argument
+    const char *long_form;  // Long form (e.g., "--help")
+    const char *short_form; // Short form (e.g., "-h")
+} Argument;
 
 typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} Blaupause;
+    Argument askError;
+    Argument help;
+    Argument info;
+    Argument model;
+    Argument showEnvironment;
+    Argument showModels;
+    Argument coffee;
+    Argument startOllama;
+} Arguments;
 
-
-
-
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} AskError;
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} Help;
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} Info;
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} Model;
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} ShowEnironment;
-
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} ShowModels;
-
-typedef struct {
-    const char *name;
-    const char *long_form;
-    const char *short_form;
-} Coffee;
-extern Help argument_help;
-extern ShowModels argument_showModels;
-extern Info argument_info;
-extern Model argument_model;
-extern ShowEnironment argument_showEnvironment;
-extern Blaupause argument_blaupause;
-extern AskError argument_askError;
-extern Coffee argument_coffee;
+// Declare the global variable for arguments
+extern Arguments arguments;
 
 #endif // ARGUMENTLIST_H
-

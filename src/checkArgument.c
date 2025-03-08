@@ -12,24 +12,23 @@
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
 
-int matchesArgument(const char *argument, const Blaupause *compare) {
+int matchesArgument(const char *argument, const Arguments *compare) {
     return (strcmp(argument, compare->long_form) == 0 ||
             strcmp(argument, compare->short_form) == 0);
 }
 
 void checkArgument(const char *argument) {
-    if (matchesArgument(argument, (Blaupause *)&argument_help)) {
+    if (matchesArgument(argument, (Arguments *)arguments.help)) {
         help();
-    } else if (matchesArgument(argument, (Blaupause *)&argument_info)) {
-        sendArgument(argument_info.long_form);
-    } else if (matchesArgument(argument, (Blaupause *)&argument_model)) {
-        sendArgument(argument_model.long_form);
-    } else if (matchesArgument(argument,
-                               (Blaupause *)&argument_showEnvironment)) {
+    } else if (matchesArgument(argument, arguments.info)) {
+        sendArgument(arguments.info.long_form);
+    } else if (matchesArgument(argument, arguments.model)) {
+        sendArgument(arguments.model.long_form);
+    } else if (matchesArgument(argument, arguments.showEnvironment)) {
         showEnvironment();
-    } else if (matchesArgument(argument, (Blaupause *)&argument_showModels)) {
-        sendArgument(argument_showModels.long_form);
-    } else if (matchesArgument(argument, (Blaupause *)&argument_coffee)) {
+    } else if (matchesArgument(argument, arguments.showModels)) {
+        sendArgument(arguments.showModels.long_form);
+    } else if (matchesArgument(argument, arguments.coffee)) {
         coffee();
     } else {
         fprintf(stderr,
