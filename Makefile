@@ -8,7 +8,7 @@ SRCDIR = src
 ARGDIR = src/arguments
 BINDIR = build
 CONFDIR = /etc/kailian
-INSTALLDIR = /usr/bin
+INSTALLDIR = /usr/local/bin
 
 # Source files
 SOURCES = $(wildcard $(SRCDIR)/*.c) $(wildcard $(ARGDIR)/*.c)
@@ -41,7 +41,7 @@ $(BINDIR)/%.o: $(ARGDIR)/%.c
 # Install target
 install: $(TARGET)
 	@install -d $(INSTALLDIR)
-	@install -m 755 $(TARGET) $(INSTALLDIR)/Kailian
+	@install -m 755 $(TARGET) $(INSTALLDIR)/kailian
 	@install -d $(CONFDIR)
 	@install -m 644 $(CONFIG) $(CONFDIR)/kailian.conf
 	@echo "Installed to $(INSTALLDIR)/Kailian and $(CONFDIR)/kailian.conf"

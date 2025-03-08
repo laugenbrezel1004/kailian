@@ -237,11 +237,11 @@ int sendArgument(const char *argument) {
     }
 
     const char *url = NULL;
-    if (strcmp(argument, argument_model.long_form) == 0) {
+    if (strcmp(argument, arguments.model.long_form) == 0) {
         url = ENV.running_model_endpoint;
-    } else if (strcmp(argument, argument_showModels.long_form) == 0) {
+    } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
         url = ENV.info_endpoint;
-    } else if (strcmp(argument, argument_info.long_form) == 0) {
+    } else if (strcmp(argument, arguments.info.long_form) == 0) {
         url = ENV.info_endpoint;
     } else {
         curl_easy_cleanup(curl);

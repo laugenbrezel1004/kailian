@@ -55,8 +55,7 @@ int main(int argc, char *argv[]) {
     // to make sure that something is in argv[1] and check if it is a valid flag
     if (argc == 2 &&
         (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        checkArgument(argv[1]);
-        return 0;
+        return checkArgument(argv[1]);
     }
 
     // If piped input (e.g., tree | ./kailian)
