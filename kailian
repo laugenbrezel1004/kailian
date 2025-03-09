@@ -1,0 +1,16 @@
+chat function
+libhistory -> readline
+automatisch config erstellen wenn alte weg kailian --auto-config
+autoverflständigung
+stdin via umleitung -> nicht nur pipe
+ailian --analyze-file main.c "Explain this code"
+Chat Mode Loop:
+Add a new command-line flag (e.g., kailian --chat) to enter an interactive mode.
+Use a simple while loop to repeatedly prompt the user for input, send it to Ollama via its API, and display the response.
+
+#################### DONE
+arguments überarbeiten
+start local ollama instance via kailian
+log for ollama(d)
+function to kill ollama 
+

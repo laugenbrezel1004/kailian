@@ -47,7 +47,7 @@ void startServer() {
 
     // Create the directory path (e.g., "/run/user/1234")
     char dir_path[256];
-    snprintf(dir_path, sizeof(dir_path), "/run/user/%u/kailian.conf", userID);
+    snprintf(dir_path, sizeof(dir_path), "/run/user/%u/kailian.log", userID);
     int log_fd = open(dir_path, O_WRONLY | O_CREAT,
                       0644); // log_fd -> 0
     if (log_fd < 0) {

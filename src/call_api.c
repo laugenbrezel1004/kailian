@@ -3,7 +3,7 @@
 #include "../include/checkArgument.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
-#include <cmark.h>
+/*#include <cmark.h>*/
 #include <curl/curl.h>
 #include <curl/easy.h>
 #include <stdbool.h>
