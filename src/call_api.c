@@ -65,33 +65,6 @@ static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
     return realsize;
 }
 
-// Callback for connectToKi: extracts "response" from Ollama
-// Callback for curl: Extracts "response" from JSON or handles raw text
-// MemoryStruct for accumulating response
-/*typedef struct {*/
-/*        char *memory;*/
-/*        size_t size;*/
-/*} MemoryStruct;*/
-
-// Callback to append data to MemoryStruct
-/*static size_t cbWriteMemory(void *data, size_t size, size_t nmemb,*/
-/*                            void *userp) {*/
-/*    size_t realsize = size * nmemb;*/
-/*    MemoryStruct *mem = (MemoryStruct *)userp;*/
-/**/
-/*    char *ptr = realloc(mem->memory, mem->size + realsize + 1);*/
-/*    if (!ptr) {*/
-/*        fprintf(stderr, "Realloc failed in callback\n");*/
-/*        return 0;*/
-/*    }*/
-/*    mem->memory = ptr;*/
-/*    memcpy(mem->memory + mem->size, data, realsize);*/
-/*    mem->size += realsize;*/
-/*    mem->memory[mem->size] = '\0';*/
-/*    printf("%s", mem->memory);*/
-/*    return realsize;*/
-/*}*/
-
 static size_t cbKi(void *data, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
 

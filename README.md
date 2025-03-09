@@ -69,6 +69,12 @@ kailian "How do I kill systemd?"
 Check the Model:
 ```bash
 kailian --model
+
+#
+
+
+
+
 ```
 See what’s powering the magic.
 

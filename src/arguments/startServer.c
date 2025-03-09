@@ -37,26 +37,26 @@ void startServer() {
     // change working directory
     chdir("/");
 
-    // redirect fd's
-    /*close(STDIN_FILENO);*/
-    /*open("/dev/null", O_RDWR); // STDIN to /dev/null*/
-    /*int log_fd = open("/run/ollama.log", O_WRONLY | O_CREAT | O_APPEND,
-     * 0644);*/
-    /*if (log_fd < 0) {*/
-    /*    fprintf(stderr, "unable to write to ollama.log");*/
-    /*    exit(1);*/
-    /*}*/
-    /*dup2(log_fd, STDOUT_FILENO);*/
-    /*dup2(log_fd, STDERR_FILENO);*/
-    /*close(log_fd);*/
-
+    // 0, 1,2 are "dead"
     close(STDIN_FILENO);
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
-    open("/dev/null", O_RDWR); // STDIN == 0 smallest free fd
-    dup(0); // STDOUT copies 0 and creates new smallest fd (1) which points to 0
-    dup(0); // STDERR copies 0 and creates new smallest fd (2) which points to 0
 
+    // Get user ID
+    uid_t userID = getuid();
+
+    // Create the directory path (e.g., "/run/user/1234")
+    char dir_path[256];
+    snprintf(dir_path, sizeof(dir_path), "/run/user/%u/kailian.conf", userID);
+    int log_fd = open(dir_path, O_WRONLY | O_CREAT,
+                      0644); // log_fd -> 0
+    if (log_fd < 0) {
+        perror("Failed to open log file");
+        exit(1);
+    }
+
+    dup2(log_fd, STDERR_FILENO); // 2 -> kailian.log
+    close(log_fd);               // kill 0 (stdin)
     // start "ollama serve"
     execl("/usr/local/bin/ollama", "ollama", "serve", (char *)NULL);
 
