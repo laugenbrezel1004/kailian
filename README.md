@@ -53,7 +53,7 @@ endpoint = "http://localhost:11434/api/generate" ; Where answers are born
 info_endpoint = "http://localhost:11434/api/tags" ; Model gossip hub
 running_model_endpoint = "http://localhost:11434/api/ps" ; Who’s awake?
 ollama_version_endpoint = "http://localhost:11434/api/version" ; Ollama’s flex
-system="You are a linux admin who answers correctly and without markdown" ; AI’s vibe—gruff but helpful
+system = "You are a linux admin who answers correctly and without markdown" ; AI’s vibe—gruff but helpful
 ```
 Hack It: Change the system prompt to make the AI chatty, curt, or downright sarcastic.
 
