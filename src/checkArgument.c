@@ -33,6 +33,8 @@ int checkArgument(const char *argument) {
         coffee();
     } else if (matchesArgument(argument, &arguments.startOllama)) {
         startServer();
+    } else if (matchesArgument(argument, &arguments.createConfig)) {
+        return createConfig();
     } else if (matchesArgument(argument, &arguments.killOllama)) {
         return killServer();
     }

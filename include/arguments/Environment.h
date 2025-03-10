@@ -1,7 +1,8 @@
 #ifndef ENVIRONMENT_H
 #define ENVIRONMENT_H
 
-void showEnvironment(void);
+int showEnvironment(void);
+int createConfig(void);
 
 #endif // SETENVIRONMENT_H
 

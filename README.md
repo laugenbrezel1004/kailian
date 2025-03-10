@@ -34,6 +34,7 @@ Command    | What It Does
 `kailian "question"`  | Ask the AI anything—from the profound to the preposterous (Just put "" if you don't want to activate shellglobbing, but remember, it's a party here!)
 `--model`    | Flaunt the AI's muscle (stats)
 `--show-models`   | Put all the AI models on the catwalk, strutting their stuff
+`--create-config`   | Create new config if old one is lost or corrupt
 `--coffee`     | Boil some liquid happiness for your terminal—alas, it's decaf
 `--help`     | If you're lost and need directions to fun town
 `--info`     | Get some basic info about me
@@ -69,9 +70,6 @@ kailian "How do I kill systemd?"
 Check the Model:
 ```bash
 kailian --model
-
-#
-
 
 
 

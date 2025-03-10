@@ -19,6 +19,7 @@ typedef struct {
     Argument coffee;
     Argument startOllama;
     Argument killOllama;
+    Argument createConfig;
 } Arguments;
 
 // Declare the global variable for arguments

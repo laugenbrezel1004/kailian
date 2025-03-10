@@ -28,8 +28,12 @@ int help() {
             arguments.coffee.long_form);
     fprintf(stdout, "%s,\t%s\t\tstart local ollama instance\n",
             arguments.startOllama.short_form, arguments.startOllama.long_form);
-    fprintf(stdout, "%s,\t%s\t\tkill local ollama instance\n\n",
+    fprintf(stdout, "%s,\t%s\t\tkill local ollama instance\n",
             arguments.killOllama.short_form, arguments.killOllama.long_form);
+    fprintf(stdout,
+            "%s,\t%s\t\tcreate new config if old one is corrupt or lost\n\n",
+            arguments.createConfig.short_form,
+            arguments.createConfig.long_form);
     fprintf(stdout,
             "Exaple: \t\t\tman man | kailian explain me the man command\n");
     exit(0);

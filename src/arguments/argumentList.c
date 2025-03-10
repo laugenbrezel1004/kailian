@@ -15,10 +15,14 @@ Arguments arguments = {
     .showModels = {.name = "showModels",
                    .long_form = "--show-models",
                    .short_form = "-s"},
-    .coffee = {.name = "coffee", .long_form = "--coffee", .short_form = "-c"},
+    .coffee = {.name = "coffee", .long_form = "--coffee", .short_form = "-C"},
     .startOllama = {.name = "startOllama",
                     .long_form = "--start-ollama",
                     .short_form = "-o"},
     .killOllama = {.name = "killOllama",
                    .long_form = "--kill-ollama",
-                   .short_form = "-k"}};
+                   .short_form = "-k"},
+    .createConfig = {.name = "createConfig",
+                     .long_form = "--create-config",
+                     .short_form = "-c"}};
+;
