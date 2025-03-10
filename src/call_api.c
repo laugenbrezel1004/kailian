@@ -154,7 +154,7 @@ int connectToKi(const char *promptBuffer, const char *fileBuffer) {
 
     curl = curl_easy_init();
     if (!curl) {
-        fprintf(stderr, "curl_easy_init failed\n");
+        fprintf(stderr, "Ollama's napping! -> curl_easy_init failed\n");
         free(json_str);
         cJSON_Delete(root);
         return 1;
