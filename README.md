@@ -46,7 +46,7 @@ Kailian's config file hangs out at:
 
 - `/etc/kailian/kailian.conf` 
 
-Sample Config (With Attitude)
+Sample Config 
 ```bash
 name = "deepseek-r1:14" ; The AI’s stage name—sounds edgy
 endpoint = "http://localhost:11434/api/generate" ; Where answers are born
