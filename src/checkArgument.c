@@ -35,6 +35,8 @@ int checkArgument(const char *argument) {
         startServer();
     } else if (matchesArgument(argument, &arguments.createConfig)) {
         return createConfig();
+    } else if (matchesArgument(argument, &arguments.chat)) {
+        return 2;
     } else if (matchesArgument(argument, &arguments.killOllama)) {
         return killServer();
     }

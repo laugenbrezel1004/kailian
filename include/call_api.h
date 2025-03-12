@@ -4,7 +4,8 @@
 
 
 // Deklaration der Funktion
-int connectToKi(const char *promptBuffer, const char *fileBuffer);
+int connectToAi(const char *promptBuffer, const char *fileBuffer);
+int connectToAiChat(const char *promptBuffer, const char *fileBuffer);
 void sendArgument(const char *buffer);
 
 

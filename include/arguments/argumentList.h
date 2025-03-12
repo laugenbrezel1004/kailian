@@ -20,6 +20,8 @@ typedef struct {
     Argument startOllama;
     Argument killOllama;
     Argument createConfig;
+    Argument chat;
+    Argument cleanChat;
 } Arguments;
 
 // Declare the global variable for arguments

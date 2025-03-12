@@ -24,5 +24,8 @@ Arguments arguments = {
                    .short_form = "-k"},
     .createConfig = {.name = "createConfig",
                      .long_form = "--create-config",
-                     .short_form = "-c"}};
+                     .short_form = "-c"},
+    .chat = {.name = "chat", .long_form = "--chat", .short_form = "-p"},
+    .cleanChat = {
+        .name = "cleanChat", .long_form = "--clean-chat", .short_form = "-t"}};
 ;

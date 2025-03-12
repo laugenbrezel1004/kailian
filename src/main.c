@@ -45,6 +45,9 @@ char *readStdin() {
 }
 int main(int argc, char *argv[]) {
 
+    int checkForChat = 0;
+    int returnValue = 0;
+
     // to check for argument size
     if (argc < 2) {
         fprintf(stderr, "Too few arguments!\n");
@@ -55,7 +58,7 @@ int main(int argc, char *argv[]) {
     // to make sure that something is in argv[1] and check if it is a valid flag
     if (argc == 2 &&
         (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        return checkArgument(argv[1]);
+        checkForChat = checkArgument(argv[1]);
     }
 
     // If piped input (e.g., tree | ./kailian)
@@ -84,8 +87,15 @@ int main(int argc, char *argv[]) {
             strcat(promptBuffer, " ");
     }
 
-    int result = connectToKi(promptBuffer, fileBuffer);
+    // checkArgument return "2" when the argument was "chat" with ai
+    if (checkForChat == 2) {
+
+        returnValue = connectToAiChat(promptBuffer, fileBuffer);
+    } else {
+        returnValue = connectToAi(promptBuffer, fileBuffer);
+    }
+
     free(promptBuffer);
     free(fileBuffer);
-    return result;
+    return returnValue;
 }

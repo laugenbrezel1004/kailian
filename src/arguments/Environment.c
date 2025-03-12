@@ -9,7 +9,7 @@ const char *configFile = "/etc/kailian/kailian.conf";
 const char *templateConfig = "name = YOURAI \n\
 endpoint = http://localhost:11434/api/generate \n\
 info_endpoint = http://localhost:11434/api/tags \n\
-running_model_endpoint = http://localhost:11434/api/ps \n\
+running_model_endpoint = http://localhost:11433/api/ps \n\
 ollama_version_endpoint = http://localhost:11434/api/version \n\
 system = \"You are a linux admin who answers correctly and without markdown \"";
 
@@ -17,9 +17,8 @@ int showEnvironment(void) {
 
     FILE *ptr = fopen(configFile, "r");
     if (ptr == NULL) {
-        fprintf(
-            stderr,
-            "kailian: /etc/kailian/kailian.conf: No such file or directory\n");
+        fprintf(stderr, "Config's gone! -> /etc/kailian/kailian.conf: create a "
+                        "new one with --create-config\n");
         exit(1);
     }
 
