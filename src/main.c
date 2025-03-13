@@ -11,68 +11,86 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+// Defines
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 #define MAX_FILE_SIZE 1048576 // 1 MB
 
-char *readStdin() {
+/**
+ * Reads input from stdin until EOF, with a size limit.
+ * @param max_size Maximum allowed size in bytes.
+ * @return Pointer to the allocated buffer, or NULL on error.
+ */
+char *readStdin(size_t max_size) {
     char *fileBuffer = NULL;
     size_t fileSize = 0;
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
 
-    // evtl option für automatisches erstellen von kailian.conf wenn nicht
-    // vorhanden
-
     while ((read = getline(&line, &len, stdin)) != -1) {
+        // Check if adding this line exceeds the maximum size
+        if (fileSize + read > max_size) {
+            fprintf(stderr, "Input exceeds maximum size of %zu bytes\n",
+                    max_size);
+            free(line);
+            free(fileBuffer);
+            return NULL;
+        }
+
+        // Reallocate memory to accommodate the new line
         char *temp = realloc(fileBuffer, fileSize + read + 1);
         if (!temp) {
             fprintf(stderr, "Error reallocing memory\n");
             free(line);
             free(fileBuffer);
-            exit(1);
+            return NULL;
         }
         fileBuffer = temp;
+
+        // Append the line to the buffer
         memcpy(fileBuffer + fileSize, line, read);
         fileSize += read;
-        fileBuffer[fileSize] = '\0'; // Keep newlines in place
+        fileBuffer[fileSize] = '\0'; // Null-terminate, preserving newlines
     }
-    free(line);
-    /*printf("Filebuffer -> %s\n", fileBuffer);*/
+
+    free(line); // Free the line buffer allocated by getline
     return fileBuffer;
 }
+
+/**
+ * Main function to process command-line arguments and piped input,
+ * then connect to an AI service.
+ */
 int main(int argc, char *argv[]) {
-
-    int checkForChat = 0;
-    int returnValue = 0;
-
-    // to check for argument size
-    if (argc < 2) {
+    // Handle flags (e.g., -h or --help) when exactly one argument is provided
+    if (argc == 2 &&
+        (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
+        return checkArgument(argv[1]);
+    } else if (argc < 2) {
         fprintf(stderr, "Too few arguments!\n");
         fprintf(stdout, "Try maybe \"-h\"\n");
         return 1;
     }
 
-    // to make sure that something is in argv[1] and check if it is a valid flag
-    if (argc == 2 &&
-        (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        return checkArgument(argv[1]);
-    }
-
-    // If piped input (e.g., tree | ./kailian)
+    // Read piped input if stdin is not a terminal (e.g., echo "test" |
+    // ./program)
     char *fileBuffer = NULL;
     if (isatty(0) == 0) {
-        fileBuffer = readStdin();
+        fileBuffer = readStdin(MAX_FILE_SIZE);
+        if (!fileBuffer) {
+            return 1; // Exit with error if reading fails
+        }
     }
 
-    // Build prompt from argv
+    // Calculate the total length needed for the prompt (arguments + spaces)
     size_t prompt_len = 0;
     for (int i = 1; i < argc; i++) {
-        prompt_len += strlen(argv[i]) + 1; // Space between args
+        prompt_len += strlen(argv[i]) + 1; // +1 for space or null terminator
     }
 
+    // Allocate memory for the prompt
     char *promptBuffer = malloc(prompt_len);
     if (!promptBuffer) {
         fprintf(stderr, "malloc failed for promptBuffer\n");
@@ -80,22 +98,25 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    promptBuffer[0] = '\0';
+    // Build the prompt efficiently using a pointer
+    char *ptr = promptBuffer;
     for (int i = 1; i < argc; i++) {
-        strcat(promptBuffer, argv[i]);
-        if (i < argc - 1)
-            strcat(promptBuffer, " ");
+        size_t arg_len = strlen(argv[i]);
+        memcpy(ptr, argv[i], arg_len);
+        ptr += arg_len;
+        if (i < argc - 1) {
+            *ptr = ' ';
+            ptr++;
+        }
     }
+    *ptr = '\0'; // Null-terminate the prompt
 
-    // checkArgument return "2" when the argument was "chat" with ai
-    /*if (checkForChat == 2) {*/
+    // Connect to the AI service and get the return value
+    int returnValue = connectToAi(promptBuffer, fileBuffer);
 
-    /*returnValue = connectToAiChat(promptBuffer, fileBuffer);*/
-    /*} else {*/
-    returnValue = connectToAi(promptBuffer, fileBuffer);
-    /*}*/
-
+    // Clean up allocated memory
     free(promptBuffer);
     free(fileBuffer);
+
     return returnValue;
 }
