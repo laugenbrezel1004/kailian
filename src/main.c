@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+// defines
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
@@ -43,22 +44,22 @@ char *readStdin() {
     /*printf("Filebuffer -> %s\n", fileBuffer);*/
     return fileBuffer;
 }
+
 int main(int argc, char *argv[]) {
 
-    int checkForChat = 0;
-    int returnValue = 0;
+    int returnValue = 1;
 
     // to check for argument size
     if (argc < 2) {
         fprintf(stderr, "Too few arguments!\n");
         fprintf(stdout, "Try maybe \"-h\"\n");
-        return 1;
+        return returnValue = 1;
     }
 
     // to make sure that something is in argv[1] and check if it is a valid flag
     if (argc == 2 &&
         (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        return checkArgument(argv[1]);
+        return returnValue = checkArgument(argv[1]);
     }
 
     // If piped input (e.g., tree | ./kailian)
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
     if (!promptBuffer) {
         fprintf(stderr, "malloc failed for promptBuffer\n");
         free(fileBuffer);
-        return 1;
+        return returnValue = 1;
     }
 
     promptBuffer[0] = '\0';
@@ -87,13 +88,7 @@ int main(int argc, char *argv[]) {
             strcat(promptBuffer, " ");
     }
 
-    // checkArgument return "2" when the argument was "chat" with ai
-    /*if (checkForChat == 2) {*/
-
-    /*returnValue = connectToAiChat(promptBuffer, fileBuffer);*/
-    /*} else {*/
     returnValue = connectToAi(promptBuffer, fileBuffer);
-    /*}*/
 
     free(promptBuffer);
     free(fileBuffer);
