@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     // to make sure that something is in argv[1] and check if it is a valid flag
     if (argc == 2 &&
         (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        checkForChat = checkArgument(argv[1]);
+        return checkArgument(argv[1]);
     }
 
     // If piped input (e.g., tree | ./kailian)
@@ -88,12 +88,12 @@ int main(int argc, char *argv[]) {
     }
 
     // checkArgument return "2" when the argument was "chat" with ai
-    if (checkForChat == 2) {
+    /*if (checkForChat == 2) {*/
 
-        returnValue = connectToAiChat(promptBuffer, fileBuffer);
-    } else {
-        returnValue = connectToAi(promptBuffer, fileBuffer);
-    }
+    /*returnValue = connectToAiChat(promptBuffer, fileBuffer);*/
+    /*} else {*/
+    returnValue = connectToAi(promptBuffer, fileBuffer);
+    /*}*/
 
     free(promptBuffer);
     free(fileBuffer);
