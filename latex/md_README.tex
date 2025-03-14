@@ -1,0 +1,129 @@
+\chapter{Kaillian -\/ The Linux Admin\textquotesingle{}s Quirky Sidekick! 🤖🎉}
+\hypertarget{md_README}{}\label{md_README}\index{Kaillian -\/ The Linux Admin\textquotesingle{}s Quirky Sidekick"! 🤖🎉@{Kaillian -\/ The Linux Admin\textquotesingle{}s Quirky Sidekick"! 🤖🎉}}
+\label{md_README_autotoc_md0}%
+\Hypertarget{md_README_autotoc_md0}%
+
+
+{\bfseries{Kailian}} isn’t just a command-\/line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by \href{https://ollama.com/}{\texttt{ Ollama}}. Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in command output for sage advice, Kailian’s got your back. It leans on {\ttfamily libcurl} for HTTP wizardry, {\ttfamily c\+JSON} for JSON crunching and {\ttfamily llogger} for logging.\hypertarget{md_README_autotoc_md1}{}\doxysection{\texorpdfstring{Prerequisites}{Prerequisites}}\label{md_README_autotoc_md1}
+
+\begin{DoxyItemize}
+\item GCC or another C compiler
+\item Libraries\+:
+\begin{DoxyItemize}
+\item {\ttfamily c\+JSON} (e.\+g., {\ttfamily sudo pacman -\/S cjson} or {\ttfamily sudo apt-\/get install libcjson-\/dev})
+\item {\ttfamily libcurl} (e.\+g., {\ttfamily sudo pacman -\/S curl} or {\ttfamily sudo apt-\/get install libcurl4-\/openssl-\/dev})
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md2}{}\doxysection{\texorpdfstring{Building 🛠️}{Building 🛠️}}\label{md_README_autotoc_md2}
+Compile and install the source code\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git\ clone\ https://github.com/laugenbrezel1004/kaillian.git}
+\DoxyCodeLine{cd\ kaillian}
+\DoxyCodeLine{make\ }
+\DoxyCodeLine{sudo\ make\ install}
+
+\end{DoxyCode}
+
+
+Drops Kailian into {\ttfamily /usr/local/bin} and the config into {\ttfamily /etc/kailian}. You’re official now.\hypertarget{md_README_autotoc_md3}{}\doxysection{\texorpdfstring{Usage 🔧}{Usage 🔧}}\label{md_README_autotoc_md3}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{2}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Command   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ What It Does    }\\\cline{1-2}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Command   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ What It Does    }\\\cline{1-2}
+\endhead
+{\ttfamily kaillian "{}question"{}}   &Ask the AI anything—from the profound to the preposterous (Just put "{}"{} if you don\textquotesingle{}t want to activate shellglobbing, but remember, it’s a party here!)    \\\cline{1-2}
+{\ttfamily -\/-\/model}   &Flaunt the AI’s muscle (stats)    \\\cline{1-2}
+{\ttfamily -\/-\/show-\/models}   &Put all the AI models on the catwalk, strutting their stuff    \\\cline{1-2}
+{\ttfamily -\/-\/create-\/config}   &Create new config if old one is lost or corrupt    \\\cline{1-2}
+{\ttfamily -\/-\/coffee}   &Boil some liquid happiness for your terminal—alas, it\textquotesingle{}s decaf    \\\cline{1-2}
+{\ttfamily -\/-\/help}   &If you’re lost and need directions to fun town    \\\cline{1-2}
+{\ttfamily -\/-\/info}   &Get some basic info about me    \\\cline{1-2}
+{\ttfamily -\/-\/show-\/environment}   &Peek into the kaillian.\+conf file    \\\cline{1-2}
+{\ttfamily -\/-\/start-\/ollama}   &Start a local ollama instance    \\\cline{1-2}
+{\ttfamily -\/-\/kill-\/ollama}   &Kill a local ollama instance    \\\cline{1-2}
+{\ttfamily cat error.\+log}$|$ kaillian "{}\+Fix this!"{}   &\+:) 🤖    \\\cline{1-2}
+{\ttfamily man yes}$|$ kaillian Explain me this command   &Yes! 🚀   \\\cline{1-2}
+\end{longtabu}
+\hypertarget{md_README_autotoc_md4}{}\doxysection{\texorpdfstring{Configuration}{Configuration}}\label{md_README_autotoc_md4}
+Kailian\textquotesingle{}s config file hangs out at\+:
+
+
+\begin{DoxyItemize}
+\item {\ttfamily /etc/kailian/kailian.conf}
+\end{DoxyItemize}
+
+Sample Config 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{name\ =\ "{}deepseek-\/r1:14"{}\ ;\ The\ AI’s\ stage\ name—sounds\ edgy}
+\DoxyCodeLine{endpoint\ =\ "{}http://localhost:11434/api/generate"{}\ ;\ Where\ answers\ are\ born}
+\DoxyCodeLine{info\_endpoint\ =\ "{}http://localhost:11434/api/tags"{}\ ;\ Model\ gossip\ hub}
+\DoxyCodeLine{running\_model\_endpoint\ =\ "{}http://localhost:11434/api/ps"{}\ ;\ Who’s\ awake?}
+\DoxyCodeLine{ollama\_version\_endpoint\ =\ "{}http://localhost:11434/api/version"{}\ ;\ Ollama’s\ flex}
+\DoxyCodeLine{system\ =\ "{}You\ are\ a\ linux\ admin\ who\ answers\ correctly\ and\ without\ markdown"{}\ ;\ AI’s\ vibe—gruff\ but\ helpful}
+
+\end{DoxyCode}
+ Hack It\+: Change the system prompt to make the AI chatty, curt, or downright sarcastic.\hypertarget{md_README_autotoc_md5}{}\doxysection{\texorpdfstring{Examples}{Examples}}\label{md_README_autotoc_md5}
+Ask Something Smart\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{kailian\ "{}What\ is\ coffee?"{}}
+\DoxyCodeLine{-\/>\ Coffee,\ my\ friend,\ is\ the\ elixir\ of\ life\ that\ allows\ us\ to\ function\ before\ we've\ fully\ processed\ the\ fact\ that\ it's\ still\ morning.}
+
+\end{DoxyCode}
+
+
+Check the current model in use\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{kailian\ -\/-\/model}
+\DoxyCodeLine{-\/>\ Model\ Name:\ mistral:latest}
+
+\end{DoxyCode}
+ See what’s powering the magic.
+
+Model Lineup\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{kailian\ -\/-\/show-\/models}
+\DoxyCodeLine{-\/>\ Model\ Name:\ qwen2.5:14b}
+\DoxyCodeLine{Model\ Name:\ granite3.2:latest}
+\DoxyCodeLine{Model\ Name:\ mistral:latest}
+\DoxyCodeLine{Model\ Name:\ deepseek-\/r1:32b}
+\DoxyCodeLine{Model\ Name:\ codellama:13b}
+\DoxyCodeLine{Model\ Name:\ deepseek-\/r1:14b}
+\DoxyCodeLine{Model\ Name:\ deepseek-\/r1:1.5b}
+\DoxyCodeLine{Model\ Name:\ deepseek-\/r1:latest}
+
+\end{DoxyCode}
+ Meet the AI crew.
+
+Coffee Time\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{kailian\ -\/-\/coffee}
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \string~\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \ \ \string~\ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \ \ \ \ \ \string~\ \ \ \ \ \ }
+\DoxyCodeLine{\ \ \ \ \ \ \ \_\_\_\_\_\_\_\_\_\_\_\_\_}
+\DoxyCodeLine{\ \ \ \ \ \ <\_\_\_\_\_\_\_\_\_\_\_\_\_>\ \_\_\_}
+\DoxyCodeLine{\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ |/\ \_\ \(\backslash\)}
+\DoxyCodeLine{\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\ |\ |}
+\DoxyCodeLine{\ \ \ \ \ \ |\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ |\_|\ |}
+\DoxyCodeLine{\ \ \ \_\_\_|\ \ \ \ \ \ \ \ \ \ \ \ \ |\(\backslash\)\_\_\_/}
+\DoxyCodeLine{\ \ /\ \ \ \ \(\backslash\)\_\_\_\_\_\_\_\_\_\_\_/\ \ \ \ \(\backslash\)}
+\DoxyCodeLine{\ \ \(\backslash\)\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_/}
+\DoxyCodeLine{\ \ \ \ \ \ \ \(\backslash\)\_\_\_\_\_\_\_\_\_\_\_/}
+
+\end{DoxyCode}
+ Sip virtually while you debug.
+
+Pipe Dreams\+: 
+\begin{DoxyCode}{0}
+\DoxyCodeLine{tree\ |\ kailian\ "{}Summarize\ this\ directory\ mess"{}}
+\DoxyCodeLine{-\/>\ \ Looks\ like\ you're\ brewing\ your\ own\ Linux-\/powered\ robot,\ Kailian!\ With\ this\ many\ lines\ of\ code,\ I\ hope\ it\ can\ make\ me\ a\ cup\ of\ coffee\ when\ I\ ask\ it\ nicely.}
+
+\end{DoxyCode}
+ Kailian tidies up your thoughts.\hypertarget{md_README_autotoc_md6}{}\doxysection{\texorpdfstring{Troubleshooting}{Troubleshooting}}\label{md_README_autotoc_md6}
+“\+Config’s gone!”\+: Check {\ttfamily /etc/kailian/kailian.conf}. Make one if it’s lost with "{}-\/-\/create-\/config"{}.
+
+“\+Ollama’s napping!”\+: Ping it\+: {\ttfamily curl \href{http://localhost:11434}{\texttt{ http\+://localhost\+:11434}}}. Wake it up if it’s snoozing. 

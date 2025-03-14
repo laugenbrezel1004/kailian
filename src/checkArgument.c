@@ -18,24 +18,22 @@ int matchesArgument(const char *argument, const Argument *compare) {
 int checkArgument(const char *argument) {
     if (matchesArgument(argument, &arguments.help)) {
         help();
+    } else if (matchesArgument(argument, &arguments.coffee)) {
+        coffee();
+    } else if (matchesArgument(argument, &arguments.showEnvironment)) {
+        showEnvironment();
+    } else if (matchesArgument(argument, &arguments.startOllama)) {
+        startServer();
+    } else if (matchesArgument(argument, &arguments.killOllama)) {
+        return killServer();
+    } else if (matchesArgument(argument, &arguments.createConfig)) {
+        return createConfig();
     } else if (matchesArgument(argument, &arguments.info)) {
         connectToAi(NULL, NULL, arguments.info.long_form);
     } else if (matchesArgument(argument, &arguments.model)) {
         connectToAi(NULL, NULL, arguments.model.long_form);
-    } else if (matchesArgument(argument, &arguments.showEnvironment)) {
-        showEnvironment();
     } else if (matchesArgument(argument, &arguments.showModels)) {
         connectToAi(NULL, NULL, arguments.showModels.long_form);
-    } else if (matchesArgument(argument, &arguments.coffee)) {
-        coffee();
-    } else if (matchesArgument(argument, &arguments.startOllama)) {
-        startServer();
-    } else if (matchesArgument(argument, &arguments.createConfig)) {
-        return createConfig();
-    } else if (matchesArgument(argument, &arguments.chat)) {
-        return 2;
-    } else if (matchesArgument(argument, &arguments.killOllama)) {
-        return killServer();
     }
 
     else {

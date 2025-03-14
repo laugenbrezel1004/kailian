@@ -102,6 +102,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
 
         // define correct api to connect to
         // checkArgument() makes sure to use strncmp???
+        // redundanter code? siehe -> checkArgument
         if (strcmp(argument, arguments.model.long_form) == 0) {
             url = ENV.running_model_endpoint;
         } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
@@ -189,6 +190,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
     curl_easy_cleanup(curl);
     return (res == CURLE_OK) ? 0 : 1;
 }
+
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
 
@@ -198,17 +200,6 @@ static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
         fprintf(stderr, "Malloc failed in callback\n");
         MELDUNG("error");
         return 0; // Tell curl to abort
-    }
-
-    char chatHistory[256];
-    uid_t userID = getuid();
-    snprintf(chatHistory, sizeof(chatHistory), "/run/user/%u/chatHistory",
-             userID);
-    int fd_chatHistory = open(chatHistory, O_WRONLY | O_CREAT, 0644);
-
-    if (fd_chatHistory < 0) {
-        fprintf(stderr, "Failed to open chatHistory");
-        return 1;
     }
 
     memcpy(buffer, data, realsize);
@@ -225,11 +216,13 @@ static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
         if (response && cJSON_IsString(response)) {
             // Print the response directly (or store if needed)
             printf("%s", response->valuestring);
-            write(fd_chatHistory, response->valuestring, realsize);
-
             fflush(stdout);
+
         } else {
+            // kommt immer am ende, deswegen erstmal auf ganz schlau angelehnt
+            // rausgenommen
             /*fprintf(stderr, "JSON parsing succeeded but no valid 'respons"*/
+
             /*                "string found\n");*/
             /*MELDUNG("error");*/
             /*printf("%s", buffer); // Fallback to raw buffer*/

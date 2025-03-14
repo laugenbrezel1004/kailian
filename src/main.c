@@ -1,3 +1,6 @@
+// main.c
+
+// includes
 #define _POSIX_C_SOURCE 200809L
 #include "../include/askError.h"
 #include "../include/call_api.h"
@@ -18,7 +21,9 @@
 #define MAX_FILE_SIZE 1048576 // 1 MB
 
 /**
- * Reads input from stdin until EOF, with a size limit.
+ * @brief Reads input from stdin until EOF, with a size limit.
+ * If the programm gets input from a a filedecriptor not terminal, than this
+ * funciton gets called, which reads input and stores it as "fileBuffer".
  * @param max_size Maximum allowed size in bytes.
  * @return Pointer to the allocated buffer, or NULL on error.
  */
@@ -60,8 +65,12 @@ char *readStdin(size_t max_size) {
 }
 
 /**
+ * @brief Main function.
  * Main function to process command-line arguments and piped input,
  * then connect to an AI service.
+ * @param argc Count of passed arguments from the shell.
+ * @param *argv[] Saves the different arguments passed from the shell.
+ * @return The error code from kailian.
  */
 int main(int argc, char *argv[]) {
     // Handle flags (e.g., -h or --help) when exactly one argument is provided
@@ -73,7 +82,6 @@ int main(int argc, char *argv[]) {
         fprintf(stdout, "Try maybe \"-h\"\n");
         return 1;
     }
-
     // Read piped input if stdin is not a terminal (e.g., echo "test" |
     // ./program)
     char *fileBuffer = NULL;
