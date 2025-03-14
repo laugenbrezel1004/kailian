@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
     *ptr = '\0'; // Null-terminate the prompt
 
     // Connect to the AI service and get the return value
-    int returnValue = connectToAi(promptBuffer, fileBuffer);
+    int returnValue = connectToAi(promptBuffer, fileBuffer, NULL);
 
     // Clean up allocated memory
     free(promptBuffer);

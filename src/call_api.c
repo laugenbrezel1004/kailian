@@ -16,56 +16,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-// prototypes
-int sendArgument(const char *buffer);
+// prototyp
 static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
                              void *userp);
-int connectToAi(const char *promptBuffer, const char *fileBuffer);
+int connectToAi(const char *bufferPrompt, const char *bufferFile,
+                const char *argument);
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp);
-int connectToAiChat(const char *promptBuffer, const char *fileBuffer);
+
+// evtl in eigentständige file auslagern
+int connectToAiChat(const char *bufferPrompt, const char *bufferFile);
 static size_t cbAiChat(void *data, size_t size, size_t nmemb, void *userp);
 
 // macros
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
-int sendArgument(const char *argument) {
-    const Env ENV = readEnv();
-    CURL *curl;
-    CURLcode res;
-
-    curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "curl_easy_init failed\n");
-        return 1;
-    }
-
-    const char *url = NULL;
-    if (strcmp(argument, arguments.model.long_form) == 0) {
-        url = ENV.running_model_endpoint;
-    } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
-        url = ENV.info_endpoint;
-    } else if (strcmp(argument, arguments.info.long_form) == 0) {
-        url = ENV.info_endpoint;
-    } else {
-        curl_easy_cleanup(curl);
-        return 1;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
-     * sendArgumentWriteCallback);*/
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbSendArgument);
-
-    res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform failed: %s\n",
-                curl_easy_strerror(res));
-    }
-
-    curl_easy_cleanup(curl);
-    return (res == CURLE_OK) ? 0 : 1;
-}
 static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
                              void *userp) {
     size_t realsize = size * nmemb;
@@ -116,37 +81,77 @@ static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
     return realsize;
 }
 
-int connectToAi(const char *promptBuffer, const char *fileBuffer) {
+// connet to send data
+//  connect to specific endpoint
+int connectToAi(const char *bufferPrompt, const char *bufferFile,
+                const char *argument) {
+    // read in env file
     const Env ENV = readEnv();
+    // some curl spcific stuff
     CURL *curl = NULL;
     CURLcode res = CURLE_OK;
+
+    curl = curl_easy_init();
+    if (!curl) {
+        fprintf(stderr, "curl_easy_init failed\n");
+        return 1;
+    }
+    // check api for some infomation
+    const char *url = NULL;
+    if (argument != NULL) {
+
+        // define correct api to connect to
+        // checkArgument() makes sure to use strncmp???
+        if (strcmp(argument, arguments.model.long_form) == 0) {
+            url = ENV.running_model_endpoint;
+        } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
+            url = ENV.info_endpoint;
+        } else if (strcmp(argument, arguments.info.long_form) == 0) {
+            url = ENV.info_endpoint;
+        } else {
+            curl_easy_cleanup(curl);
+            return 1;
+        }
+        curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbSendArgument);
+
+        res = curl_easy_perform(curl);
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform failed: %s\n",
+                    curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(curl);
+        return (res == CURLE_OK) ? 0 : 1;
+    }
+    // if no argument is beeing passed, than a normal api/generate should be
+    // done
+    // use cJSON to easily create a json string for the api call
     cJSON *root = cJSON_CreateObject();
     char *json_str = NULL;
-
     if (!root) {
         fprintf(stderr, "cJSON_CreateObject failed\n");
         return 1;
     }
 
     cJSON_AddStringToObject(root, "model", ENV.name);
-    /*cJSON_AddBoolToObject(root, "raw", cJSON_True);*/
     cJSON_AddStringToObject(root, "system", ENV.system);
 
-    // Combine prompt and fileBuffer with a newline separator
+    // Combine prompt and bufferFile with a newline separator
     char *full_prompt = NULL;
-    size_t prompt_len = strlen(promptBuffer) + 1; // Prompt + null
-    if (fileBuffer)
-        prompt_len += strlen(fileBuffer) + 1; // Space + fileBuffer
+    size_t prompt_len = strlen(bufferPrompt) + 1; // Prompt + null
+    if (bufferFile)
+        prompt_len += strlen(bufferFile) + 1; // Space + bufferFile
     full_prompt = malloc(prompt_len);
     if (!full_prompt) {
         fprintf(stderr, "malloc failed for full_prompt\n");
         cJSON_Delete(root);
         return 1;
     }
-    if (fileBuffer) {
-        snprintf(full_prompt, prompt_len, "%s\n%s", promptBuffer, fileBuffer);
+    if (bufferFile) {
+        snprintf(full_prompt, prompt_len, "%s\n%s", bufferPrompt, bufferFile);
     } else {
-        strcpy(full_prompt, promptBuffer);
+        strcpy(full_prompt, bufferPrompt);
     }
 
     cJSON_AddStringToObject(root, "prompt", full_prompt);
@@ -173,31 +178,11 @@ int connectToAi(const char *promptBuffer, const char *fileBuffer) {
     /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);*/
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
 
-    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);*/
-
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform failed: %s\n",
                 curl_easy_strerror(res));
-    } /*else {*/
-    /*    printf("Raw response: %s\n", chunk.memory ? chunk.memory : "NULL");*/
-    /*    cJSON *json = cJSON_Parse(chunk.memory);*/
-    /*    if (!json) {*/
-    /*        fprintf(stderr, "JSON parse failed: %s\n", cJSON_GetErrorPtr());*/
-    /*        printf("%s", chunk.memory);*/
-    /*        ;*/
-    /*    } else {*/
-    /*        cJSON *response =*/
-    /*            cJSON_GetObjectItemCaseSensitive(json, "response");*/
-    /*        if (response && cJSON_IsString(response)) {*/
-    /*            printf("%s", response->valuestring);*/
-    /*        } else {*/
-    /*            printf("No valid response field in JSON\n");*/
-    /*            printf("%s", chunk.memory);*/
-    /*        }*/
-    /*        cJSON_Delete(json);*/
-    /*    }*/
-    /*}*/
+    }
     printf("\n"); // to remote the "%" after the ki answer
     free(json_str);
     cJSON_Delete(root);
@@ -261,7 +246,7 @@ static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
     return realsize; // Success: processed all bytes
 }
 
-int connectToAiChat(const char *promptBuffer, const char *fileBuffer) {
+int connectToAiChat(const char *bufferPrompt, const char *bufferFile) {
     const Env ENV = readEnv();
     CURL *curl = NULL;
     CURLcode res = CURLE_OK;
@@ -289,21 +274,21 @@ int connectToAiChat(const char *promptBuffer, const char *fileBuffer) {
     /*cJSON_AddBoolToObject(root, "raw", cJSON_True);*/
     cJSON_AddStringToObject(root, "system", ENV.system);
 
-    // Combine prompt and fileBuffer with a newline separator
+    // Combine prompt and bufferFile with a newline separator
     char *full_prompt = NULL;
-    size_t prompt_len = strlen(promptBuffer) + 1; // Prompt + null
-    if (fileBuffer)
-        prompt_len += strlen(fileBuffer) + 1; // Space + fileBuffer
+    size_t prompt_len = strlen(bufferPrompt) + 1; // Prompt + null
+    if (bufferFile)
+        prompt_len += strlen(bufferFile) + 1; // Space + bufferFile
     full_prompt = malloc(prompt_len);
     if (!full_prompt) {
         fprintf(stderr, "malloc failed for full_prompt\n");
         cJSON_Delete(root);
         return 1;
     }
-    if (fileBuffer) {
-        snprintf(full_prompt, prompt_len, "%s\n%s", promptBuffer, fileBuffer);
+    if (bufferFile) {
+        snprintf(full_prompt, prompt_len, "%s\n%s", bufferPrompt, bufferFile);
     } else {
-        strcpy(full_prompt, promptBuffer);
+        strcpy(full_prompt, bufferPrompt);
     }
 
     cJSON_AddStringToObject(root, "prompt", full_prompt);

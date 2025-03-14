@@ -4,9 +4,8 @@
 
 
 // Deklaration der Funktion
-int connectToAi(const char *promptBuffer, const char *fileBuffer);
+int connectToAi(const char *promptBuffer, const char *fileBuffer, const char *argument);
 int connectToAiChat(const char *promptBuffer, const char *fileBuffer);
-void sendArgument(const char *buffer);
 
 
 #endif // API_H
