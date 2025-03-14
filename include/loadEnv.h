@@ -9,7 +9,7 @@ typedef struct {
         char info_endpoint[MAXSIZE];
         char running_model_endpoint[MAXSIZE];
         char ollama_version_endpoint[MAXSIZE];
-        char system[MAXSIZE];
+        char system[MAXSIZE]; /*for the system prompt*/
 } Env;
 
 
