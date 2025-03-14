@@ -65,12 +65,12 @@ char *readStdin(size_t max_size) {
 }
 
 /**
- * /brief Main function.
+ * @brief Main function.
  * Main function to process command-line arguments and piped input,
  * then connect to an AI service.
- * /param argc Count of passed arguments from the shell.
- * /param *argv[] Saves the different arguments passed from the shell.
- * /return The error code from kailian.
+ * @param argc Count of passed arguments from the shell.
+ * @param *argv[] Saves the different arguments passed from the shell.
+ * @return The error code from kailian.
  */
 int main(int argc, char *argv[]) {
     // Handle flags (e.g., -h or --help) when exactly one argument is provided

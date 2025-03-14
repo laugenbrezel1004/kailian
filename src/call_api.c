@@ -83,6 +83,7 @@ static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
 
 // connet to send data
 //  connect to specific endpoint
+//* Function to connect to the different ollama api's
 int connectToAi(const char *bufferPrompt, const char *bufferFile,
                 const char *argument) {
     // read in env file
@@ -104,11 +105,11 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
         // checkArgument() makes sure to use strncmp???
         // redundanter code? siehe -> checkArgument
         if (strcmp(argument, arguments.model.long_form) == 0) {
-            url = ENV.running_model_endpoint;
+            url = ENV.endpoint_running_model;
         } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
-            url = ENV.info_endpoint;
+            url = ENV.endpoint_info;
         } else if (strcmp(argument, arguments.info.long_form) == 0) {
-            url = ENV.info_endpoint;
+            url = ENV.endpoint_info;
         } else {
             curl_easy_cleanup(curl);
             return 1;
@@ -174,7 +175,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
     }
 
     curl_easy_setopt(curl, CURLOPT_URL,
-                     ENV.endpoint); // Replace with ENV.endpoint
+                     ENV.endpoint_generate); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
     /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);*/
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
@@ -303,7 +304,7 @@ int connectToAiChat(const char *bufferPrompt, const char *bufferFile) {
     }
 
     curl_easy_setopt(curl, CURLOPT_URL,
-                     ENV.endpoint); // Replace with ENV.endpoint
+                     ENV.endpoint_generate); // Replace with ENV.endpoint
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
     /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &cuc);*/

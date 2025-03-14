@@ -5,11 +5,13 @@
 
 typedef struct {
         char name[MAXSIZE];
-        char endpoint[MAXSIZE];
-        char info_endpoint[MAXSIZE];
-        char running_model_endpoint[MAXSIZE];
-        char ollama_version_endpoint[MAXSIZE];
-        char system[MAXSIZE]; /*for the system prompt*/
+        char endpoint_generate[MAXSIZE];
+        char endpoint_info[MAXSIZE];
+        char endpoint_running_model[MAXSIZE];
+        char endpoint_ollama_version[MAXSIZE];
+        char endpoint_chat[MAXSIZE];
+        char endpoint_show[MAXSIZE];
+        char system[MAXSIZE];
 } Env;
 
 

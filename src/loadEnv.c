@@ -5,10 +5,12 @@
 
 typedef struct {
         char name[300];
-        char endpoint[300];
-        char info_endpoint[300];
-        char running_model_endpoint[300];
-        char ollama_version_endpoint[300];
+        char endpoint_generate[300];
+        char endpoint_info[300];
+        char endpoint_running_model[300];
+        char endpoint_ollama_version[300];
+        char endpoint_chat[300];
+        char endpoint_show[300];
         char system[300];
 } Env;
 
@@ -40,14 +42,18 @@ Env readEnv() {
            sizeof(env)); // Initialize all fields to zero (empty strings)
 
     // Array mapping config keys to Env struct fields
+    // redundater coder?!?!?!?!!? -> einfach argument list aus
+    // arguments/argumentList.c nutzen?
     Field fields[] = {
         {"name", env.name, sizeof(env.name)},
-        {"endpoint", env.endpoint, sizeof(env.endpoint)},
-        {"info_endpoint", env.info_endpoint, sizeof(env.info_endpoint)},
-        {"running_model_endpoint", env.running_model_endpoint,
-         sizeof(env.running_model_endpoint)},
-        {"ollama_version_endpoint", env.ollama_version_endpoint,
-         sizeof(env.ollama_version_endpoint)},
+        {"endpoint", env.endpoint_generate, sizeof(env.endpoint_generate)},
+        {"endpoint_info", env.endpoint_info, sizeof(env.endpoint_info)},
+        {"endpoint_running_model", env.endpoint_running_model,
+         sizeof(env.endpoint_running_model)},
+        {"endpoint_ollama_version", env.endpoint_ollama_version,
+         sizeof(env.endpoint_ollama_version)},
+        {"endpoint_chat", env.endpoint_chat, sizeof(env.endpoint_chat)},
+        {"endpoint_show", env.endpoint_show, sizeof(env.endpoint_show)},
         {"system", env.system, sizeof(env.system)},
         {NULL, NULL, 0} // Sentinel to mark end of array
     };

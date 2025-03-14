@@ -121,8 +121,10 @@ $(function(){initNavTree('checkArgument_8c.html',''); initResizable(true); });
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a015dfde37db0e92b9a9c65a505bed469" id="r_a015dfde37db0e92b9a9c65a505bed469"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a015dfde37db0e92b9a9c65a505bed469">matchesArgument</a> (const char *argument, const <a class="el" href="structArgument.html">Argument</a> *compare)</td></tr>
+<tr class="memdesc:a015dfde37db0e92b9a9c65a505bed469"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to make sure argument is valid. This funciton is used by <a class="el" href="#a9cf405737f983851b318fae8933df1f9" title="Loop throw arguments and call correct functions This function uses matchesArgument() to check the dif...">checkArgument()</a> to compare a given argument with the argument struck form <a class="el" href="argumentList_8c.html">argumentList.c</a> to make sure that the argument is valid.  <br /></td></tr>
 <tr class="separator:a015dfde37db0e92b9a9c65a505bed469"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cf405737f983851b318fae8933df1f9" id="r_a9cf405737f983851b318fae8933df1f9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a9cf405737f983851b318fae8933df1f9">checkArgument</a> (const char *argument)</td></tr>
+<tr class="memdesc:a9cf405737f983851b318fae8933df1f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Loop throw arguments and call correct functions This function uses <a class="el" href="#a015dfde37db0e92b9a9c65a505bed469" title="Function to make sure argument is valid. This funciton is used by checkArgument() to compare a given ...">matchesArgument()</a> to check the different arguments. It then calles the functions for the arguments, based on the output from <a class="el" href="#a015dfde37db0e92b9a9c65a505bed469" title="Function to make sure argument is valid. This funciton is used by checkArgument() to compare a given ...">matchesArgument()</a>.  <br /></td></tr>
 <tr class="separator:a9cf405737f983851b318fae8933df1f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
@@ -140,6 +142,15 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Loop throw arguments and call correct functions This function uses <a class="el" href="#a015dfde37db0e92b9a9c65a505bed469" title="Function to make sure argument is valid. This funciton is used by checkArgument() to compare a given ...">matchesArgument()</a> to check the different arguments. It then calles the functions for the arguments, based on the output from <a class="el" href="#a015dfde37db0e92b9a9c65a505bed469" title="Function to make sure argument is valid. This funciton is used by checkArgument() to compare a given ...">matchesArgument()</a>. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">*argument</td><td>The argument from the <a class="el" href="main_8c.html#a0ddf1224851353fc92bfbff6f499fa97" title="Main function. Main function to process command-line arguments and piped input, then connect to an AI...">main()</a>. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Integer error code. </dd></dl>
 
 </div>
 </div>
@@ -161,6 +172,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Function to make sure argument is valid. This funciton is used by <a class="el" href="#a9cf405737f983851b318fae8933df1f9" title="Loop throw arguments and call correct functions This function uses matchesArgument() to check the dif...">checkArgument()</a> to compare a given argument with the argument struck form <a class="el" href="argumentList_8c.html">argumentList.c</a> to make sure that the argument is valid. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">*argument</td><td>The given argument to check. </td></tr>
+    <tr><td class="paramname">*compare</td><td>The entity in the struckt to compare the argument with. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Integer with non-zero when argument fits </dd></dl>
 
 </div>
 </div>

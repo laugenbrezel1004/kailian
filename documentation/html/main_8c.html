@@ -135,6 +135,7 @@ Functions</h2></td></tr>
 <tr class="memdesc:ae1769100d9c9f4ae046fcc98c79a9d7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads input from stdin until EOF, with a size limit. If the programm gets input from a a filedecriptor not terminal, than this funciton gets called, which reads input and stores it as "fileBuffer".  <br /></td></tr>
 <tr class="separator:ae1769100d9c9f4ae046fcc98c79a9d7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ddf1224851353fc92bfbff6f499fa97" id="r_a0ddf1224851353fc92bfbff6f499fa97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0ddf1224851353fc92bfbff6f499fa97">main</a> (int argc, char *argv[])</td></tr>
+<tr class="memdesc:a0ddf1224851353fc92bfbff6f499fa97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main function. Main function to process command-line arguments and piped input, then connect to an AI service.  <br /></td></tr>
 <tr class="separator:a0ddf1224851353fc92bfbff6f499fa97"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
@@ -203,7 +204,16 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>/brief Main function. Main function to process command-line arguments and piped input, then connect to an AI service. /param argc Count of passed arguments from the shell. /param *argv[] Saves the different arguments passed from the shell. /return The error code from kailian. </p>
+
+<p>Main function. Main function to process command-line arguments and piped input, then connect to an AI service. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">argc</td><td>Count of passed arguments from the shell. </td></tr>
+    <tr><td class="paramname">*argv[]</td><td>Saves the different arguments passed from the shell. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The error code from kailian. </dd></dl>
 
 </div>
 </div>
