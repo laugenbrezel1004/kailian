@@ -2,7 +2,6 @@
 #include "../../include/arguments/help.h"
 #include "../../include/arguments/argumentList.h"
 #include <stdio.h>
-#include <stdlib.h>
 
 /**
  * @brief Zeigt die Hilfeseite für kailian an.
@@ -17,8 +16,9 @@ int help(void) {
            arguments.help.long_form);
     printf("  %s, %-20s Get general info\n", arguments.info.short_form,
            arguments.info.long_form);
-    printf("  %s, %-20s Get running model info\n", arguments.model.short_form,
-           arguments.model.long_form);
+    printf("  %s, %-20s Get running model info\n",
+           arguments.showCurrentModel.short_form,
+           arguments.showCurrentModel.long_form);
     printf("  %s, %-20s Show environment settings\n",
            arguments.showEnvironment.short_form,
            arguments.showEnvironment.long_form);

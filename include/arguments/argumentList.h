@@ -13,7 +13,7 @@ typedef struct {
     Argument askError;
     Argument help;
     Argument info;
-    Argument model;
+    Argument showCurrentModel;
     Argument showEnvironment;
     Argument showModels;
     Argument coffee;
@@ -26,5 +26,7 @@ typedef struct {
 
 // Declare the global variable for arguments
 extern Arguments arguments;
+
+void  validateArguments(void);
 
 #endif // ARGUMENTLIST_H

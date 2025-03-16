@@ -1,4 +1,3 @@
-// call_api.c
 #include "../include/call_api.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
@@ -6,9 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define DEFAULT_ENDPOINT "http://localhost:11434/api/generate"
-#define DEFAULT_INFO_ENDPOINT "http://localhost:11434/api/tags"
 
 static const char *getEnvValue(const env *config, size_t count,
                                const char *key) {
@@ -99,13 +95,20 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
         return 1;
 
     const char *name = getEnvValue(config, env_count, "name");
-    const char *endpoint =
-        getEnvValue(config, env_count, "endpoint_generate") ?: DEFAULT_ENDPOINT;
-    const char *info_endpoint = getEnvValue(config, env_count, "endpoint_info")
-                                    ?: DEFAULT_INFO_ENDPOINT;
+    const char *endpoint_generate =
+        getEnvValue(config, env_count, "endpoint_generate");
+    const char *endpoint_running_model =
+        getEnvValue(config, env_count, "endpoint_running_model");
+    const char *endpoint_info = getEnvValue(config, env_count, "endpoint_info");
+    const char *endpoint_ollama_version =
+        getEnvValue(config, env_count, "endpoint_ollama_version");
+    const char *endpoint_chat = getEnvValue(config, env_count, "endpoint_chat");
+    const char *endpoint_show = getEnvValue(config, env_count, "endpoint_show");
     const char *system = getEnvValue(config, env_count, "system");
 
-    if (!name || !system) {
+    if (!name || !system || !endpoint_generate || !endpoint_running_model ||
+        !endpoint_chat || !endpoint_ollama_version || !endpoint_show ||
+        !endpoint_info) {
         fprintf(stderr, "Missing required config values\n");
         freeEnv(config, env_count);
         return 1;
@@ -118,17 +121,49 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
     }
 
     CURLcode res;
+    char *url = NULL;
+    // if argument parameter is not null -> an argument has been pased
     if (argument) {
-        const char *url = (strcmp(argument, "--show-models") == 0 ||
-                           strcmp(argument, "-s") == 0)
-                              ? info_endpoint
-                              : info_endpoint; // Vereinfacht für Beispiel
-        int showModels = (strcmp(argument, "--show-models") == 0 ||
-                          strcmp(argument, "-s") == 0);
+        int showModels = 0;
+        int currentModel = 0;
 
+        if (strcmp(argument, "--show-models") == 0) {
+            url = malloc(strlen(endpoint_info) + 1);
+            if (!url) {
+                freeEnv(config, env_count);
+                curl_easy_cleanup(curl);
+                return 1;
+            }
+            strcpy(url, endpoint_info);
+            showModels = 1;
+        } else if (strcmp(argument, "--current-model") == 0) {
+            url = malloc(strlen(endpoint_running_model) + 1);
+            if (!url) {
+                freeEnv(config, env_count);
+                curl_easy_cleanup(curl);
+                return 1;
+            }
+            strcpy(url, endpoint_running_model);
+            currentModel = 1;
+        } else if (strcmp(argument, "--info") == 0) {
+            url = malloc(strlen(endpoint_info) + 1);
+            if (!url) {
+                freeEnv(config, env_count);
+                curl_easy_cleanup(curl);
+                return 1;
+            }
+            strcpy(url, endpoint_running_model);
+        } else {
+            fprintf(stderr, "Unknown argument: %s\n", argument);
+            freeEnv(config, env_count);
+            curl_easy_cleanup(curl);
+            return 1;
+        }
+
+        int uebergabe = showModels ? showModels : currentModel;
         curl_easy_setopt(curl, CURLOPT_URL, url);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbSendArgument);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &showModels);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &uebergabe);
 
         res = curl_easy_perform(curl);
     } else {
@@ -157,7 +192,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
         cJSON_AddStringToObject(root, "prompt", full_prompt);
         char *json_str = cJSON_PrintUnformatted(root);
 
-        curl_easy_setopt(curl, CURLOPT_URL, endpoint);
+        curl_easy_setopt(curl, CURLOPT_URL, endpoint_generate);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
 
@@ -173,6 +208,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
         fprintf(stderr, "CURL error: %s\n", curl_easy_strerror(res));
     }
 
+    free(url); // Speicher freigeben
     curl_easy_cleanup(curl);
     freeEnv(config, env_count);
     return res == CURLE_OK ? 0 : 1;

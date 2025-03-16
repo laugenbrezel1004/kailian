@@ -18,7 +18,7 @@ enum ErrorCode { SUCCESS = 0, ERR_UNKNOWN_ARG = 1 };
  * @param compare Das Argument aus der Argumentliste zum Vergleich.
  * @return int 1 wenn Übereinstimmung, sonst 0.
  */
-int matchesArgument(const char *argument, const Argument *compare) {
+static int matchesArgument(const char *argument, const Argument *compare) {
     return (strcmp(argument, compare->long_form) == 0 ||
             strcmp(argument, compare->short_form) == 0);
 }
@@ -30,6 +30,7 @@ int matchesArgument(const char *argument, const Argument *compare) {
  * @return int Fehlercode (0 für Erfolg).
  */
 int checkArgument(const char *argument) {
+    validateArguments(); // make sure internal arguments are set curret
     if (matchesArgument(argument, &arguments.help)) {
         return help();
     } else if (matchesArgument(argument, &arguments.coffee)) {
@@ -45,8 +46,8 @@ int checkArgument(const char *argument) {
         return createConfig();
     } else if (matchesArgument(argument, &arguments.info)) {
         return connectToAi(NULL, NULL, arguments.info.long_form);
-    } else if (matchesArgument(argument, &arguments.model)) {
-        return connectToAi(NULL, NULL, arguments.model.long_form);
+    } else if (matchesArgument(argument, &arguments.showCurrentModel)) {
+        return connectToAi(NULL, NULL, arguments.showCurrentModel.long_form);
     } else if (matchesArgument(argument, &arguments.showModels)) {
         return connectToAi(NULL, NULL, arguments.showModels.long_form);
     } else {

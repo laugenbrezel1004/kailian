@@ -9,7 +9,7 @@ Arguments arguments = {
     .askError = {"AskError", NULL, NULL},
     .help = {"help", "--help", "-h"},
     .info = {"info", "--info", "-i"},
-    .model = {"model", "--model", "-m"},
+    .showCurrentModel = {"showCurrentModel", "--current-model", "-m"},
     .showEnvironment = {"showEnvironment", "--show-environment", "-e"},
     .showModels = {"showModels", "--show-models", "-s"},
     .coffee = {"coffee", "--coffee", "-C"},
@@ -22,13 +22,17 @@ Arguments arguments = {
 // Optional: Funktion zur Validierung der Argumentliste
 void validateArguments(void) {
     // Sicherstellen, dass alle long_form und short_form gesetzt sind
-    const Argument *args[] = {
-        &arguments.help,         &arguments.info,
-        &arguments.model,        &arguments.showEnvironment,
-        &arguments.showModels,   &arguments.coffee,
-        &arguments.startOllama,  &arguments.killOllama,
-        &arguments.createConfig, &arguments.chat,
-        &arguments.cleanChat};
+    const Argument *args[] = {&arguments.help,
+                              &arguments.info,
+                              &arguments.showCurrentModel,
+                              &arguments.showEnvironment,
+                              &arguments.showModels,
+                              &arguments.coffee,
+                              &arguments.startOllama,
+                              &arguments.killOllama,
+                              &arguments.createConfig,
+                              &arguments.chat,
+                              &arguments.cleanChat};
     for (size_t i = 0; i < sizeof(args) / sizeof(args[0]); i++) {
         if (!args[i]->long_form || !args[i]->short_form) {
             fprintf(stderr,

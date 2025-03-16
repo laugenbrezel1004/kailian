@@ -58,7 +58,8 @@ int main(int argc, char *argv[]) {
 
     // Argumente prüfen
     if (argc < 2) {
-        fprintf(stderr, "Too few arguments!\nTry 'kailian --help'\n");
+        fprintf(stderr, "%s: Too few arguments!\nTry 'kailian --help'\n",
+                argv[0]);
         return ERR_INPUT;
     }
 
