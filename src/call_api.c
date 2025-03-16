@@ -1,367 +1,334 @@
+// call_api.c
 // imports
-#include <fcntl.h>
-#include <stddef.h>
-#include <sys/types.h>
-#include <unistd.h>
-#define _POSIX_C_SOURCE 200809L // Enable POSIX features (strdup, getline, etc.)
-#include "../include/arguments/argumentList.h"
-#include "../include/checkArgument.h"
-#include "../include/loadEnv.h"
-#include <cjson/cJSON.h>
-/*#include <cmark.h>*/
-#include <curl/curl.h>
-#include <curl/easy.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <fcntl.h>     // Für Dateideskriptoren (falls benötigt)
+#include <stddef.h>    // Für size_t
+#include <sys/types.h> // Für Systemdatentypen
+#include <unistd.h>    // Für POSIX-Funktionen wie close()
+#define _POSIX_C_SOURCE                                                        \
+    200809L // Aktiviert POSIX-Features (strdup, getline, etc.)
+#include "../include/arguments/argumentList.h" // Argument-Definitionen
+#include "../include/checkArgument.h"          // Argument-Prüfungen
+#include "../include/loadEnv.h"                // Für readEnv und freeEnv
+#include <cjson/cJSON.h>                       // JSON-Verarbeitung
+#include <curl/curl.h>                         // CURL-Bibliothek
+#include <curl/easy.h>                         // Einfache CURL-Funktionen
+#include <stdbool.h>                           // Für bool-Typ
+#include <stdio.h>                             // Standard-Ein-/Ausgabe
+#include <stdlib.h>                            // Speicher- und Exit-Funktionen
+#include <string.h>                            // String-Manipulation
 
-// prototyp
+// Prototypen
+/** @brief Callback-Funktion für CURL, um Argument-Antworten zu verarbeiten. */
 static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
                              void *userp);
+
+/** @brief Funktion zum Verbinden mit der KI-API. */
 int connectToAi(const char *bufferPrompt, const char *bufferFile,
                 const char *argument);
+
+/** @brief Callback-Funktion für CURL, um KI-Antworten zu verarbeiten. */
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp);
 
-// evtl in eigentständige file auslagern
+// Prototypen für Chat-Funktionalität (noch nicht implementiert)
+/** @brief Funktion zum Verbinden mit der Chat-API (zukünftig). */
 int connectToAiChat(const char *bufferPrompt, const char *bufferFile);
+
+/** @brief Callback-Funktion für Chat-Antworten (zukünftig). */
 static size_t cbAiChat(void *data, size_t size, size_t nmemb, void *userp);
 
-// macros
+// Macros
+/** @brief Makro zur Ausgabe von Fehlermeldungen mit Datei- und Zeilenangabe.
+ * @param text Der Fehlermeldungstext.
+ */
 #define MELDUNG(text)                                                          \
     fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
+/**
+ * @brief Hilfsfunktion zum Abrufen eines Werts aus dem env-Array anhand eines
+ * Schlüssels.
+ *
+ * Durchsucht das env-Array nach einem Schlüssel und gibt den zugehörigen Wert
+ * zurück.
+ *
+ * @param config Das env-Array aus readEnv.
+ * @param env_count Anzahl der Einträge im env-Array.
+ * @param key Der Schlüssel, nach dem gesucht wird (z. B. "name").
+ * @return const char* Der Wert, oder NULL, wenn nicht gefunden.
+ */
+static const char *getEnvValue(env *config, size_t env_count, const char *key) {
+    for (size_t i = 0; i < env_count; i++) { // Iteriere über alle Einträge
+        if (config[i].key &&
+            strcmp(config[i].key, key) == 0) { // Schlüsselvergleich
+            return config[i].value;            // Wert gefunden
+        }
+    }
+    return NULL; // Schlüssel nicht gefunden
+}
+
+/**
+ * @brief Callback-Funktion für CURL, um Antworten auf Argument-Anfragen zu
+ * verarbeiten.
+ *
+ * Verarbeitet die vom Server empfangenen Daten, parst sie als JSON und gibt sie
+ * formatiert aus.
+ *
+ * @param data Empfangene Daten vom Server.
+ * @param size Größe eines Datenblocks.
+ * @param nmemb Anzahl der Datenblöcke.
+ * @param userp Benutzerdaten (hier: Zeiger auf showModels-Flag).
+ * @return size_t Anzahl der verarbeiteten Bytes oder 0 bei Fehler.
+ */
 static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
                              void *userp) {
-    size_t realsize = size * nmemb;
-    int *showModels = (int *)userp;
+    size_t realsize = size * nmemb; // Gesamtgröße der empfangenen Daten
+    int *showModels =
+        (int *)userp; // Flag, ob nur Modellnamen angezeigt werden sollen
 
+    // Allokiere Speicher für die empfangenen Daten plus Nullterminator
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
         fprintf(stderr, "Malloc failed\n");
-        return 0;
+        return 0; // Fehler: Speicherallokierung fehlgeschlagen
     }
-    memcpy(buffer, data, realsize);
-    buffer[realsize] = 0;
+    memcpy(buffer, data, realsize); // Kopiere Daten in den Buffer
+    buffer[realsize] = 0;           // Nullterminator hinzufügen
 
+    // Parse die Daten als JSON
     cJSON *json = cJSON_Parse(buffer);
     if (!json) {
         fprintf(stderr, "Error parsing JSON: %s\n", cJSON_GetErrorPtr());
         MELDUNG("JSON parsing failed");
-        return 1;
+        free(buffer);
+        return 1; // Fehler: JSON-Parsing fehlgeschlagen
     }
 
-    if (*showModels) { // Show only model names
+    if (*showModels) { // Nur Modellnamen anzeigen
         cJSON *models = cJSON_GetObjectItemCaseSensitive(json, "models");
-        if (cJSON_IsArray(models)) {
-            int modelCount = cJSON_GetArraySize(models);
-            for (int j = 0; j < modelCount; j++) {
+        if (cJSON_IsArray(models)) { // Prüfe, ob "models" ein Array ist
+            int modelCount = cJSON_GetArraySize(models); // Anzahl der Modelle
+            for (int j = 0; j < modelCount; j++) { // Iteriere über Modelle
                 cJSON *model = cJSON_GetArrayItem(models, j);
                 cJSON *name = cJSON_GetObjectItemCaseSensitive(model, "name");
-                if (cJSON_IsString(name) && name->valuestring) {
+                if (cJSON_IsString(name) && name->valuestring) { // Prüfe String
                     fprintf(stdout, "Model Name: %s\n", name->valuestring);
                 }
             }
         } else {
             fprintf(stderr, "No models array found\n");
         }
-    } else { // Print full JSON
+    } else { // Vollständiges JSON ausgeben
         char *jsonString = cJSON_Print(json);
         if (jsonString) {
-            fprintf(stdout, "%s\n", jsonString);
-            free(jsonString);
+            fprintf(stdout, "%s\n", jsonString); // Formatiertes JSON ausgeben
+            free(jsonString);                    // Speicher freigeben
         } else {
             fprintf(stderr, "Failed to print JSON\n");
             MELDUNG("Error");
         }
     }
 
-    cJSON_Delete(json);
-    fflush(stdout);
-    return realsize;
+    cJSON_Delete(json); // JSON-Objekt freigeben
+    free(buffer);       // Buffer freigeben
+    fflush(stdout);     // Ausgabe sofort anzeigen
+    return realsize;    // Erfolg: Alle Bytes verarbeitet
 }
 
-// connet to send data
-//  connect to specific endpoint
-//* Function to connect to the different ollama api's
+/**
+ * @brief Funktion zum Verbinden mit verschiedenen Ollama-API-Endpunkten.
+ *
+ * Diese Funktion verbindet sich mit der KI und sendet Daten wie bufferPrompt,
+ * bufferFile oder ein Argument an die KI. Verwendet Umgebungsvariablen aus der
+ * Konfigurationsdatei.
+ *
+ * @param bufferPrompt Der Eingabeprompt von der Kommandozeile.
+ * @param bufferFile Datei-Eingabe über stdin von der Kommandozeile.
+ * @param argument Das Argument von der Kommandozeile, z. B. -m.
+ * @return int 0 bei Erfolg, sonst Fehlercode.
+ */
 int connectToAi(const char *bufferPrompt, const char *bufferFile,
                 const char *argument) {
-    // read in env file
-    const Env ENV = readEnv();
-    // some curl spcific stuff
-    CURL *curl = NULL;
-    CURLcode res = CURLE_OK;
+    // Lese die Umgebungsvariablen aus der Konfigurationsdatei
+    size_t env_count;                  // Anzahl der geladenen Einträge
+    env *config = readEnv(&env_count); // Lade Konfiguration
+    if (!config) {
+        fprintf(stderr, "Failed to load environment configuration\n");
+        return 1; // Fehler: Konfiguration konnte nicht geladen werden
+    }
 
-    curl = curl_easy_init();
+    // Hole die benötigten Werte aus dem env-Array
+    const char *name = getEnvValue(config, env_count, "name"); // Modellname
+    const char *endpoint_generate = getEnvValue(
+        config, env_count, "endpoint_generate"); // Generate-Endpunkt
+    const char *endpoint_info =
+        getEnvValue(config, env_count, "endpoint_info"); // Info-Endpunkt
+    const char *system = getEnvValue(config, env_count, "system"); // Systeminfo
+
+    // Prüfe, ob die kritischen Werte vorhanden sind
+    if (!name || !endpoint_generate || !endpoint_info || !system) {
+        fprintf(stderr, "Missing required environment variables\n");
+        freeEnv(config, env_count); // Speicher freigeben
+        return 1;                   // Fehler: Fehlende Werte
+    }
+
+    // Curl-spezifische Initialisierung
+    CURL *curl = NULL;       // CURL-Handle
+    CURLcode res = CURLE_OK; // CURL-Ergebniscode
+
+    curl = curl_easy_init(); // Initialisiere CURL
     if (!curl) {
         fprintf(stderr, "curl_easy_init failed\n");
-        return 1;
+        freeEnv(config, env_count); // Speicher freigeben
+        return 1; // Fehler: CURL-Initialisierung fehlgeschlagen
     }
-    // check api for some infomation
-    const char *url = NULL;
+
+    // Wenn ein Argument übergeben wurde
     if (argument != NULL) {
+        const char *url = NULL; // URL für den API-Aufruf
+        int showModels = 0;     // Flag für Modellnamen-Anzeige
 
-        // define correct api to connect to
-        // checkArgument() makes sure to use strncmp???
-        // redundanter code? siehe -> checkArgument
+        // Bestimme den richtigen API-Endpunkt basierend auf dem Argument
         if (strcmp(argument, arguments.model.long_form) == 0) {
-            url = ENV.endpoint_running_model;
+            url = endpoint_generate; // TODO: Modellwahl-Logik fehlt noch
         } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
-            url = ENV.endpoint_info;
+            url = endpoint_info; // Info-Endpunkt für Modellliste
+            showModels = 1;      // Nur Modellnamen anzeigen
         } else if (strcmp(argument, arguments.info.long_form) == 0) {
-            url = ENV.endpoint_info;
+            url = endpoint_info; // Info-Endpunkt für volle Info
         } else {
-            curl_easy_cleanup(curl);
-            return 1;
+            fprintf(stderr, "Unknown argument: %s\n", argument);
+            curl_easy_cleanup(curl);    // CURL aufräumen
+            freeEnv(config, env_count); // Speicher freigeben
+            return 1;                   // Fehler: Unbekanntes Argument
         }
-        curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbSendArgument);
 
-        res = curl_easy_perform(curl);
+        // Setze CURL-Optionen für den API-Aufruf
+        curl_easy_setopt(curl, CURLOPT_URL, url); // API-URL
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION,
+                         cbSendArgument);                       // Callback
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &showModels); // Übergib Flag
+
+        res = curl_easy_perform(curl); // Führe API-Aufruf aus
         if (res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform failed: %s\n",
                     curl_easy_strerror(res));
         }
 
+        curl_easy_cleanup(curl);          // CURL aufräumen
+        freeEnv(config, env_count);       // Speicher freigeben
+        return (res == CURLE_OK) ? 0 : 1; // Rückgabe: Erfolg oder Fehler
+    }
+
+    // Kein Argument -> Normaler API-Generate-Aufruf
+    cJSON *root = cJSON_CreateObject(); // Erstelle JSON-Objekt für Anfrage
+    if (!root) {
+        fprintf(stderr, "cJSON_CreateObject failed\n");
+        freeEnv(config, env_count);
         curl_easy_cleanup(curl);
-        return (res == CURLE_OK) ? 0 : 1;
-    }
-    // if no argument is beeing passed, than a normal api/generate should be
-    // done
-    // use cJSON to easily create a json string for the api call
-    cJSON *root = cJSON_CreateObject();
-    char *json_str = NULL;
-    if (!root) {
-        fprintf(stderr, "cJSON_CreateObject failed\n");
-        return 1;
+        return 1; // Fehler: JSON-Erstellung fehlgeschlagen
     }
 
-    cJSON_AddStringToObject(root, "model", ENV.name);
-    cJSON_AddStringToObject(root, "system", ENV.system);
+    // Füge Daten zum JSON-Objekt hinzu
+    cJSON_AddStringToObject(root, "model", name);    // Modellname aus Config
+    cJSON_AddStringToObject(root, "system", system); // System aus Config
 
-    // Combine prompt and bufferFile with a newline separator
+    // Kombiniere Prompt und bufferFile mit einem Zeilenumbruch
     char *full_prompt = NULL;
-    size_t prompt_len = strlen(bufferPrompt) + 1; // Prompt + null
+    size_t prompt_len = strlen(bufferPrompt) + 1; // Prompt + Nullterminator
     if (bufferFile)
-        prompt_len += strlen(bufferFile) + 1; // Space + bufferFile
-    full_prompt = malloc(prompt_len);
+        prompt_len += strlen(bufferFile) + 1; // Zeilenumbruch + bufferFile
+    full_prompt = malloc(prompt_len);         // Allokiere Speicher für Prompt
     if (!full_prompt) {
         fprintf(stderr, "malloc failed for full_prompt\n");
         cJSON_Delete(root);
-        return 1;
+        freeEnv(config, env_count);
+        curl_easy_cleanup(curl);
+        return 1; // Fehler: Speicherallokierung fehlgeschlagen
     }
     if (bufferFile) {
-        snprintf(full_prompt, prompt_len, "%s\n%s", bufferPrompt, bufferFile);
+        snprintf(full_prompt, prompt_len, "%s\n%s", bufferPrompt,
+                 bufferFile); // Kombiniere
     } else {
-        strcpy(full_prompt, bufferPrompt);
+        strcpy(full_prompt, bufferPrompt); // Nur Prompt kopieren
     }
 
-    cJSON_AddStringToObject(root, "prompt", full_prompt);
-    free(full_prompt);
+    cJSON_AddStringToObject(root, "prompt", full_prompt); // Prompt zum JSON
+    free(full_prompt);                                    // Speicher freigeben
 
-    json_str = cJSON_PrintUnformatted(root);
+    char *json_str = cJSON_PrintUnformatted(root); // JSON als String
     if (!json_str) {
         fprintf(stderr, "cJSON_PrintUnformatted failed\n");
         cJSON_Delete(root);
-        return 1;
+        freeEnv(config, env_count);
+        curl_easy_cleanup(curl);
+        return 1; // Fehler: JSON-Formatierung fehlgeschlagen
     }
 
-    curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "Ollama's napping! -> curl_easy_init failed\n");
-        free(json_str);
-        cJSON_Delete(root);
-        return 1;
-    }
+    // Setze CURL-Optionen für den Generate-Aufruf
+    curl_easy_setopt(curl, CURLOPT_URL, endpoint_generate); // Generate-Endpunkt
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str); // JSON-Daten als POST
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi); // Callback für Antwort
 
-    curl_easy_setopt(curl, CURLOPT_URL,
-                     ENV.endpoint_generate); // Replace with ENV.endpoint
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
-    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);*/
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
-
-    res = curl_easy_perform(curl);
+    res = curl_easy_perform(curl); // Führe API-Aufruf aus
     if (res != CURLE_OK) {
         fprintf(stderr, "curl_easy_perform failed: %s\n",
                 curl_easy_strerror(res));
     }
-    printf("\n"); // to remote the "%" after the ki answer
-    free(json_str);
-    cJSON_Delete(root);
-    curl_easy_cleanup(curl);
-    return (res == CURLE_OK) ? 0 : 1;
+    printf("\n"); // Entfernt das "%" nach der KI-Antwort
+
+    // Aufräumen
+    free(json_str);                   // JSON-String freigeben
+    cJSON_Delete(root);               // JSON-Objekt freigeben
+    curl_easy_cleanup(curl);          // CURL aufräumen
+    freeEnv(config, env_count);       // Env-Array freigeben
+    return (res == CURLE_OK) ? 0 : 1; // Rückgabe: Erfolg oder Fehler
 }
 
+/**
+ * @brief Callback-Funktion für CURL, um KI-Antworten vom Generate-Endpunkt zu
+ * verarbeiten.
+ *
+ * Verarbeitet die empfangenen Daten, parst sie als JSON und gibt die Antwort
+ * aus.
+ *
+ * @param data Empfangene Daten vom Server.
+ * @param size Größe eines Datenblocks.
+ * @param nmemb Anzahl der Datenblöcke.
+ * @param userp Benutzerdaten (hier ungenutzt).
+ * @return size_t Anzahl der verarbeiteten Bytes oder 0 bei Fehler.
+ */
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
+    size_t realsize = size * nmemb; // Gesamtgröße der empfangenen Daten
 
-    // Allocate temp buffer for received data plus nullterminator
+    // Allokiere temporären Buffer für empfangene Daten plus Nullterminator
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
         fprintf(stderr, "Malloc failed in callback\n");
         MELDUNG("error");
-        return 0; // Tell curl to abort
+        return 0; // Fehler: Speicherallokierung fehlgeschlagen
     }
 
-    memcpy(buffer, data, realsize);
-    /*printf("buffer -> %s", buffer);*/
-    cJSON *json = cJSON_Parse(buffer);
-    const char *errorKi = "{\"error}";
+    memcpy(buffer, data, realsize); // Kopiere Daten in den Buffer
+    buffer[realsize] = '\0';        // Nullterminator hinzufügen
+
+    cJSON *json = cJSON_Parse(buffer); // Parse als JSON
+    const char *errorKi = "{\"error}"; // Prüfstring für Fehler
     if (json) {
-        if (strncmp(errorKi, buffer, 6) == 0) {
+        if (strncmp(errorKi, buffer, 6) == 0) { // Prüfe auf Fehlerantwort
             fprintf(stderr, "%s\n", buffer);
-            exit(1);
+            free(buffer);
+            exit(1); // Beende Programm bei Fehler
         }
 
+        // Extrahiere die Antwort aus dem JSON
         cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
         if (response && cJSON_IsString(response)) {
-            // Print the response directly (or store if needed)
-            printf("%s", response->valuestring);
-            fflush(stdout);
-
-        } else {
-            // kommt immer am ende, deswegen erstmal auf ganz schlau angelehnt
-            // rausgenommen
-            /*fprintf(stderr, "JSON parsing succeeded but no valid 'respons"*/
-
-            /*                "string found\n");*/
-            /*MELDUNG("error");*/
-            /*printf("%s", buffer); // Fallback to raw buffer*/
-            /*fflush(stdout);*/
+            printf("%s", response->valuestring); // Antwort ausgeben
+            fflush(stdout);                      // Sofort anzeigen
         }
-        cJSON_Delete(json);
+        cJSON_Delete(json); // JSON-Objekt freigeben
     } else {
-        // If not JSON, treat as raw text and print
-        /*MELDUNG("error");*/
-        /*printf("%s", buffer);*/
-        fflush(stdout);
+        fflush(stdout); // Bei Nicht-JSON: Ausgabe flushen
     }
-    free(buffer);
-    return realsize; // Success: processed all bytes
-}
-
-int connectToAiChat(const char *bufferPrompt, const char *bufferFile) {
-    const Env ENV = readEnv();
-    CURL *curl = NULL;
-    CURLcode res = CURLE_OK;
-    cJSON *root = cJSON_CreateObject();
-    char *json_str = NULL;
-
-    if (!root) {
-        fprintf(stderr, "cJSON_CreateObject failed\n");
-        return 1;
-    }
-
-    char chatHistory[256];
-    uid_t userID = getuid();
-    snprintf(chatHistory, sizeof(chatHistory), "/run/user/%u/chatHistory",
-             userID);
-    int fd_chatHistory = open(chatHistory, O_WRONLY | O_CREAT, 0644);
-
-    if (fd_chatHistory < 0) {
-        fprintf(stderr, "Failed to open chatHistory");
-        return 1;
-    }
-    close(fd_chatHistory);
-
-    cJSON_AddStringToObject(root, "model", ENV.name);
-    /*cJSON_AddBoolToObject(root, "raw", cJSON_True);*/
-    cJSON_AddStringToObject(root, "system", ENV.system);
-
-    // Combine prompt and bufferFile with a newline separator
-    char *full_prompt = NULL;
-    size_t prompt_len = strlen(bufferPrompt) + 1; // Prompt + null
-    if (bufferFile)
-        prompt_len += strlen(bufferFile) + 1; // Space + bufferFile
-    full_prompt = malloc(prompt_len);
-    if (!full_prompt) {
-        fprintf(stderr, "malloc failed for full_prompt\n");
-        cJSON_Delete(root);
-        return 1;
-    }
-    if (bufferFile) {
-        snprintf(full_prompt, prompt_len, "%s\n%s", bufferPrompt, bufferFile);
-    } else {
-        strcpy(full_prompt, bufferPrompt);
-    }
-
-    cJSON_AddStringToObject(root, "prompt", full_prompt);
-    free(full_prompt);
-
-    json_str = cJSON_PrintUnformatted(root);
-    if (!json_str) {
-        fprintf(stderr, "cJSON_PrintUnformatted failed\n");
-        cJSON_Delete(root);
-        return 1;
-    }
-
-    curl = curl_easy_init();
-    if (!curl) {
-        fprintf(stderr, "Ollama's napping! -> curl_easy_init failed\n");
-        free(json_str);
-        cJSON_Delete(root);
-        return 1;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_URL,
-                     ENV.endpoint_generate); // Replace with ENV.endpoint
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
-    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &cuc);*/
-
-    res = curl_easy_perform(curl);
-    if (res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform failed: %s\n",
-                curl_easy_strerror(res));
-    }
-
-    printf("\n"); // to remote the "%" after the ki answer
-    free(json_str);
-    cJSON_Delete(root);
-    close(fd_chatHistory);
-    curl_easy_cleanup(curl);
-    return (res == CURLE_OK) ? 0 : 1;
-}
-static size_t cbAiChat(void *data, size_t size, size_t nmemb, void *userp) {
-    size_t realsize = size * nmemb;
-
-    // Allocate temp buffer for received data plus nullterminator
-    char *buffer = malloc(realsize + 1);
-    if (!buffer) {
-        fprintf(stderr, "Malloc failed in callback\n");
-        MELDUNG("error");
-        return 0; // Tell curl to abort
-    }
-
-    memcpy(buffer, data, realsize);
-    /*printf("buffer -> %s", buffer);*/
-    cJSON *json = cJSON_Parse(buffer);
-    const char *errorKi = "{\"error}";
-    if (json) {
-        if (strncmp(errorKi, buffer, 6) == 0) {
-            fprintf(stderr, "%s\n", buffer);
-            exit(1);
-        }
-
-        cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
-        if (response && cJSON_IsString(response)) {
-            // Print the response directly (or store if needed)
-            printf("%s", response->valuestring);
-            fflush(stdout);
-        } else {
-            /*fprintf(stderr, "JSON parsing succeeded but no valid 'respons"*/
-            /*                "string found\n");*/
-            /*MELDUNG("error");*/
-            /*printf("%s", buffer); // Fallback to raw buffer*/
-            /*fflush(stdout);*/
-        }
-        cJSON_Delete(json);
-    } else {
-        // If not JSON, treat as raw text and print
-        /*MELDUNG("error");*/
-        /*printf("%s", buffer);*/
-        fflush(stdout);
-    }
-    free(buffer);
-    return realsize; // Success: processed all bytes
+    free(buffer);    // Buffer freigeben
+    return realsize; // Erfolg: Alle Bytes verarbeitet
 }

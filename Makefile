@@ -2,6 +2,7 @@
 CC = gcc
 CFLAGS = -std=c11 -Wall -Iinclude
 LDFLAGS = -lcjson -lcurl  # Link cJSON and libcurl
+DEBUG_FLAGS = -g -O0      # Debugging flags
 
 # Directories
 SRCDIR = src
@@ -22,6 +23,10 @@ CONFIG = kailian.conf
 
 # Default target
 all: $(TARGET)
+
+# Debug target
+debug: CFLAGS += $(DEBUG_FLAGS)
+debug: $(TARGET)
 
 # Link object files into executable
 $(TARGET): $(OBJECTS)
@@ -51,4 +56,4 @@ clean:
 	rm -rf $(BINDIR)
 
 # Phony targets
-.PHONY: all install clean
+.PHONY: all debug install clean
