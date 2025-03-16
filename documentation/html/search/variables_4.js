@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['help_0',['help',['../structArguments.html#af2a05ffd26b3e75c68067215cdba882f',1,'Arguments']]]
+  ['key_0',['key',['../structenv.html#a170118ec15be2b419562524b75693d9f',1,'env']]],
+  ['killollama_1',['killOllama',['../structArguments.html#abba769154e57f50ab14154a3457a3cbe',1,'Arguments']]]
 ];

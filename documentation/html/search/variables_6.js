@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['killollama_0',['killOllama',['../structArguments.html#abba769154e57f50ab14154a3457a3cbe',1,'Arguments']]]
+  ['model_0',['model',['../structArguments.html#ab596802f716c2ae2d88c30bb67eea027',1,'Arguments']]]
 ];

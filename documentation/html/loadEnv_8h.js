@@ -1,7 +1,6 @@
 var loadEnv_8h =
 [
-    [ "Env", "structEnv.html", "structEnv" ],
-    [ "MAXSIZE", "loadEnv_8h.html#a2a37b4217917105aac7557862ccc19c3", null ],
-    [ "readEnv", "loadEnv_8h.html#a25f3c5219d3b02641f226e08c8c1cb55", null ],
-    [ "removeSpaces", "loadEnv_8h.html#ae64bf1ff67dc282bbfa3a47590792c3f", null ]
+    [ "env", "structenv.html", "structenv" ],
+    [ "freeEnv", "loadEnv_8h.html#afb11e469786f949180f22f5217773f71", null ],
+    [ "readEnv", "loadEnv_8h.html#a8d6c8b612bd4293f196f855e45e2f49e", null ]
 ];

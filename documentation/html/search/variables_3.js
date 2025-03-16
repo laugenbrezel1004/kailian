@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['endpoint_0',['endpoint',['../structEnv.html#aa51b3b632580f42b209b9e19e49d1742',1,'Env']]]
+  ['info_0',['info',['../structArguments.html#a916ac60b316f5d5005a48fdf21f6f7c0',1,'Arguments']]]
 ];

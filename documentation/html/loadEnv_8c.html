@@ -103,35 +103,34 @@ $(function(){initNavTree('loadEnv_8c.html',''); initResizable(true); });
 
 <div class="header">
   <div class="summary">
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle"><div class="title">loadEnv.c File Reference</div></div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;errno.h&gt;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="loadEnv_8h_source.html">../include/loadEnv.h</a>&quot;</code><br />
+<code>#include &lt;errno.h&gt;</code><br />
 <code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 </div><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structEnv.html">Env</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structField.html">Field</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:af138577ba9a3c8056fe8972b26e1096e" id="r_af138577ba9a3c8056fe8972b26e1096e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af138577ba9a3c8056fe8972b26e1096e">MELDUNG</a>(text)</td></tr>
+<tr class="memdesc:af138577ba9a3c8056fe8972b26e1096e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Struktur für ein Schlüssel-Wert-Paar aus der Konfigurationsdatei.  <br /></td></tr>
 <tr class="separator:af138577ba9a3c8056fe8972b26e1096e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aed3a6ca196e23447edb277f027fe4a4f" id="r_aed3a6ca196e23447edb277f027fe4a4f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aed3a6ca196e23447edb277f027fe4a4f">trim_copy</a> (char *dest, const char *src)</td></tr>
-<tr class="separator:aed3a6ca196e23447edb277f027fe4a4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25f3c5219d3b02641f226e08c8c1cb55" id="r_a25f3c5219d3b02641f226e08c8c1cb55"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structEnv.html">Env</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a25f3c5219d3b02641f226e08c8c1cb55">readEnv</a> ()</td></tr>
-<tr class="separator:a25f3c5219d3b02641f226e08c8c1cb55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4c16ee5e919bac917ef9260fc766e847" id="r_a4c16ee5e919bac917ef9260fc766e847"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4c16ee5e919bac917ef9260fc766e847">trim_copy</a> (char *dest, const char *src, size_t dest_size)</td></tr>
+<tr class="memdesc:a4c16ee5e919bac917ef9260fc766e847"><td class="mdescLeft">&#160;</td><td class="mdescRight">Schneidet führende und abschließende Leerzeichen aus einem String und kopiert ihn.  <br /></td></tr>
+<tr class="separator:a4c16ee5e919bac917ef9260fc766e847"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d6c8b612bd4293f196f855e45e2f49e" id="r_a8d6c8b612bd4293f196f855e45e2f49e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structenv.html">env</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8d6c8b612bd4293f196f855e45e2f49e">readEnv</a> (size_t *out_size)</td></tr>
+<tr class="memdesc:a8d6c8b612bd4293f196f855e45e2f49e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Liest die Konfigurationsdatei und gibt ein dynamisch allokiertes Array von env-Struct zurück.  <br /></td></tr>
+<tr class="separator:a8d6c8b612bd4293f196f855e45e2f49e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb11e469786f949180f22f5217773f71" id="r_afb11e469786f949180f22f5217773f71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afb11e469786f949180f22f5217773f71">freeEnv</a> (<a class="el" href="structenv.html">env</a> *envs, size_t size)</td></tr>
+<tr class="memdesc:afb11e469786f949180f22f5217773f71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gibt den Speicher eines env-Arrays frei.  <br /></td></tr>
+<tr class="separator:afb11e469786f949180f22f5217773f71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a id="af138577ba9a3c8056fe8972b26e1096e" name="af138577ba9a3c8056fe8972b26e1096e"></a>
@@ -150,28 +149,86 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 <b>Value:</b><div class="fragment"><div class="line">    fprintf(stderr, <span class="stringliteral">&quot;Datei [%s], Zeile %d: %s\n&quot;</span>, __FILE__, __LINE__, text)</div>
 </div><!-- fragment -->
+<p>Struktur für ein Schlüssel-Wert-Paar aus der Konfigurationsdatei. </p>
+<p>Diese Struktur repräsentiert einen einzelnen Eintrag in der Konfiguration, bestehend aus einem Schlüssel (key) und einem Wert (value).</p>
+<p>Makro zur Ausgabe von Fehlermeldungen mit Datei- und Zeileninformationen.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">text</td><td>Der Text der Fehlermeldung, der auf stderr ausgegeben wird. </td></tr>
+  </table>
+  </dd>
+</dl>
+
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="a25f3c5219d3b02641f226e08c8c1cb55" name="a25f3c5219d3b02641f226e08c8c1cb55"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25f3c5219d3b02641f226e08c8c1cb55">&#9670;&#160;</a></span>readEnv()</h2>
+<a id="afb11e469786f949180f22f5217773f71" name="afb11e469786f949180f22f5217773f71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afb11e469786f949180f22f5217773f71">&#9670;&#160;</a></span>freeEnv()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structEnv.html">Env</a> readEnv </td>
+          <td class="memname">void freeEnv </td>
           <td>(</td>
-          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td class="paramtype"><a class="el" href="structenv.html">env</a> *</td>          <td class="paramname"><span class="paramname"><em>envs</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>size</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gibt den Speicher eines env-Arrays frei. </p>
+<p>Diese Funktion gibt den Speicher für alle Schlüssel und Werte sowie das Array selbst frei.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">envs</td><td>Pointer auf das zu befreiende env-Array. </td></tr>
+    <tr><td class="paramname">size</td><td>Anzahl der Einträge im Array, die freigegeben werden sollen. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a8d6c8b612bd4293f196f855e45e2f49e" name="a8d6c8b612bd4293f196f855e45e2f49e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d6c8b612bd4293f196f855e45e2f49e">&#9670;&#160;</a></span>readEnv()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structenv.html">env</a> * readEnv </td>
+          <td>(</td>
+          <td class="paramtype">size_t *</td>          <td class="paramname"><span class="paramname"><em>out_size</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
+<p>Liest die Konfigurationsdatei und gibt ein dynamisch allokiertes Array von env-Struct zurück. </p>
+<p>Diese Funktion öffnet die Datei "/etc/kailian/kailian.conf", liest sie Zeile für Zeile, parst Schlüssel-Wert-Paare und speichert sie in einem dynamisch wachsenden Array.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">out_size</td><td>Pointer auf eine Variable, die die Anzahl der gelesenen Einträge zurückgibt. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>env* Pointer auf das dynamisch allokierte Array von env-Struct, oder NULL bei Fehlern. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>Der Aufrufer ist dafür verantwortlich, den Speicher mit <a class="el" href="#afb11e469786f949180f22f5217773f71" title="Gibt den Speicher eines env-Arrays frei.">freeEnv()</a> freizugeben. </dd></dl>
+<p>&lt; Dateizeiger für die Konfigurationsdatei.</p>
+<p>&lt; Buffer für eine einzelne Zeile aus der Datei.</p>
+<p>&lt; Temporärer Buffer für den Schlüssel.</p>
+<p>&lt; Temporärer Buffer für den Wert.</p>
+<p>&lt; Aktuelle Kapazität des env-Arrays (wächst bei Bedarf). Letzer Eintrag für Markierung des Endes</p>
+<p>&lt; Index des nächsten freien Slots im Array.</p>
+
 </div>
 </div>
-<a id="aed3a6ca196e23447edb277f027fe4a4f" name="aed3a6ca196e23447edb277f027fe4a4f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed3a6ca196e23447edb277f027fe4a4f">&#9670;&#160;</a></span>trim_copy()</h2>
+<a id="a4c16ee5e919bac917ef9260fc766e847" name="a4c16ee5e919bac917ef9260fc766e847"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4c16ee5e919bac917ef9260fc766e847">&#9670;&#160;</a></span>trim_copy()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -187,7 +244,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>src</em></span>&#160;)</td>
+          <td class="paramtype">const char *</td>          <td class="paramname"><span class="paramname"><em>src</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t</td>          <td class="paramname"><span class="paramname"><em>dest_size</em></span>&#160;)</td>
         </tr>
       </table>
   </td>
@@ -196,6 +258,17 @@ Functions</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Schneidet führende und abschließende Leerzeichen aus einem String und kopiert ihn. </p>
+<p>Diese Funktion entfernt Leerzeichen am Anfang und Ende des Eingabestrings und kopiert das Ergebnis in den Zielbuffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dest</td><td>Zielbuffer, in den der getrimmte String geschrieben wird. </td></tr>
+    <tr><td class="paramname">src</td><td>Quellstring, der getrimmt werden soll. </td></tr>
+    <tr><td class="paramname">dest_size</td><td>Maximale Größe des Zielbuffers, um Überläufe zu vermeiden. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

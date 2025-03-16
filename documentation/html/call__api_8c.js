@@ -6,5 +6,6 @@ var call__api_8c =
     [ "cbAiChat", "call__api_8c.html#ad017685bc5a26aeebded9bf5a7495a3a", null ],
     [ "cbSendArgument", "call__api_8c.html#ab5ee43528ae014870f5a8e0748a01a73", null ],
     [ "connectToAi", "call__api_8c.html#ae157c406cb7ee09882c22d8bc344cd10", null ],
-    [ "connectToAiChat", "call__api_8c.html#ad1895e061db1510c12628b1bb0ae0f5e", null ]
+    [ "connectToAiChat", "call__api_8c.html#ad1895e061db1510c12628b1bb0ae0f5e", null ],
+    [ "getEnvValue", "call__api_8c.html#a4e80042b3986dc96351931ce87b56d7a", null ]
 ];

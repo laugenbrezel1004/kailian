@@ -1,8 +1,4 @@
 var searchData=
 [
-  ['endpoint_0',['endpoint',['../structEnv.html#aa51b3b632580f42b209b9e19e49d1742',1,'Env']]],
-  ['env_1',['Env',['../structEnv.html',1,'']]],
-  ['environment_2ec_2',['Environment.c',['../Environment_8c.html',1,'']]],
-  ['environment_2eh_3',['Environment.h',['../Environment_8h.html',1,'']]],
-  ['examples_4',['Examples',['../md_README.html#autotoc_md5',1,'']]]
+  ['freeenv_0',['freeEnv',['../loadEnv_8h.html#afb11e469786f949180f22f5217773f71',1,'freeEnv(env *envs, size_t size):&#160;loadEnv.c'],['../loadEnv_8c.html#afb11e469786f949180f22f5217773f71',1,'freeEnv(env *envs, size_t size):&#160;loadEnv.c']]]
 ];

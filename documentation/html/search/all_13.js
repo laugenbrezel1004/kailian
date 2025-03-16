@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['usage_20🔧_0',['Usage 🔧',['../md_README.html#autotoc_md3',1,'']]]
+  ['value_0',['value',['../structenv.html#a4c45a37bbe3008aa248a28d0b60289b7',1,'env']]]
 ];

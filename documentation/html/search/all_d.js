@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['ollama_5fversion_5fendpoint_0',['ollama_version_endpoint',['../structEnv.html#a2f7650896bdf3f010da8ddbb1c10a040',1,'Env']]]
+  ['prerequisites_0',['Prerequisites',['../md_README.html#autotoc_md1',1,'']]],
+  ['print_5fcoffee_1',['print_coffee',['../coffee_8c.html#ab403e1e78e889bf1072a7cf8c5cb05d8',1,'coffee.c']]]
 ];

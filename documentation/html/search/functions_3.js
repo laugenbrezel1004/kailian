@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['killserver_0',['killServer',['../startServer_8h.html#acf732cf2c18e5831a8868e2da5cec89a',1,'killServer():&#160;startServer.c'],['../startServer_8c.html#acf732cf2c18e5831a8868e2da5cec89a',1,'killServer():&#160;startServer.c']]]
+  ['getenvvalue_0',['getEnvValue',['../call__api_8c.html#a4e80042b3986dc96351931ce87b56d7a',1,'call_api.c']]]
 ];
