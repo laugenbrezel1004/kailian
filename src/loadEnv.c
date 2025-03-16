@@ -144,7 +144,7 @@ env *readEnv(size_t *out_size) {
 }
 
 /**
- * @brief Gibt den Speicher eines env-Arrays frei.
+ * @brief Gibt den Speicher des env-Arrays frei.
  *
  * Diese Funktion gibt den Speicher für alle Schlüssel und Werte sowie das Array
  * selbst frei.

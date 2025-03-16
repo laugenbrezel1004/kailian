@@ -29,13 +29,6 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
 /** @brief Callback-Funktion für CURL, um KI-Antworten zu verarbeiten. */
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp);
 
-// Prototypen für Chat-Funktionalität (noch nicht implementiert)
-/** @brief Funktion zum Verbinden mit der Chat-API (zukünftig). */
-int connectToAiChat(const char *bufferPrompt, const char *bufferFile);
-
-/** @brief Callback-Funktion für Chat-Antworten (zukünftig). */
-static size_t cbAiChat(void *data, size_t size, size_t nmemb, void *userp);
-
 // Macros
 /** @brief Makro zur Ausgabe von Fehlermeldungen mit Datei- und Zeilenangabe.
  * @param text Der Fehlermeldungstext.
@@ -162,9 +155,12 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
     const char *endpoint_info =
         getEnvValue(config, env_count, "endpoint_info"); // Info-Endpunkt
     const char *system = getEnvValue(config, env_count, "system"); // Systeminfo
+    const char *endpoint_running_model = getEnvValue(
+        config, env_count, "endpoint_running_model"); // Aktuell laufende Ki
 
     // Prüfe, ob die kritischen Werte vorhanden sind
-    if (!name || !endpoint_generate || !endpoint_info || !system) {
+    if (!name || !endpoint_generate || !endpoint_info || !system ||
+        !endpoint_running_model) {
         fprintf(stderr, "Missing required environment variables\n");
         freeEnv(config, env_count); // Speicher freigeben
         return 1;                   // Fehler: Fehlende Werte
@@ -188,7 +184,7 @@ int connectToAi(const char *bufferPrompt, const char *bufferFile,
 
         // Bestimme den richtigen API-Endpunkt basierend auf dem Argument
         if (strcmp(argument, arguments.model.long_form) == 0) {
-            url = endpoint_generate; // TODO: Modellwahl-Logik fehlt noch
+            url = endpoint_running_model; // TODO: Modellwahl-Logik fehlt noch
         } else if (strcmp(argument, arguments.showModels.long_form) == 0) {
             url = endpoint_info; // Info-Endpunkt für Modellliste
             showModels = 1;      // Nur Modellnamen anzeigen
