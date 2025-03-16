@@ -5,163 +5,111 @@
 #include <stdlib.h>
 #include <string.h>
 
-/**
- * @brief Struktur für ein Schlüssel-Wert-Paar aus der Konfigurationsdatei.
- *
- * Diese Struktur repräsentiert einen einzelnen Eintrag in der Konfiguration,
- * bestehend aus einem Schlüssel (key) und einem Wert (value).
- */
-/*typedef struct {*/
-/*        char *key;   < zeiger auf den schlüssel (z. b. "name"). */
-/*        char *value; < zeiger auf den wert (z. b. "mistral"). */
-/*} env;*/
+#define DEFAULT_CONFIG_PATH "/etc/kailian/kailian.conf"
+#define ENV_CONFIG_VAR "KAILIAN_CONFIG"
 
 /**
- * @brief Makro zur Ausgabe von Fehlermeldungen mit Datei- und
- * Zeileninformationen.
- *
- * @param text Der Text der Fehlermeldung, der auf stderr ausgegeben wird.
- */
-#define MELDUNG(text)                                                          \
-    fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
-
-/**
- * @brief Schneidet führende und abschließende Leerzeichen aus einem String und
- * kopiert ihn.
- *
- * Diese Funktion entfernt Leerzeichen am Anfang und Ende des Eingabestrings
- * und kopiert das Ergebnis in den Zielbuffer.
- *
- * @param dest Zielbuffer, in den der getrimmte String geschrieben wird.
- * @param src Quellstring, der getrimmt werden soll.
- * @param dest_size Maximale Größe des Zielbuffers, um Überläufe zu vermeiden.
+ * @brief Schneidet Leerzeichen aus einem String und kopiert ihn.
+ * @param dest Zielbuffer.
+ * @param src Quellstring.
+ * @param dest_size Maximale Größe des Zielbuffers.
  */
 static void trim_copy(char *dest, const char *src, size_t dest_size) {
     const char *start = src;
     while (*start == ' ')
-        start++; // Überspringe führende Leerzeichen
+        start++;
     const char *end = start + strlen(start) - 1;
     while (end > start && *end == ' ')
-        end--; // Überspringe abschließende Leerzeichen
-    size_t len = end - start + 1;
-    if (len >= dest_size)
-        len = dest_size - 1;  // Verhindere Bufferüberlauf
-    memcpy(dest, start, len); // Kopiere getrimmten String
-    dest[len] = '\0';         // Null-Terminierung hinzufügen
+        end--;
+    size_t len =
+        (end - start + 1) < dest_size ? (end - start + 1) : dest_size - 1;
+    memcpy(dest, start, len);
+    dest[len] = '\0';
 }
 
 /**
- * @brief Liest die Konfigurationsdatei und gibt ein dynamisch allokiertes Array
- * von env-Struct zurück.
- *
- * Diese Funktion öffnet die Datei "/etc/kailian/kailian.conf", liest sie Zeile
- * für Zeile, parst Schlüssel-Wert-Paare und speichert sie in einem dynamisch
- * wachsenden Array.
- *
- * @param out_size Pointer auf eine Variable, die die Anzahl der gelesenen
- * Einträge zurückgibt.
- * @return env* Pointer auf das dynamisch allokierte Array von env-Struct, oder
- * NULL bei Fehlern.
- * @note Der Aufrufer ist dafür verantwortlich, den Speicher mit freeEnv()
- * freizugeben.
+ * @brief Liest eine Konfigurationsdatei und gibt ein env-Array zurück.
+ * @param config_path Pfad zur Konfigurationsdatei (optional, sonst Standard).
+ * @param out_size Pointer auf die Anzahl der gelesenen Einträge.
+ * @return env* Array von Schlüssel-Wert-Paaren oder NULL bei Fehler.
  */
-env *readEnv(size_t *out_size) {
-    FILE *fptr;          /**< Dateizeiger für die Konfigurationsdatei. */
-    char line[256];      /**< Buffer für eine einzelne Zeile aus der Datei. */
-    char key[256];       /**< Temporärer Buffer für den Schlüssel. */
-    char value[256];     /**< Temporärer Buffer für den Wert. */
-    size_t capacity = 8; /**< Aktuelle Kapazität des env-Arrays (wächst bei
-                            Bedarf). Letzer Eintrag für Markierung des Endes*/
-    size_t index = 0;    /**< Index des nächsten freien Slots im Array. */
+env *readEnv(const char *config_path, size_t *out_size) {
+    const char *path = config_path ? config_path : getenv(ENV_CONFIG_VAR);
+    if (!path)
+        path = DEFAULT_CONFIG_PATH;
 
-    // Initiales Array im Heap allokieren
-    env *envs = malloc(capacity * sizeof(env));
+    FILE *fptr = fopen(path, "r");
+    if (!fptr) {
+        fprintf(stderr, "kailian: %s: No such file or directory\n", path);
+        return NULL;
+    }
+
+    env *envs = malloc(8 * sizeof(env));
     if (!envs) {
-        MELDUNG("Speicherallokierung für envs fehlgeschlagen!");
-        exit(ENOMEM); // Beende das Programm bei Speicherfehler
+        perror("malloc failed for envs");
+        fclose(fptr);
+        return NULL;
     }
-    // Initialisiere alle Einträge mit NULL, um spätere Freigabe zu vereinfachen
+    size_t capacity = 8, index = 0;
     for (size_t i = 0; i < capacity; i++) {
-        envs[i].key = NULL;
-        envs[i].value = NULL;
+        envs[i].key = envs[i].value = NULL;
     }
 
-    // Öffne die Konfigurationsdatei im Lesemodus
-    fptr = fopen("/etc/kailian/kailian.conf", "r");
-    if (fptr == NULL) {
-        fprintf(
-            stderr,
-            "kailian: /etc/kailian/kailian.conf: No such file or directory\n");
-        free(envs); // Freigabe des Arrays bei Fehler
-        exit(ENOENT);
-    }
-
-    // Lese die Datei Zeile für Zeile
+    char line[256], key[256], value[256];
     while (fgets(line, sizeof(line), fptr)) {
-        line[strcspn(line, "\n")] = '\0';     // Entferne Zeilenumbruch
-        char *equal_sign = strchr(line, '='); // Finde das erste '='
-        if (equal_sign != NULL) {
-            *equal_sign = '\0'; // Teile die Zeile in Schlüssel und Wert
-            trim_copy(key, line, sizeof(key));               // Trim Schlüssel
-            trim_copy(value, equal_sign + 1, sizeof(value)); // Trim Wert
+        line[strcspn(line, "\n")] = '\0';
+        char *equal_sign = strchr(line, '=');
+        if (!equal_sign)
+            continue;
 
-            // Prüfe, ob das Array erweitert werden muss
-            if (index >= capacity) {
-                capacity *= 2; // Verdopple die Kapazität
-                env *temp = realloc(envs, capacity * sizeof(env));
-                if (!temp) {
-                    MELDUNG("Reallokierung fehlgeschlagen!");
-                    freeEnv(envs, index); // Bereinige bei Fehler
-                    fclose(fptr);
-                    exit(ENOMEM);
-                }
-                envs = temp;
-                // Initialisiere neue Einträge mit NULL
-                for (size_t i = index; i < capacity; i++) {
-                    envs[i].key = NULL;
-                    envs[i].value = NULL;
-                }
-            }
+        *equal_sign = '\0';
+        trim_copy(key, line, sizeof(key));
+        trim_copy(value, equal_sign + 1, sizeof(value));
 
-            // Allokiere Speicher für key und value im Heap
-            envs[index].key = malloc(strlen(key) + 1);
-            envs[index].value = malloc(strlen(value) + 1);
-            if (!envs[index].key || !envs[index].value) {
-                MELDUNG("Speicherallokierung fehlgeschlagen!");
-                freeEnv(envs, index); // Bereinige bei Fehler
+        if (index >= capacity) {
+            capacity *= 2;
+            env *temp = realloc(envs, capacity * sizeof(env));
+            if (!temp) {
+                perror("realloc failed");
+                freeEnv(envs, index);
                 fclose(fptr);
-                exit(ENOMEM);
+                return NULL;
             }
-            strcpy(envs[index].key, key);     // Kopiere Schlüssel
-            strcpy(envs[index].value, value); // Kopiere Wert
-            index++;                          // Gehe zum nächsten Slot
+            envs = temp;
+            for (size_t i = index; i < capacity; i++) {
+                envs[i].key = envs[i].value = NULL;
+            }
         }
+
+        // loadEnv.c (Auszug)
+        envs[index].key = malloc(strlen(key) + 1); // +1 für Null-Terminierung
+        envs[index].value =
+            malloc(strlen(value) + 1); // +1 für Null-Terminierung
+        if (!envs[index].key || !envs[index].value) {
+            perror("malloc failed");
+            freeEnv(envs, index);
+            fclose(fptr);
+            return NULL;
+        }
+        strcpy(envs[index].key, key);
+        strcpy(envs[index].value, value);
+        index++;
     }
 
-    fclose(fptr);      // Schließe die Datei
-    *out_size = index; // Setze die Anzahl der gelesenen Einträge
-    return envs;       // Gib das Array zurück
+    fclose(fptr);
+    *out_size = index;
+    return envs;
 }
 
 /**
- * @brief Gibt den Speicher des env-Arrays frei.
- *
- * Diese Funktion gibt den Speicher für alle Schlüssel und Werte sowie das Array
- * selbst frei.
- *
- * @param envs Pointer auf das zu befreiende env-Array.
- * @param size Anzahl der Einträge im Array, die freigegeben werden sollen.
+ * @brief Gibt den Speicher eines env-Arrays frei.
+ * @param envs Zu befreiendes Array.
+ * @param size Anzahl der Einträge.
  */
 void freeEnv(env *envs, size_t size) {
     for (size_t i = 0; i < size; i++) {
-        if (envs[i].key) {
-            free(envs[i].key);  // Gib Speicher für Schlüssel frei
-            envs[i].key = NULL; // Vermeide doppelte Freigabe
-        }
-        if (envs[i].value) {
-            free(envs[i].value); // Gib Speicher für Wert frei
-            envs[i].value = NULL;
-        }
+        free(envs[i].key);
+        free(envs[i].value);
     }
-    free(envs); // Gib das Array selbst frei
+    free(envs);
 }

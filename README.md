@@ -117,3 +117,9 @@ Kailian tidies up your thoughts.
 “Config’s gone!”: Check `/etc/kailian/kailian.conf`. Make one if it’s lost with "--create-config".
 
 “Ollama’s napping!”: Ping it: `curl http://localhost:11434`. Wake it up if it’s snoozing.
+
+
+
+
+
+KAILIAN_CONFIG -> for other configfile path

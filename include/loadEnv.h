@@ -18,7 +18,7 @@ typedef struct {
  * @param out_size Pointer auf eine Variable, die die Anzahl der gelesenen Einträge zurückgibt.
  * @return env* Pointer auf das dynamisch allokierte Array von env-Struct, oder NULL bei Fehlern.
  */
-env *readEnv(size_t *out_size);
+env *readEnv(const char *config_pathsize_t, size_t *out_size);
 
 /**
  * @brief Gibt den Speicher eines env-Arrays frei.

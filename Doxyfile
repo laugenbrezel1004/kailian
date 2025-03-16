@@ -880,11 +880,7 @@ QUIET                  = NO
 # The WARNINGS tag can be used to turn on/off the warning messages that are
 # generated to standard error (stderr) by Doxygen. If WARNINGS is set to YES
 # this implies that the warnings are on.
-#
-# Tip: Turn warnings on while writing the documentation.
-# The default value is: YES.
-
-WARNINGS               = YES
+# Tip: Turn warnings on while writing the documentation. The default value is: YES. WARNINGS               = YES
 
 # If the WARN_IF_UNDOCUMENTED tag is set to YES then Doxygen will generate
 # warnings for undocumented members. If EXTRACT_ALL is set to YES then this flag
@@ -982,7 +978,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = ./
+INPUT                  = src include
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1087,7 +1083,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                =
+EXCLUDE                = build
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

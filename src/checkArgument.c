@@ -1,6 +1,4 @@
 // checkArgument.c
-
-// include
 #include "../include/checkArgument.h"
 #include "../include/arguments/Environment.h"
 #include "../include/arguments/argumentList.h"
@@ -10,54 +8,52 @@
 #include "../include/call_api.h"
 #include <stdio.h>
 #include <string.h>
-#include <sys/socket.h>
+
+// Fehlercodes
+enum ErrorCode { SUCCESS = 0, ERR_UNKNOWN_ARG = 1 };
 
 /**
- * @brief Function to make sure argument is valid.
- * This funciton is used by checkArgument() to compare a given
- * argument with the argument struck form argumentList.c to make
- * sure that the argument is valid.
- * @param *argument The given argument to check.
- * @param *compare The entity in the struckt to compare the argument with.
- * @return Integer with non-zero when argument fits
+ * @brief Prüft, ob ein Argument mit einem bekannten Argument übereinstimmt.
+ * @param argument Das zu prüfende Argument.
+ * @param compare Das Argument aus der Argumentliste zum Vergleich.
+ * @return int 1 wenn Übereinstimmung, sonst 0.
  */
 int matchesArgument(const char *argument, const Argument *compare) {
-    // maybe with strncmp to make code better
     return (strcmp(argument, compare->long_form) == 0 ||
             strcmp(argument, compare->short_form) == 0);
 }
 
 /**
- * @brief Loop throw arguments and call correct functions
- * This function uses matchesArgument() to check the different arguments.
- * It then calles the functions for the arguments, based on the output from
- * matchesArgument().
- * @param *argument The argument from the main().
- * @return Integer error code.
+ * @brief Verarbeitet ein Kommandozeilenargument und ruft die passende Funktion
+ * auf.
+ * @param argument Das zu prüfende Argument.
+ * @return int Fehlercode (0 für Erfolg).
  */
 int checkArgument(const char *argument) {
     if (matchesArgument(argument, &arguments.help)) {
-        help();
+        return help();
     } else if (matchesArgument(argument, &arguments.coffee)) {
-        coffee();
+        return coffee();
     } else if (matchesArgument(argument, &arguments.showEnvironment)) {
-        showEnvironment();
+        return showEnvironment();
     } else if (matchesArgument(argument, &arguments.startOllama)) {
         startServer();
+        return SUCCESS; // Annahme: startServer beendet das Programm
     } else if (matchesArgument(argument, &arguments.killOllama)) {
         return killServer();
     } else if (matchesArgument(argument, &arguments.createConfig)) {
         return createConfig();
     } else if (matchesArgument(argument, &arguments.info)) {
-        connectToAi(NULL, NULL, arguments.info.long_form);
+        return connectToAi(NULL, NULL, arguments.info.long_form);
     } else if (matchesArgument(argument, &arguments.model)) {
-        connectToAi(NULL, NULL, arguments.model.long_form);
+        return connectToAi(NULL, NULL, arguments.model.long_form);
     } else if (matchesArgument(argument, &arguments.showModels)) {
-        connectToAi(NULL, NULL, arguments.showModels.long_form);
+        return connectToAi(NULL, NULL, arguments.showModels.long_form);
     } else {
         fprintf(stderr,
-                "kailian: Unknown argument\nTry 'kailian --help' for more "
-                "information\n");
+                "kailian: Unknown argument '%s'\nTry 'kailian --help' for more "
+                "information\n",
+                argument);
+        return ERR_UNKNOWN_ARG;
     }
-    return 1;
 }

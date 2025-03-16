@@ -1,6 +1,6 @@
 
 #ifndef COFFEE_H
 #define COFFEE_H
-void coffee(); 
+int coffee(void); 
 
 #endif 
