@@ -1,6 +1,5 @@
 // main.c
 #define _POSIX_C_SOURCE 200809L
-#include "../include/call_api.h"
 #include "../include/checkArgument.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,9 +7,6 @@
 #include <unistd.h>
 
 #define MAX_FILE_SIZE 1048576 // 1 MB
-
-// Fehlercodes
-enum ErrorCode { SUCCESS = 0, ERR_MEMORY = 1, ERR_INPUT = 2, ERR_API = 3 };
 
 /**
  * @brief Liest Eingaben von stdin bis EOF mit Größenbeschränkung.
@@ -52,14 +48,14 @@ static char *readStdin(size_t max_size) {
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         fprintf(stderr, "kailian: Too few arguments\nTry 'kailian --help'\n");
-        return ERR_INPUT;
+        return 1;
     }
 
     char *file_buffer = NULL;
     if (!isatty(STDIN_FILENO)) {
         file_buffer = readStdin(MAX_FILE_SIZE);
         if (!file_buffer) {
-            return ERR_INPUT;
+            return 1;
         }
     }
 

@@ -4,6 +4,7 @@
 #include "../include/arguments/createEnvironmentConfig.h"
 #include "../include/arguments/help.h"
 #include "../include/arguments/manageOllamaServer.h"
+#include "../include/arguments/showEnvironmentConfig.h"
 #include "../include/call_api.h"
 #include <stdio.h>
 #include <stdlib.h>

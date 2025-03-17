@@ -1,6 +1,6 @@
 // createEnvironmentConfig.c
-#include "../../include/arguments/createEnvironmentConfig.h"
-#include "../../include/environmentSettings.h"
+#include "../include/arguments/createEnvironmentConfig.h"
+#include "../include/environmentSettings.h"
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
