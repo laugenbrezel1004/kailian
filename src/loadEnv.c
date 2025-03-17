@@ -1,4 +1,3 @@
-// loadEnv.c
 #define _POSIX_C_SOURCE 200809L
 #include "../include/loadEnv.h"
 #include <errno.h>
@@ -10,12 +9,6 @@
 #define ENV_CONFIG_VAR "KAILIAN_CONFIG"
 #define INITIAL_CAPACITY 8
 
-/**
- * @brief Schneidet Leerzeichen aus einem String und kopiert ihn.
- * @param dest Zielbuffer.
- * @param src Quellstring.
- * @param dest_size Maximale Größe des Zielbuffers.
- */
 static void trim_copy(char *dest, const char *src, size_t dest_size) {
     const char *start = src;
     while (*start == ' ')
@@ -29,12 +22,6 @@ static void trim_copy(char *dest, const char *src, size_t dest_size) {
     dest[len] = '\0';
 }
 
-/**
- * @brief Liest eine Konfigurationsdatei und gibt ein env-Array zurück.
- * @param config_path Pfad zur Konfigurationsdatei (optional, sonst Standard).
- * @param out_size Pointer auf die Anzahl der gelesenen Einträge.
- * @return env* Array von Schlüssel-Wert-Paaren oder NULL bei Fehler.
- */
 env *readEnv(const char *config_path, size_t *out_size) {
     const char *path = config_path ? config_path : getenv(ENV_CONFIG_VAR);
     path = path ? path : DEFAULT_CONFIG_PATH;
@@ -47,7 +34,7 @@ env *readEnv(const char *config_path, size_t *out_size) {
 
     env *envs = malloc(INITIAL_CAPACITY * sizeof(*envs));
     if (!envs) {
-        perror("malloc failed");
+        perror("kailian: malloc failed");
         fclose(fp);
         return NULL;
     }
@@ -72,7 +59,7 @@ env *readEnv(const char *config_path, size_t *out_size) {
             capacity *= 2;
             env *temp = realloc(envs, capacity * sizeof(*envs));
             if (!temp) {
-                perror("realloc failed");
+                perror("kailian: realloc failed");
                 freeEnv(envs, count);
                 fclose(fp);
                 return NULL;
@@ -86,7 +73,7 @@ env *readEnv(const char *config_path, size_t *out_size) {
         envs[count].key = strdup(key);
         envs[count].value = strdup(value);
         if (!envs[count].key || !envs[count].value) {
-            perror("strdup failed");
+            perror("kailian: strdup failed");
             freeEnv(envs, count);
             fclose(fp);
             return NULL;
@@ -98,11 +85,7 @@ env *readEnv(const char *config_path, size_t *out_size) {
     *out_size = count;
     return envs;
 }
-/**
- * @brief Gibt den Speicher eines env-Arrays frei.
- * @param envs Zu befreiendes Array.
- * @param size Anzahl der Einträge.
- */
+
 void freeEnv(env *envs, size_t size) {
     if (!envs)
         return;

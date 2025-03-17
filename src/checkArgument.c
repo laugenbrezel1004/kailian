@@ -1,60 +1,90 @@
-// checkArgument.c
 #include "../include/checkArgument.h"
-#include "../include/arguments/Environment.h"
-#include "../include/arguments/argumentList.h"
+#include "../include/argumentList.h"
 #include "../include/arguments/coffee.h"
+#include "../include/arguments/createEnvironmentConfig.h"
 #include "../include/arguments/help.h"
-#include "../include/arguments/startServer.h"
+#include "../include/arguments/manageOllamaServer.h"
 #include "../include/call_api.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-// Fehlercodes
-enum ErrorCode { SUCCESS = 0, ERR_UNKNOWN_ARG = 1 };
+enum ErrorCode { SUCCESS = 0, ERR_UNKNOWN_ARG = 1, ERR_MEMORY = 2 };
 
-/**
- * @brief Prüft, ob ein Argument mit einem bekannten Argument übereinstimmt.
- * @param argument Das zu prüfende Argument.
- * @param compare Das Argument aus der Argumentliste zum Vergleich.
- * @return int 1 wenn Übereinstimmung, sonst 0.
- */
-static int matchesArgument(const char *argument, const Argument *compare) {
-    return (strcmp(argument, compare->long_form) == 0 ||
-            strcmp(argument, compare->short_form) == 0);
+typedef enum { FLAG, PROMPT } ArgType;
+
+typedef struct {
+        const Argument *arg;
+        int (*handler)(void);
+        ArgType type;
+} ArgHandler;
+
+static const ArgHandler handlers[] = {
+    {&arguments.help, help, FLAG},
+    {&arguments.coffee, coffee, FLAG},
+    {&arguments.showEnvironment, showEnvironment, FLAG},
+    {&arguments.startOllama, startServer, FLAG},
+    {&arguments.killOllama, killServer, FLAG},
+    {&arguments.createConfig, createConfig, FLAG},
+    {&arguments.info, NULL, FLAG},
+    {&arguments.showCurrentModel, NULL, FLAG},
+    {&arguments.showModels, NULL, FLAG},
+};
+
+static int matchesArgument(const char *arg, const Argument *compare) {
+    return !strcmp(arg, compare->long_form) ||
+           !strcmp(arg, compare->short_form);
 }
 
-/**
- * @brief Verarbeitet ein Kommandozeilenargument und ruft die passende Funktion
- * auf.
- * @param argument Das zu prüfende Argument.
- * @return int Fehlercode (0 für Erfolg).
- */
-int checkArgument(const char *argument) {
-    validateArguments(); // make sure internal arguments are set curret
-    if (matchesArgument(argument, &arguments.help)) {
-        return help();
-    } else if (matchesArgument(argument, &arguments.coffee)) {
-        return coffee();
-    } else if (matchesArgument(argument, &arguments.showEnvironment)) {
-        return showEnvironment();
-    } else if (matchesArgument(argument, &arguments.startOllama)) {
-        startServer();
-        return SUCCESS; // Annahme: startServer beendet das Programm
-    } else if (matchesArgument(argument, &arguments.killOllama)) {
-        return killServer();
-    } else if (matchesArgument(argument, &arguments.createConfig)) {
-        return createConfig();
-    } else if (matchesArgument(argument, &arguments.info)) {
-        return connectToAi(NULL, NULL, arguments.info.long_form);
-    } else if (matchesArgument(argument, &arguments.showCurrentModel)) {
-        return connectToAi(NULL, NULL, arguments.showCurrentModel.long_form);
-    } else if (matchesArgument(argument, &arguments.showModels)) {
-        return connectToAi(NULL, NULL, arguments.showModels.long_form);
-    } else {
+static char *buildPrompt(int argc, char *argv[]) {
+    size_t prompt_len = 0;
+    for (int i = 0; i < argc; i++) {
+        prompt_len += strlen(argv[i]) + 1;
+    }
+
+    char *prompt = malloc(prompt_len);
+    if (!prompt) {
+        perror("kailian: malloc failed");
+        return NULL;
+    }
+
+    char *ptr = prompt;
+    for (int i = 0; i < argc; i++) {
+        ptr += snprintf(ptr, prompt_len - (ptr - prompt), "%s%s", argv[i],
+                        (i < argc - 1) ? " " : "");
+    }
+    return prompt;
+}
+
+int checkArgument(int argc, char *argv[], const char *file_buffer) {
+    validateArguments();
+
+    // Einzelnes Flag-Argument
+    if (argc == 1) {
+        for (size_t i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
+            if (matchesArgument(argv[0], handlers[i].arg)) {
+                if (handlers[i].type == FLAG) {
+                    if (handlers[i].handler) {
+                        return handlers[i].handler();
+                    }
+                    return connectToAi(NULL, file_buffer,
+                                       handlers[i].arg->long_form);
+                }
+            }
+        }
         fprintf(stderr,
-                "kailian: Unknown argument '%s'\nTry 'kailian --help' for more "
-                "information\n",
-                argument);
+                "kailian: Unknown argument '%s'\nTry 'kailian --help'\n",
+                argv[0]);
         return ERR_UNKNOWN_ARG;
     }
+
+    // Mehrere Argumente als Prompt behandeln
+    char *prompt = buildPrompt(argc, argv);
+    if (!prompt) {
+        return ERR_MEMORY;
+    }
+
+    int result = connectToAi(prompt, file_buffer, NULL);
+    free(prompt);
+    return result;
 }

@@ -1,6 +1,6 @@
 // help.c
 #include "../../include/arguments/help.h"
-#include "../../include/arguments/argumentList.h"
+#include "../../include/argumentList.h"
 #include <stdio.h>
 
 /**

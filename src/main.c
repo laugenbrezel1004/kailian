@@ -1,6 +1,5 @@
 // main.c
 #define _POSIX_C_SOURCE 200809L
-#include "../include/askError.h"
 #include "../include/call_api.h"
 #include "../include/checkArgument.h"
 #include <stdio.h>
@@ -44,7 +43,6 @@ static char *readStdin(size_t max_size) {
     fileBuffer[fileSize] = '\0'; // Null-Terminierung
     return fileBuffer;
 }
-
 /**
  * @brief Hauptfunktion zur Verarbeitung von Argumenten und piped Input.
  * @param argc Anzahl der Kommandozeilenargumente.
@@ -52,56 +50,20 @@ static char *readStdin(size_t max_size) {
  * @return int Fehlercode.
  */
 int main(int argc, char *argv[]) {
-    char *fileBuffer = NULL;
-    char *promptBuffer = NULL;
-    int returnValue = SUCCESS;
-
-    // Argumente prüfen
     if (argc < 2) {
-        fprintf(stderr, "%s: Too few arguments!\nTry 'kailian --help'\n",
-                argv[0]);
+        fprintf(stderr, "kailian: Too few arguments\nTry 'kailian --help'\n");
         return ERR_INPUT;
     }
 
-    if (argc == 2 && (argv[1][0] == '-' || strncmp(argv[1], "--", 2) == 0)) {
-        return checkArgument(argv[1]);
-    }
-
-    // Piped Input lesen
+    char *file_buffer = NULL;
     if (!isatty(STDIN_FILENO)) {
-        fileBuffer = readStdin(MAX_FILE_SIZE);
-        if (!fileBuffer) {
+        file_buffer = readStdin(MAX_FILE_SIZE);
+        if (!file_buffer) {
             return ERR_INPUT;
         }
     }
 
-    // Prompt aus Argumenten zusammenbauen
-    size_t prompt_len = 0;
-    for (int i = 1; i < argc; i++) {
-        prompt_len += strlen(argv[i]) + 1;
-    }
-    promptBuffer = malloc(prompt_len);
-    if (!promptBuffer) {
-        perror("malloc failed for promptBuffer");
-        free(fileBuffer);
-        return ERR_MEMORY;
-    }
-
-    char *ptr = promptBuffer;
-    for (int i = 1; i < argc; i++) {
-        size_t arg_len = strlen(argv[i]);
-        memcpy(ptr, argv[i], arg_len);
-        ptr += arg_len;
-        if (i < argc - 1)
-            *ptr++ = ' ';
-    }
-    *ptr = '\0';
-
-    // API-Aufruf
-    returnValue = connectToAi(promptBuffer, fileBuffer, NULL);
-
-    // Aufräumen
-    free(promptBuffer);
-    free(fileBuffer);
-    return returnValue;
+    int result = checkArgument(argc - 1, &argv[1], file_buffer);
+    free(file_buffer);
+    return result;
 }

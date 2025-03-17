@@ -2,8 +2,9 @@
 #ifndef CHECKARGUMENT_H
 #define CHECKARGUMENT_H
 
-#include "arguments/argumentList.h"
+#include "argumentList.h"
+#include <stddef.h>
 
-int checkArgument(const char *argument);
+int checkArgument(int argc, char *argv[], const char *file_buffer);
 
 #endif
