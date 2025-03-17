@@ -1,6 +1,7 @@
 #ifndef ENVIRONMENTSETTINGS_H
 #define macro() ENVIRONMENTSETTINGS_H
 
-#define CONFIG_PATH "/etc/kailian/kailian.conf"
+extern const char *configPath;
 extern const char *templateConfig;
+extern const char *keys[];
 #endif // !ENVIRONMENTSETTINGS_H

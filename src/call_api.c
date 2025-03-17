@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include "../include/call_api.h"
+#include "../include/environmentSettings.h"
 #include "../include/loadEnv.h"
 #include <cjson/cJSON.h>
 #include <curl/curl.h>
@@ -7,9 +8,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum ApiMode { MODE_DEFAULT, MODE_SHOW_MODELS, MODE_CURRENT_MODEL, MODE_INFO };
+typedef enum {
+    MODE_DEFAULT = 0,
+    MODE_SHOW_MODELS = 1,
+    MODE_CURRENT_MODEL = 2,
+    MODE_INFO = 3
+} ApiMode;
 
-enum ErrorCode { SUCCESS = 0, ERR_MEMORY = 1, ERR_INPUT = 2, ERR_API = 3 };
 static const char *getEnvValue(const env *config, size_t count,
                                const char *key) {
     for (size_t i = 0; i < count; i++) {
@@ -23,7 +28,7 @@ static const char *getEnvValue(const env *config, size_t count,
 static size_t writeCallback(void *data, size_t size, size_t nmemb,
                             void *userp) {
     size_t realsize = size * nmemb;
-    enum ApiMode *mode = (enum ApiMode *)userp;
+    ApiMode *mode = (ApiMode *)userp;
     char *buffer = malloc(realsize + 1);
     if (!buffer)
         return 0;
@@ -83,14 +88,6 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
     if (!config)
         return 1;
 
-    const char *keys[] = {"name",
-                          "endpoint_generate",
-                          "endpoint_running_model",
-                          "endpoint_info",
-                          "endpoint_ollama_version",
-                          "endpoint_chat",
-                          "endpoint_show",
-                          "system"};
     const char *values[8];
     for (int i = 0; i < 8; i++) {
         values[i] = getEnvValue(config, env_count, keys[i]);
@@ -109,7 +106,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
 
     CURLcode res;
     char *url = NULL;
-    enum ApiMode mode = MODE_DEFAULT;
+    ApiMode mode = MODE_DEFAULT;
 
     if (argument) {
         if (!strcmp(argument, "--show-models")) {
@@ -163,7 +160,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         fprintf(stderr, "kailian: No prompt provided\n");
         curl_easy_cleanup(curl);
         freeEnv(config, env_count);
-        return ERR_INPUT;
+        return 1;
     }
 
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);

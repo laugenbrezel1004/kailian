@@ -1,4 +1,4 @@
-#include "../include/checkArgument.h"
+#include "../include/manageInput.h"
 #include "../include/argumentList.h"
 #include "../include/arguments/coffee.h"
 #include "../include/arguments/createEnvironmentConfig.h"
@@ -10,9 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-enum ErrorCode { SUCCESS = 0, ERR_UNKNOWN_ARG = 1, ERR_MEMORY = 2 };
-
-typedef enum { FLAG, PROMPT } ArgType;
+typedef enum { FLAG = 0, PROMPT = 1 } ArgType;
 
 typedef struct {
         const Argument *arg;
@@ -57,11 +55,14 @@ static char *buildPrompt(int argc, char *argv[]) {
     return prompt;
 }
 
-int checkArgument(int argc, char *argv[], const char *file_buffer) {
-    validateArguments();
+int manageInput(int argc, char *argv[], const char *file_buffer) {
+    /*validateArguments();*/
 
-    // Einzelnes Flag-Argument
-    if (argc == 1) {
+    int compareString = 0;
+    if (strncmp(argv[0], "-", 1) == 0 || strncmp(argv[0], "--", 2) == 0) {
+        compareString = 1;
+    }
+    if (argc == 1 && compareString == 1) {
         for (size_t i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
             if (matchesArgument(argv[0], handlers[i].arg)) {
                 if (handlers[i].type == FLAG) {
@@ -76,13 +77,13 @@ int checkArgument(int argc, char *argv[], const char *file_buffer) {
         fprintf(stderr,
                 "kailian: Unknown argument '%s'\nTry 'kailian --help'\n",
                 argv[0]);
-        return ERR_UNKNOWN_ARG;
+        return 1;
     }
 
     // Mehrere Argumente als Prompt behandeln
     char *prompt = buildPrompt(argc, argv);
     if (!prompt) {
-        return ERR_MEMORY;
+        return 1;
     }
 
     int result = connectToAi(prompt, file_buffer, NULL);

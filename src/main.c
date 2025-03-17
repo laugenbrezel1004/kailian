@@ -1,6 +1,6 @@
 // main.c
 #define _POSIX_C_SOURCE 200809L
-#include "../include/checkArgument.h"
+#include "../include/manageInput.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -46,6 +46,7 @@ static char *readStdin(size_t max_size) {
  * @return int Fehlercode.
  */
 int main(int argc, char *argv[]) {
+    int result = 1;
     if (argc < 2) {
         fprintf(stderr, "kailian: Too few arguments\nTry 'kailian --help'\n");
         return 1;
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    int result = checkArgument(argc - 1, &argv[1], file_buffer);
+    result = manageInput(argc - 1, &argv[1], file_buffer);
     free(file_buffer);
     return result;
 }

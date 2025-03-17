@@ -2,6 +2,15 @@
 
 const char *configPath = "/etc/kailian/kailian.conf";
 
+const char *keys[] = {"name",
+                      "endpoint_generate",
+                      "endpoint_running_model",
+                      "endpoint_info",
+                      "endpoint_ollama_version",
+                      "endpoint_chat",
+                      "endpoint_show",
+                      "system"};
+
 const char *templateConfig =
     "name = chatgpt\n"
     "endpoint_generate = http://localhost:11434/api/generate\n"

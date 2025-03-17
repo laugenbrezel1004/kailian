@@ -6,11 +6,11 @@
 #include <string.h>
 #include <unistd.h>
 int showEnvironment(void) {
-    FILE *fp = fopen(CONFIG_PATH, "r");
+    FILE *fp = fopen(configPath, "r");
     if (!fp) {
         fprintf(stderr,
                 "kailian: %s: %s\nCreate a new one with --create-config\n",
-                CONFIG_PATH, strerror(errno));
+                configPath, strerror(errno));
         return 1;
     }
 
