@@ -57,7 +57,14 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
             }
         }
     } break;
-    case MODE_DEFAULT:
+    case MODE_DEFAULT: {
+        /*cJSON *json_str = cJSON_GetObjectItemCaseSensitive(json,
+         * "response");*/
+        printf("%s\n", buffer);
+        /*free(json_str);*/
+    } break;
+
+    default:
         if (strncmp(buffer, "{\"error}", 7) == 0) {
             fprintf(stderr, "kailian: API error: %s\n", buffer);
         } else {
@@ -69,13 +76,6 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
             }
         }
         break;
-    default: {
-        char *json_str = cJSON_Print(json);
-        if (json_str) {
-            printf("%s\n", json_str);
-            free(json_str);
-        }
-    } break;
     }
 
     cJSON_Delete(json);
@@ -106,7 +106,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
 
     CURLcode res;
     char *url = NULL;
-    ApiMode mode = MODE_DEFAULT;
+    ApiMode mode = MODE_DEFAULT; // endpoint_generate
 
     if (argument) {
         if (!strcmp(argument, "--show-models")) {
@@ -153,6 +153,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         curl_easy_setopt(curl, CURLOPT_URL, values[1]); // endpoint_generate
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
 
+        printf("json -> %s\n", json_str);
         free(json_str);
         free(full_prompt);
         cJSON_Delete(root);
@@ -162,7 +163,6 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         freeEnv(config, env_count);
         return 1;
     }
-
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);
 
