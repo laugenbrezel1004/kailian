@@ -24,7 +24,6 @@ static const char *getEnvValue(const env *config, size_t count,
     }
     return NULL;
 }
-
 static size_t writeCallback(void *data, size_t size, size_t nmemb,
                             void *userp) {
     size_t realsize = size * nmemb;
@@ -35,6 +34,8 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
 
     memcpy(buffer, data, realsize);
     buffer[realsize] = '\0';
+
+    fprintf(stderr, "DEBUG: Raw API Response: %s\n", buffer);
 
     cJSON *json = cJSON_Parse(buffer);
     if (!json) {
@@ -55,16 +56,11 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
                     printf("Model: %s\n", name->valuestring);
                 }
             }
+        } else {
+            fprintf(stderr, "kailian: Expected 'models' array in response\n");
         }
     } break;
-    case MODE_DEFAULT: {
-        /*cJSON *json_str = cJSON_GetObjectItemCaseSensitive(json,
-         * "response");*/
-        printf("%s\n", buffer);
-        /*free(json_str);*/
-    } break;
-
-    default:
+    case MODE_DEFAULT:
         if (strncmp(buffer, "{\"error}", 7) == 0) {
             fprintf(stderr, "kailian: API error: %s\n", buffer);
         } else {
@@ -73,15 +69,26 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
             if (cJSON_IsString(response)) {
                 printf("%s", response->valuestring);
                 fflush(stdout);
+            } else {
+                fprintf(stderr,
+                        "kailian: No 'response' string in API answer\n");
             }
         }
         break;
+    default: {
+        char *json_str = cJSON_Print(json);
+        if (json_str) {
+            printf("%s\n", json_str);
+            free(json_str);
+        }
+    } break;
     }
 
     cJSON_Delete(json);
     free(buffer);
     return realsize;
 }
+
 int connectToAi(const char *prompt, const char *file, const char *argument) {
     size_t env_count;
     env *config = readEnv(NULL, &env_count);
@@ -96,6 +103,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
             freeEnv(config, env_count);
             return 1;
         }
+        fprintf(stderr, "DEBUG: Config %s = %s\n", keys[i], values[i]);
     }
 
     CURL *curl = curl_easy_init();
@@ -106,7 +114,10 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
 
     CURLcode res;
     char *url = NULL;
-    ApiMode mode = MODE_DEFAULT; // endpoint_generate
+    ApiMode mode = MODE_DEFAULT;
+
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    curl_easy_setopt(curl, CURLOPT_STDERR, stderr);
 
     if (argument) {
         if (!strcmp(argument, "--show-models")) {
@@ -126,7 +137,11 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
             return 1;
         }
         curl_easy_setopt(curl, CURLOPT_URL, url);
-    } else if (prompt) { // Nur wenn ein Prompt vorhanden ist
+    }
+
+    // hier isch der wurm drinn ->
+
+    else if (prompt) {
         cJSON *root = cJSON_CreateObject();
         if (!root) {
             curl_easy_cleanup(curl);
@@ -136,6 +151,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
 
         cJSON_AddStringToObject(root, "model", values[0]);
         cJSON_AddStringToObject(root, "system", values[7]);
+        cJSON_AddBoolToObject(root, "stream", 0);
         size_t prompt_len = strlen(prompt) + (file ? strlen(file) + 1 : 0) + 1;
         char *full_prompt = malloc(prompt_len);
         if (!full_prompt) {
@@ -150,23 +166,56 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         cJSON_AddStringToObject(root, "prompt", full_prompt);
         char *json_str = cJSON_PrintUnformatted(root);
 
-        curl_easy_setopt(curl, CURLOPT_URL, values[1]); // endpoint_generate
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
+        fprintf(stderr, "DEBUG: Sending JSON: %s\n", json_str);
+        // Byteweise Ausgabe für Debugging
+        fprintf(stderr, "DEBUG: JSON bytes: ");
+        for (size_t i = 0; i < strlen(json_str); i++) {
+            fprintf(stderr, "%02x ", (unsigned char)json_str[i]);
+        }
+        fprintf(stderr, "\n");
 
-        printf("json -> %s\n", json_str);
+        /*curl_easy_setopt(curl, CURLOPT_URL, values[1]); // endpoint_generate*/
+        curl_easy_setopt(
+            curl, CURLOPT_URL,
+            "http://localhost:11434/api/generate"); // endpoint_generate
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
+        curl_easy_setopt(
+            curl, CURLOPT_POSTFIELDS,
+            "{\"model\":\"gemma3:27b\",\"system\":\"Answer without "
+            "markdown\",\"stream\":true,\"prompt\":\"Wenn du denkst, dass du "
+            "was gedacht hast, hast du dann was gedacht?\"}");
+        /*curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE,
+         * (long)strlen(json_str));*/
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
         free(json_str);
         free(full_prompt);
         cJSON_Delete(root);
+
+        printf("lyurenz war hier");
+        res = curl_easy_perform(curl);
+        printf("laurelköajhsdf löaksdjf  war hier");
+        curl_slist_free_all(headers);
     } else {
         fprintf(stderr, "kailian: No prompt provided\n");
         curl_easy_cleanup(curl);
         freeEnv(config, env_count);
         return 1;
     }
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);
 
-    res = curl_easy_perform(curl);
+    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);*/
+    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);*/
+    /*printf("lyurenz war hier");*/
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, stdout);
+
+    if (!prompt) {
+        res = curl_easy_perform(curl);
+    }
+
     if (res != CURLE_OK) {
         fprintf(stderr, "kailian: CURL error: %s\n", curl_easy_strerror(res));
     }

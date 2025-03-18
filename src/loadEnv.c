@@ -11,11 +11,11 @@
 
 static void trim_copy(char *dest, const char *src, size_t dest_size) {
     const char *start = src;
-    while (*start == ' ')
-        start++;
+    while (*start == ' ' || *start == '"')
+        start++; // Entferne Leerzeichen und "
     const char *end = start + strlen(start) - 1;
-    while (end > start && *end == ' ')
-        end--;
+    while (end > start && (*end == ' ' || *end == '"'))
+        end--; // Entferne Leerzeichen und "
     size_t len =
         (end - start + 1) < dest_size ? (end - start + 1) : dest_size - 1;
     memcpy(dest, start, len);
