@@ -36,7 +36,7 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
     memcpy(buffer, data, realsize);
     buffer[realsize] = '\0';
 
-    fprintf(stderr, "DEBUG: Raw API Response: %s\n", buffer);
+    /*fprintf(stderr, "DEBUG: Raw API Response: %s\n", buffer);*/
 
     cJSON *json = cJSON_Parse(buffer);
     if (!json) {
@@ -94,6 +94,7 @@ static size_t writeCallback(void *data, size_t size, size_t nmemb,
 }
 
 int connectToAi(const char *prompt, const char *file, const char *argument) {
+    /*printf("connectToAi prompt -> %s\n", prompt);*/
     size_t env_count;
     env *config = readEnv(NULL, &env_count);
     if (!config)
@@ -102,12 +103,13 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
     const char *values[8];
     for (int i = 0; i < 8; i++) {
         values[i] = getEnvValue(config, env_count, keys[i]);
+        /*printf("values[%s]\n", values[i]);*/
         if (!values[i]) {
             fprintf(stderr, "kailian: Missing config value: %s\n", keys[i]);
             freeEnv(config, env_count);
             return 1;
         }
-        fprintf(stderr, "DEBUG: Config %s = %s\n", keys[i], values[i]);
+        /*fprintf(stderr, "DEBUG: Config %s = %s\n", keys[i], values[i]);*/
     }
 
     CURL *curl = curl_easy_init();
@@ -120,7 +122,7 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
     char *url = NULL;
     ApiMode mode = MODE_DEFAULT;
 
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+    /*curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);*/
     curl_easy_setopt(curl, CURLOPT_STDERR, stderr);
 
     if (argument) {
@@ -141,7 +143,10 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
             return 1;
         }
         curl_easy_setopt(curl, CURLOPT_URL, url);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);
     } else if (prompt) {
+        mode = MODE_DEFAULT;
         cJSON *root = cJSON_CreateObject();
         if (!root) {
             curl_easy_cleanup(curl);
@@ -149,9 +154,11 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
             return 1;
         }
 
-        cJSON_AddStringToObject(root, "model", values[0]);
+        cJSON_AddStringToObject(root, "model", values[0]); // name
         cJSON_AddStringToObject(root, "system", values[7]);
-        cJSON_AddBoolToObject(root, "stream", 0);
+        cJSON_AddBoolToObject(
+            root, "stream",
+            1); // 1 -> get result answer by answer and not as on huge string
 
         size_t prompt_len = strlen(prompt) + (file ? strlen(file) + 2 : 1);
         char *full_prompt = malloc(prompt_len);
@@ -165,17 +172,19 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
                  file ? file : "");
 
         cJSON_AddStringToObject(root, "prompt", full_prompt);
+        /*printf("asdfkljasödlfkjprompt -> %s\n", full_prompt);*/
         char *json_str = cJSON_PrintUnformatted(root);
 
-        fprintf(stderr, "DEBUG: Sending JSON: %s\n", json_str);
-        fprintf(stderr, "DEBUG: JSON bytes: ");
-        for (size_t i = 0; i < strlen(json_str); i++) {
-            fprintf(stderr, "%02x ", (unsigned char)json_str[i]);
-        }
-        fprintf(stderr, "\n");
+        /*fprintf(stderr, "DEBUG: Sending JSON: %s\n", json_str);*/
+        /*fprintf(stderr, "DEBUG: JSON bytes: ");*/
+        /*for (size_t i = 0; i < strlen(json_str); i++) {*/
+        /*    fprintf(stderr, "%02x ", (unsigned char)json_str[i]);*/
+        /*}*/
+        /*fprintf(stderr, "\n");*/
 
-        curl_easy_setopt(curl, CURLOPT_URL,
-                         "http://localhost:11434/api/generate");
+        /*curl_easy_setopt(curl, CURLOPT_URL,*/
+        /*                 "http://localhost:11434/api/generate");*/
+        curl_easy_setopt(curl, CURLOPT_URL, values[1]); // endpoint_generate
         curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
         curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(json_str));
         curl_easy_setopt(curl, CURLOPT_POST, 1L);
@@ -184,6 +193,9 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         headers = curl_slist_append(headers, "Content-Type: application/json");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);
+        /*printf("prompt -> %s\n", full_prompt);*/
         res = curl_easy_perform(curl);
 
         curl_slist_free_all(headers);
@@ -197,8 +209,8 @@ int connectToAi(const char *prompt, const char *file, const char *argument) {
         return 1;
     }
 
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);
+    /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);*/
+    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &mode);*/
 
     if (!prompt) {
         res = curl_easy_perform(curl);
