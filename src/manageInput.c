@@ -9,6 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+// Funktionsprototypen am Anfang der Datei hinzufügen (nach den includes)
+static char *buildPrompt(int argc, char *argv[]);
+static int handle_flag_argument(const char *arg, const char *file_buffer);
+static int handle_prompt_arguments(int argc, char *argv[], const char *file_buffer);
 
 typedef enum { FLAG = 0, PROMPT = 1 } ArgType;
 
@@ -74,6 +80,11 @@ int manageInput(int argc, char *argv[], const char *file_buffer) {
 }
 
 static int handle_flag_argument(const char *arg, const char *file_buffer) {
+    if (!arg) {
+        fprintf(stderr, "kailian: Ungültiges Flag-Argument\n");
+        return 1;
+    }
+
     for (size_t i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
         if (matchesArgument(arg, handlers[i].arg)) {
             if (handlers[i].type == FLAG) {
@@ -86,4 +97,20 @@ static int handle_flag_argument(const char *arg, const char *file_buffer) {
     
     fprintf(stderr, "kailian: Unbekanntes Argument '%s'\nVersuchen Sie 'kailian --help'\n", arg);
     return 1;
+}
+
+static int handle_prompt_arguments(int argc, char *argv[], const char *file_buffer) {
+    if (!argv || argc < 1) {
+        fprintf(stderr, "kailian: Ungültige Prompt-Argumente\n");
+        return 1;
+    }
+
+    char *prompt = buildPrompt(argc, argv);
+    if (!prompt) {
+        return 1;
+    }
+
+    int result = connectToAi(prompt, file_buffer, NULL);
+    free(prompt);
+    return result;
 }
