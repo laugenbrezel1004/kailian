@@ -1,4 +1,5 @@
 #include "../../include/handlers/handler_manager.h"
+#include "../../include/core/error.h"
 #include <stdlib.h>
 
 struct HandlerManager {

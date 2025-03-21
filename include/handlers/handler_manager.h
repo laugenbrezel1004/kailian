@@ -1,7 +1,7 @@
 #ifndef HANDLER_MANAGER_H
 #define HANDLER_MANAGER_H
 
-#include "../core/error_handling.h"
+#include "../core/error.h"
 
 typedef struct HandlerManager HandlerManager;
 

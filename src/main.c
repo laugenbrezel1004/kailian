@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include "../include/core/memory.h"
+#include "../include/core/config.h"
+#include "../include/core/argument_processor.h"
 
 #define MAX_FILE_SIZE 1048576 // 1 MB
 
@@ -52,6 +55,7 @@ cleanup:
     free(fileBuffer);
     return NULL;
 }
+
 /**
  * @brief Hauptfunktion zur Verarbeitung von Argumenten und piped Input.
  * @param argc Anzahl der Kommandozeilenargumente.
@@ -59,21 +63,28 @@ cleanup:
  * @return int Fehlercode.
  */
 int main(int argc, char *argv[]) {
-    int result = 1;
-    if (argc < 2) {
-        fprintf(stderr, "kailian: Too few arguments\nTry 'kailian --help'\n");
+    ErrorCode error;
+    char *file_buffer = NULL;
+    ArgumentProcessor *arg_processor = NULL;
+
+    // Initialisiere Argument Processor
+    arg_processor = argument_processor_create();
+    if (!arg_processor) {
+        fprintf(stderr, "Konnte Argument Processor nicht initialisieren\n");
         return 1;
     }
 
-    char *file_buffer = NULL;
+    // Verarbeite stdin wenn vorhanden
     if (!isatty(STDIN_FILENO)) {
         file_buffer = readStdin(MAX_FILE_SIZE);
-        if (!file_buffer) {
-            return 1;
-        }
     }
 
-    result = manageInput(argc - 1, &argv[1], file_buffer);
+    // Verarbeite Argumente
+    error = argument_processor_handle(arg_processor, argc, argv, file_buffer);
+
+    // Cleanup
+    argument_processor_destroy(arg_processor);
     free(file_buffer);
-    return result;
+
+    return error == SUCCESS ? 0 : 1;
 }
