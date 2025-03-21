@@ -56,37 +56,34 @@ static char *buildPrompt(int argc, char *argv[]) {
 }
 
 int manageInput(int argc, char *argv[], const char *file_buffer) {
-    /*validateArguments();*/
-
-    int compareString = 0;
-    if (strncmp(argv[0], "-", 1) == 0 || strncmp(argv[0], "--", 2) == 0) {
-        compareString = 1;
+    if (!argv || argc < 1) {
+        fprintf(stderr, "kailian: Ungültige Argumente\n");
+        return 1;
     }
-    if (argc == 1 && compareString == 1) {
-        for (size_t i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
-            if (matchesArgument(argv[0], handlers[i].arg)) {
-                if (handlers[i].type == FLAG) {
-                    if (handlers[i].handler) {
-                        return handlers[i].handler();
-                    }
-                    return connectToAi(NULL, file_buffer,
-                                       handlers[i].arg->long_form);
-                }
+
+    // Validiere Argumente beim Start
+    validateArguments();
+
+    const bool is_flag = (argv[0][0] == '-');
+    
+    if (argc == 1 && is_flag) {
+        return handle_flag_argument(argv[0], file_buffer);
+    }
+
+    return handle_prompt_arguments(argc, argv, file_buffer);
+}
+
+static int handle_flag_argument(const char *arg, const char *file_buffer) {
+    for (size_t i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
+        if (matchesArgument(arg, handlers[i].arg)) {
+            if (handlers[i].type == FLAG) {
+                return handlers[i].handler ? 
+                       handlers[i].handler() : 
+                       connectToAi(NULL, file_buffer, handlers[i].arg->long_form);
             }
         }
-        fprintf(stderr,
-                "kailian: Unknown argument '%s'\nTry 'kailian --help'\n",
-                argv[0]);
-        return 1;
     }
-
-    // Mehrere Argumente als Prompt behandeln
-    char *prompt = buildPrompt(argc, argv);
-    if (!prompt) {
-        return 1;
-    }
-
-    int result = connectToAi(prompt, file_buffer, NULL);
-    free(prompt);
-    return result;
+    
+    fprintf(stderr, "kailian: Unbekanntes Argument '%s'\nVersuchen Sie 'kailian --help'\n", arg);
+    return 1;
 }

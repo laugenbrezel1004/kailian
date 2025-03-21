@@ -1,7 +1,16 @@
-#ifndef STARTSERVER_H
-#define STARTSERVER_H
+#ifndef MANAGEOLLAMASERVER_H
+#define MANAGEOLLAMASERVER_H
 
-int startServer();
-int killServer();
+/**
+ * @brief Startet den Ollama-Server als Daemon-Prozess.
+ * @return int 0 bei Erfolg, 1 bei Fehler
+ */
+int startServer(void);
 
-#endif // !STARTSERVER_H
+/**
+ * @brief Beendet den laufenden Ollama-Server.
+ * @return int 0 bei Erfolg, 1 bei Fehler
+ */
+int killServer(void);
+
+#endif // MANAGEOLLAMASERVER_H

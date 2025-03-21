@@ -14,11 +14,17 @@
  * @return char* Zeiger auf den allokierten Buffer oder NULL bei Fehler.
  */
 static char *readStdin(size_t max_size) {
-    char *fileBuffer = malloc(max_size + 1); // Direkt allokieren
-    if (!fileBuffer) {
-        perror("malloc failed for fileBuffer");
+    if (max_size == 0) {
+        fprintf(stderr, "Ungültige maximale Größe\n");
         return NULL;
     }
+
+    char *fileBuffer = calloc(max_size + 1, 1); // Nutze calloc für Nullinitialisierung
+    if (!fileBuffer) {
+        perror("Speicherallokierung für fileBuffer fehlgeschlagen");
+        return NULL;
+    }
+
     size_t fileSize = 0;
     char *line = NULL;
     size_t len = 0;
@@ -26,18 +32,25 @@ static char *readStdin(size_t max_size) {
 
     while ((read = getline(&line, &len, stdin)) != -1) {
         if (fileSize + read > max_size) {
-            fprintf(stderr, "Input exceeds maximum size of %zu bytes\n",
-                    max_size);
-            free(line);
-            free(fileBuffer);
-            return NULL;
+            fprintf(stderr, "Eingabe überschreitet maximale Größe von %zu Bytes\n", max_size);
+            goto cleanup;
         }
-        memcpy(fileBuffer + fileSize, line, read);
-        fileSize += read;
+        
+        if (line) {
+            memcpy(fileBuffer + fileSize, line, read);
+            fileSize += read;
+        }
     }
-    free(line);
-    fileBuffer[fileSize] = '\0'; // Null-Terminierung
+
+    if (line) {
+        free(line);
+    }
     return fileBuffer;
+
+cleanup:
+    free(line);
+    free(fileBuffer);
+    return NULL;
 }
 /**
  * @brief Hauptfunktion zur Verarbeitung von Argumenten und piped Input.
