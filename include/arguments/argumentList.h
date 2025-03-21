@@ -1,4 +1,3 @@
-
 // argumentList.h
 #ifndef ARGUMENTLIST_H
 #define ARGUMENTLIST_H
@@ -22,6 +21,7 @@ typedef struct {
     Argument createConfig;
     Argument chat;
     Argument cleanChat;
+    Argument showCurrentModel;
 } Arguments;
 
 // Declare the global variable for arguments

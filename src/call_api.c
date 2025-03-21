@@ -15,12 +15,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../include/chat/chat_history.h"
+
+typedef struct {
+    char *data;
+    size_t size;
+} ResponseData;
 
 // prototypes
 int sendArgument(const char *buffer);
 static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
                              void *userp);
-int connectToAi(const char *promptBuffer, const char *fileBuffer);
+int connectToAi(const char *prompt, const char *file, const char *argument);
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp);
 int connectToAiChat(const char *promptBuffer, const char *fileBuffer);
 static size_t cbAiChat(void *data, size_t size, size_t nmemb, void *userp);
@@ -116,12 +122,13 @@ static size_t cbSendArgument(void *data, size_t size, size_t nmemb,
     return realsize;
 }
 
-int connectToAi(const char *promptBuffer, const char *fileBuffer) {
+int connectToAi(const char *prompt, const char *file, const char *argument) {
     const Env ENV = readEnv();
     CURL *curl = NULL;
     CURLcode res = CURLE_OK;
     cJSON *root = cJSON_CreateObject();
     char *json_str = NULL;
+    ResponseData response = {NULL, 0};
 
     if (!root) {
         fprintf(stderr, "cJSON_CreateObject failed\n");
@@ -132,21 +139,24 @@ int connectToAi(const char *promptBuffer, const char *fileBuffer) {
     /*cJSON_AddBoolToObject(root, "raw", cJSON_True);*/
     cJSON_AddStringToObject(root, "system", ENV.system);
 
-    // Combine prompt and fileBuffer with a newline separator
+    // Füge Chat-History zum Prompt hinzu
+    char *history_context = chat_history_get_context();
     char *full_prompt = NULL;
-    size_t prompt_len = strlen(promptBuffer) + 1; // Prompt + null
-    if (fileBuffer)
-        prompt_len += strlen(fileBuffer) + 1; // Space + fileBuffer
-    full_prompt = malloc(prompt_len);
-    if (!full_prompt) {
-        fprintf(stderr, "malloc failed for full_prompt\n");
-        cJSON_Delete(root);
-        return 1;
-    }
-    if (fileBuffer) {
-        snprintf(full_prompt, prompt_len, "%s\n%s", promptBuffer, fileBuffer);
-    } else {
-        strcpy(full_prompt, promptBuffer);
+    
+    if (history_context) {
+        size_t total_len = strlen(history_context) + 
+                          (prompt ? strlen(prompt) : 0) + 
+                          (file ? strlen(file) : 0) + 3;
+        
+        full_prompt = malloc(total_len);
+        if (full_prompt) {
+            snprintf(full_prompt, total_len, "%s\n%s%s%s",
+                    history_context,
+                    prompt ? prompt : "",
+                    file ? "\n" : "",
+                    file ? file : "");
+        }
+        free(history_context);
     }
 
     cJSON_AddStringToObject(root, "prompt", full_prompt);
@@ -172,8 +182,7 @@ int connectToAi(const char *promptBuffer, const char *fileBuffer) {
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
     /*curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbKi);*/
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, cbAi);
-
-    /*curl_easy_setopt(curl, CURLOPT_WRITEDATA, &chunk);*/
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     res = curl_easy_perform(curl);
     if (res != CURLE_OK) {
@@ -202,63 +211,55 @@ int connectToAi(const char *promptBuffer, const char *fileBuffer) {
     free(json_str);
     cJSON_Delete(root);
     curl_easy_cleanup(curl);
+
+    // Speichere Prompt und Antwort in der History
+    if (prompt && res == CURLE_OK && response.data) {
+        chat_history_add(prompt, response.data);
+        free(response.data);
+    }
+
     return (res == CURLE_OK) ? 0 : 1;
 }
 static size_t cbAi(void *data, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
+    ResponseData *response = (ResponseData *)userp;
 
     // Allocate temp buffer for received data plus nullterminator
     char *buffer = malloc(realsize + 1);
     if (!buffer) {
         fprintf(stderr, "Malloc failed in callback\n");
         MELDUNG("error");
-        return 0; // Tell curl to abort
-    }
-
-    char chatHistory[256];
-    uid_t userID = getuid();
-    snprintf(chatHistory, sizeof(chatHistory), "/run/user/%u/chatHistory",
-             userID);
-    int fd_chatHistory = open(chatHistory, O_WRONLY | O_CREAT, 0644);
-
-    if (fd_chatHistory < 0) {
-        fprintf(stderr, "Failed to open chatHistory");
-        return 1;
+        return 0;
     }
 
     memcpy(buffer, data, realsize);
-    /*printf("buffer -> %s", buffer);*/
+    buffer[realsize] = '\0';
+
     cJSON *json = cJSON_Parse(buffer);
     const char *errorKi = "{\"error}";
     if (json) {
         if (strncmp(errorKi, buffer, 6) == 0) {
             fprintf(stderr, "%s\n", buffer);
-            exit(1);
+            free(buffer);
+            return 0;
         }
 
-        cJSON *response = cJSON_GetObjectItemCaseSensitive(json, "response");
-        if (response && cJSON_IsString(response)) {
-            // Print the response directly (or store if needed)
-            printf("%s", response->valuestring);
-            write(fd_chatHistory, response->valuestring, realsize);
-
+        cJSON *resp = cJSON_GetObjectItemCaseSensitive(json, "response");
+        if (resp && cJSON_IsString(resp)) {
+            printf("%s", resp->valuestring);
+            size_t resp_len = strlen(resp->valuestring);
+            response->data = realloc(response->data, response->size + resp_len + 1);
+            if (response->data) {
+                memcpy(response->data + response->size, resp->valuestring, resp_len);
+                response->size += resp_len;
+                response->data[response->size] = '\0';
+            }
             fflush(stdout);
-        } else {
-            /*fprintf(stderr, "JSON parsing succeeded but no valid 'respons"*/
-            /*                "string found\n");*/
-            /*MELDUNG("error");*/
-            /*printf("%s", buffer); // Fallback to raw buffer*/
-            /*fflush(stdout);*/
         }
         cJSON_Delete(json);
-    } else {
-        // If not JSON, treat as raw text and print
-        /*MELDUNG("error");*/
-        /*printf("%s", buffer);*/
-        fflush(stdout);
     }
     free(buffer);
-    return realsize; // Success: processed all bytes
+    return realsize;
 }
 
 int connectToAiChat(const char *promptBuffer, const char *fileBuffer) {

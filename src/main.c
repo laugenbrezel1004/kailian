@@ -1,96 +1,73 @@
+// main.c
 #define _POSIX_C_SOURCE 200809L
-#include "../include/askError.h"
-#include "../include/call_api.h"
-#include "../include/checkArgument.h"
-#include <cjson/cJSON.h>
-#include <curl/curl.h>
-#include <curl/easy.h>
+#include "../include/manageInput.h"
+#include "../include/chat/chat_history.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <unistd.h>
-
-// defines
-#define MELDUNG(text)                                                          \
-    fprintf(stderr, "Datei [%s], Zeile %d: %s\n", __FILE__, __LINE__, text)
 
 #define MAX_FILE_SIZE 1048576 // 1 MB
 
-char *readStdin() {
-    char *fileBuffer = NULL;
+/**
+ * @brief Liest Eingaben von stdin bis EOF mit Größenbeschränkung.
+ * @param max_size Maximale erlaubte Größe in Bytes.
+ * @return char* Zeiger auf den allokierten Buffer oder NULL bei Fehler.
+ */
+static char *readStdin(size_t max_size) {
+    char *fileBuffer = malloc(max_size + 1);
+    if (!fileBuffer) {
+        perror("malloc failed for fileBuffer");
+        return NULL;
+    }
     size_t fileSize = 0;
     char *line = NULL;
     size_t len = 0;
     ssize_t read;
 
-    // evtl option für automatisches erstellen von kailian.conf wenn nicht
-    // vorhanden
-
     while ((read = getline(&line, &len, stdin)) != -1) {
-        char *temp = realloc(fileBuffer, fileSize + read + 1);
-        if (!temp) {
-            fprintf(stderr, "Error reallocing memory\n");
+        if (fileSize + read > max_size) {
+            fprintf(stderr, "Input exceeds maximum size of %zu bytes\n",
+                    max_size);
             free(line);
             free(fileBuffer);
-            exit(1);
+            return NULL;
         }
-        fileBuffer = temp;
         memcpy(fileBuffer + fileSize, line, read);
         fileSize += read;
-        fileBuffer[fileSize] = '\0'; // Keep newlines in place
     }
     free(line);
-    /*printf("Filebuffer -> %s\n", fileBuffer);*/
+    fileBuffer[fileSize] = '\0';
     return fileBuffer;
 }
 
+/**
+ * @brief Hauptfunktion zur Verarbeitung von Argumenten und piped Input.
+ * @param argc Anzahl der Kommandozeilenargumente.
+ * @param argv Array der Kommandozeilenargumente.
+ * @return int Fehlercode.
+ */
 int main(int argc, char *argv[]) {
-
-    int returnValue = 1;
-
-    // to check for argument size
+    chat_history_init();
+    
+    int result = 1;
     if (argc < 2) {
-        fprintf(stderr, "Too few arguments!\n");
-        fprintf(stdout, "Try maybe \"-h\"\n");
-        return returnValue = 1;
+        fprintf(stderr, "kailian: Too few arguments\nTry 'kailian --help'\n");
+        return 1;
     }
 
-    // to make sure that something is in argv[1] and check if it is a valid flag
-    if (argc == 2 &&
-        (strncmp(argv[1], "--", 2) == 0 || strncmp(argv[1], "-", 1) == 0)) {
-        return returnValue = checkArgument(argv[1]);
+    char *file_buffer = NULL;
+    if (!isatty(STDIN_FILENO)) {
+        file_buffer = readStdin(MAX_FILE_SIZE);
+        if (!file_buffer) {
+            chat_history_cleanup();
+            return 1;
+        }
     }
 
-    // If piped input (e.g., tree | ./kailian)
-    char *fileBuffer = NULL;
-    if (isatty(0) == 0) {
-        fileBuffer = readStdin();
-    }
-
-    // Build prompt from argv
-    size_t prompt_len = 0;
-    for (int i = 1; i < argc; i++) {
-        prompt_len += strlen(argv[i]) + 1; // Space between args
-    }
-
-    char *promptBuffer = malloc(prompt_len);
-    if (!promptBuffer) {
-        fprintf(stderr, "malloc failed for promptBuffer\n");
-        free(fileBuffer);
-        return returnValue = 1;
-    }
-
-    promptBuffer[0] = '\0';
-    for (int i = 1; i < argc; i++) {
-        strcat(promptBuffer, argv[i]);
-        if (i < argc - 1)
-            strcat(promptBuffer, " ");
-    }
-
-    returnValue = connectToAi(promptBuffer, fileBuffer);
-
-    free(promptBuffer);
-    free(fileBuffer);
-    return returnValue;
+    result = manageInput(argc - 1, &argv[1], file_buffer);
+    
+    chat_history_cleanup();
+    free(file_buffer);
+    return result;
 }
