@@ -1,0 +1,16 @@
+# Anwendungskonfiguration
+application:
+  log_level: INFO
+  debug_mode: false
+  max_handlers: 32
+  config_path: "/etc/kailian/config"
+
+handlers:
+  help:
+    description: "Zeigt Hilfe an"
+    requires_file_buffer: false
+    type: FLAG
+  coffee:
+    description: "Zeigt Coffee-Animation"
+    requires_file_buffer: false
+    type: FLAG 

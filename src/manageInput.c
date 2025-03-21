@@ -11,6 +11,11 @@
 #include <string.h>
 #include <stdbool.h>
 
+// Konstanten an den Anfang der Datei
+#define MAX_HANDLERS 16
+#define ERROR_INVALID_ARGS "kailian: Ungültige Argumente\n"
+#define ERROR_UNKNOWN_ARG "kailian: Unbekanntes Argument '%s'\nVersuchen Sie 'kailian --help'\n"
+
 // Funktionsprototypen am Anfang der Datei hinzufügen (nach den includes)
 static char *buildPrompt(int argc, char *argv[]);
 static int handle_flag_argument(const char *arg, const char *file_buffer);
@@ -22,18 +27,19 @@ typedef struct {
         const Argument *arg;
         int (*handler)(void);
         ArgType type;
+        const char *description;  // Hinzufügen von Dokumentation
 } ArgHandler;
 
 static const ArgHandler handlers[] = {
-    {&arguments.help, help, FLAG},
-    {&arguments.coffee, coffee, FLAG},
-    {&arguments.showEnvironment, showEnvironment, FLAG},
-    {&arguments.startOllama, startServer, FLAG},
-    {&arguments.killOllama, killServer, FLAG},
-    {&arguments.createConfig, createConfig, FLAG},
-    {&arguments.info, NULL, FLAG},
-    {&arguments.showCurrentModel, NULL, FLAG},
-    {&arguments.showModels, NULL, FLAG},
+    {&arguments.help, help, FLAG, "Zeigt Hilfe an"},
+    {&arguments.coffee, coffee, FLAG, "Zeigt Coffee-Animation"},
+    {&arguments.showEnvironment, showEnvironment, FLAG, "Zeigt Umgebungskonfiguration an"},
+    {&arguments.startOllama, startServer, FLAG, "Startet Ollama-Server"},
+    {&arguments.killOllama, killServer, FLAG, "Beendet Ollama-Server"},
+    {&arguments.createConfig, createConfig, FLAG, "Erstellt Konfiguration"},
+    {&arguments.info, NULL, FLAG, "Zeigt Informationen an"},
+    {&arguments.showCurrentModel, NULL, FLAG, "Zeigt aktuelles Modell an"},
+    {&arguments.showModels, NULL, FLAG, "Zeigt verfügbare Modelle an"},
 };
 
 static int matchesArgument(const char *arg, const Argument *compare) {
@@ -42,14 +48,20 @@ static int matchesArgument(const char *arg, const Argument *compare) {
 }
 
 static char *buildPrompt(int argc, char *argv[]) {
+    if (!argv || argc < 1) {
+        return NULL;
+    }
+
     size_t prompt_len = 0;
     for (int i = 0; i < argc; i++) {
+        if (!argv[i]) {
+            return NULL;
+        }
         prompt_len += strlen(argv[i]) + 1;
     }
 
-    char *prompt = malloc(prompt_len);
+    char *prompt = calloc(prompt_len, sizeof(char));  // Nutze calloc für Nullinitialisierung
     if (!prompt) {
-        perror("kailian: malloc failed");
         return NULL;
     }
 
@@ -63,7 +75,7 @@ static char *buildPrompt(int argc, char *argv[]) {
 
 int manageInput(int argc, char *argv[], const char *file_buffer) {
     if (!argv || argc < 1) {
-        fprintf(stderr, "kailian: Ungültige Argumente\n");
+        fprintf(stderr, ERROR_INVALID_ARGS);
         return 1;
     }
 
@@ -95,7 +107,7 @@ static int handle_flag_argument(const char *arg, const char *file_buffer) {
         }
     }
     
-    fprintf(stderr, "kailian: Unbekanntes Argument '%s'\nVersuchen Sie 'kailian --help'\n", arg);
+    fprintf(stderr, ERROR_UNKNOWN_ARG, arg);
     return 1;
 }
 
