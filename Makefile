@@ -1,59 +1,27 @@
-# Compiler and flags
-CC = gcc
-CFLAGS = -std=c11 -Wall -Iinclude
-LDFLAGS = -lcjson -lcurl  # Link cJSON and libcurl
-DEBUG_FLAGS = -g -O0      # Debugging flags
+# Quellverzeichnisse
+SRC_DIRS = src src/arguments src/core
 
-# Directories
-SRCDIR = src
-ARGDIR = src/arguments
-BINDIR = build
-CONFDIR = /etc/kailian
-INSTALLDIR = /usr/local/bin
+# Quelldateien
+SRCS = $(wildcard src/*.c) \
+       $(wildcard src/arguments/*.c) \
+       $(wildcard src/core/*.c)
 
-# Source files
-SOURCES = $(wildcard $(SRCDIR)/*.c) $(wildcard $(ARGDIR)/*.c)
-OBJECTS = $(patsubst $(SRCDIR)/%.c,$(BINDIR)/%.o,$(SOURCES:$(ARGDIR)/%.c=$(BINDIR)/%.o))
+# Objektdateien
+OBJS = $(patsubst src/%.c,build/%.o,$(SRCS))
 
-# Target executable
-TARGET = $(BINDIR)/Kailian
+# Verzeichnisregeln
+$(shell mkdir -p build/core build/arguments)
 
-# Config file
-CONFIG = kailian.conf
-
-# Default target
-all: $(TARGET)
-
-# Debug target
-debug: CFLAGS += $(DEBUG_FLAGS)
-debug: $(TARGET)
-
-# Link object files into executable
-$(TARGET): $(OBJECTS)
-	@mkdir -p $(BINDIR)
-	$(CC) $(OBJECTS) -o $(TARGET) $(LDFLAGS)
-
-# Compile source files to object files from src/
-$(BINDIR)/%.o: $(SRCDIR)/%.c
-	@mkdir -p $(BINDIR)
+# Kompilierungsregeln
+build/core/%.o: src/core/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compile source files to object files from src/arguments/
-$(BINDIR)/%.o: $(ARGDIR)/%.c
-	@mkdir -p $(BINDIR)
+build/arguments/%.o: src/arguments/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Install target
-install: $(TARGET)
-	@install -d $(INSTALLDIR)
-	@install -m 755 $(TARGET) $(INSTALLDIR)/kailian
-	@install -d $(CONFDIR)
-	@install -m 644 $(CONFIG) $(CONFDIR)/kailian.conf
-	@echo "Installed to $(INSTALLDIR)/Kailian and $(CONFDIR)/kailian.conf"
+build/%.o: src/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean target
-clean:
-	rm -rf $(BINDIR)
-
-# Phony targets
-.PHONY: all debug install clean
+# Hauptziel
+build/Kailian: $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)

@@ -2,10 +2,19 @@
 #include "../../include/core/error.h"
 #include "../../include/core/memory.h"
 #include "../../include/handlers/handler_manager.h"
+#include "../../include/handlers/handler_types.h"
+#include "../../include/core/argument_context.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_ARGUMENT_LENGTH 256
+#define ERROR_INVALID_ARGUMENT ERROR_INVALID_INPUT
+#define LOG_ERROR(error, message) \
+    do { \
+        ErrorContext ctx = create_error(error, message, __FILE__, __LINE__); \
+        log_error(&ctx); \
+    } while(0)
 
 typedef struct {
     const char *name;
