@@ -6,17 +6,17 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use crate::kailian_env::EnvVariables; // Nur diese Zeile ist nötig
 
 pub async fn api_call(prompt: &String) {
-    let model = "deepseek-r1:14b".to_string();
+    let env_variables = EnvVariables::read(); // Korrigierter Variablenname
+    let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
     let prompt = prompt.to_string();
     let ollama = Ollama::default();
 
-    // Erstelle einen Flag, um den Spinner zu steuern
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
 
-    // Starte den Spinner in einem separaten Task
     let spinner_handle = task::spawn(async move {
         let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
         let mut index = 0;
@@ -24,7 +24,7 @@ pub async fn api_call(prompt: &String) {
 
         while *spinner_running_clone.lock().await {
             stdout
-                .write_all(format!("\r{} Verbinden...", spinner_chars[index]).as_bytes())
+                .write_all(format!("\r{}", spinner_chars[index]).as_bytes())
                 .await
                 .unwrap();
             stdout.flush().await.unwrap();
@@ -32,12 +32,10 @@ pub async fn api_call(prompt: &String) {
             time::sleep(Duration::from_millis(100)).await;
         }
 
-        // Lösche den Spinner
         stdout.write_all(b"\r\x1B[K").await.unwrap();
         stdout.flush().await.unwrap();
     });
 
-    // API-Stream-Anfrage
     let mut stream = ollama
         .generate_stream(GenerationRequest::new(model, prompt))
         .await
@@ -47,7 +45,6 @@ pub async fn api_call(prompt: &String) {
     while let Some(res) = stream.next().await {
         let responses = res.unwrap();
         for resp in responses {
-            // Stoppe den Spinner beim ersten Response
             if *spinner_running.lock().await {
                 *spinner_running.lock().await = false;
             }
@@ -56,7 +53,6 @@ pub async fn api_call(prompt: &String) {
         }
     }
 
-    // Stelle sicher, dass der Spinner gestoppt wird
     *spinner_running.lock().await = false;
     spinner_handle.await.unwrap();
 }

@@ -1,5 +1,6 @@
 mod ai;
 mod prompt;
+mod kailian_env;
 
 use ai::connect_to_ai;
 
