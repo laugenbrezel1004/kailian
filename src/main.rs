@@ -7,6 +7,6 @@ use ai::connect_to_ai;
 async fn main() {
     
     let prompt: String = prompt::read_stdin();
-    println!("Prompt => {}", prompt);
-    connect_to_ai::api_call().await;
+   // println!("Prompt => {}", prompt);
+    connect_to_ai::api_call(&prompt).await;
 }

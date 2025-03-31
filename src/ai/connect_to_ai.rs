@@ -3,10 +3,10 @@ use ollama_rs::Ollama;
 use tokio::io::{self, AsyncWriteExt};
 use tokio_stream::StreamExt;
 
-pub async fn api_call() {
+pub async fn api_call(prompt: &String) {
 
     let model = "deepseek-r1:14b".to_string();
-    let prompt = "Why is the sky blue?".to_string();
+    let prompt = prompt.to_string();
     //let ollama = Ollama::new("http://10.0.0.4".to_string(), 11434);
     let ollama = Ollama::default();
 
