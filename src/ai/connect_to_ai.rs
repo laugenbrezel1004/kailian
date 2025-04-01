@@ -6,9 +6,11 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::kailian_env::EnvVariables; // Nur diese Zeile ist nötig
+use crate::kailian_env::EnvVariables; 
+use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
+use ollama_rs::history::ChatHistory;
 
-pub async fn api_call(prompt: &String) {
+pub async fn api_completion_generation(prompt: &String) {
     let env_variables = EnvVariables::read(); // Korrigierter Variablenname
     let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
     let prompt = prompt.to_string();
@@ -55,4 +57,28 @@ pub async fn api_call(prompt: &String) {
 
     *spinner_running.lock().await = false;
     spinner_handle.await.unwrap();
+}
+
+pub async fn api_chat_mode(prompt: &String) {
+    let env_variables = EnvVariables::read(); // Korrigierter Variablenname
+    let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
+    let prompt = prompt.to_string();
+    let mut ollama = Ollama::default();
+    // `Vec<ChatMessage>` implements `ChatHistory`,
+    // but you could also implement it yourself on a custom type
+    let mut history = vec![];
+
+    let res = ollama
+        .send_chat_messages_with_history(
+            &mut history, // <- messages will be saved here
+            ChatMessageRequest::new(
+                model,
+                vec![ChatMessage::user(prompt)], // <- You should provide only one message
+            ),
+        )
+        .await;
+
+    if let Ok(res) = res {
+        println!("{}", res.message.content);
+    }
 }

@@ -8,7 +8,7 @@ pub fn read_stdin() -> String {
         eprintln!("Not enough arguments supplied");
         process::exit(1);
     }
-
+//auf flags achten!!!
     let mut prompt = String::new();
     for part in &argv[1..] {
         prompt.push_str(part);
@@ -32,11 +32,11 @@ pub fn read_stdin() -> String {
                 }
             }
         }
-     //   println!("stdin input -> {}", stdin_buffer);
     }
 
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
+//        println!("stdin input -> {}", prompt);
     }
 
     prompt
