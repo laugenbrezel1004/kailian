@@ -5,24 +5,17 @@ use std::process;
 pub fn read_stdin() -> String {
     let argv: Vec<String> = env::args().collect();
 
-    
+
     // TODO: Auf --help verweisen
     if argv.len() < 2 {
         eprintln!("Not enough arguments supplied");
         process::exit(1);
     }
-//auf flags achten!!!
+
     let matches = Command::new("kailian")
         .version("0.1.0")
         .author("Laurenz Schmdit")
         .about("A simple, yet powerfull CLI wrapper for ollama")
-        .arg(
-            Arg::new("verbose")
-                .short('v')
-                .long("verbose")
-                .action(clap::ArgAction::SetTrue)
-                .help("Aktiviert den verbose-Modus"),
-        )
         .arg(
             Arg::new("create_config")
                 .short('c')
@@ -71,9 +64,9 @@ pub fn read_stdin() -> String {
         println!("Verbose-Modus aktiviert.");
     }
 
-   // if let Some(config_path) = matches.get_one::<String>("config") {
+    // if let Some(config_path) = matches.get_one::<String>("config") {
     //    println!("Konfigurationsdatei: {}", config_path);
-   // }
+    // }
     let mut prompt = String::new();
     for part in &argv[1..] {
         prompt.push_str(part);
@@ -101,7 +94,7 @@ pub fn read_stdin() -> String {
 
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
-//        println!("stdin input -> {}", prompt);
+        //        println!("stdin input -> {}", prompt);
     }
 
     prompt
