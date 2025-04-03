@@ -1,4 +1,6 @@
 #![allow(unused_imports)]
+
+use std::process::exit;
 use ollama_rs::generation::completion::request::GenerationRequest;
 use ollama_rs::Ollama;
 use tokio::io::{self, AsyncWriteExt};
@@ -13,6 +15,8 @@ use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
     let prompt = prompt.to_string();
+    println!("Connecting to: {}", kailian_variables.kailian_generate);
+    println!("Using model: {}", kailian_variables.kailian_model);
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
 
     let spinner_running = Arc::new(Mutex::new(true));
@@ -37,27 +41,46 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
         stdout.flush().await.unwrap();
     });
 
-    let mut stream = ollama
-        .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt))
-        .await
-        .unwrap();
+    println!("Sending request to Ollama...");
+    let mut stream = match ollama
+        .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone()))
+        .await {
+        Ok(stream) => {
+            println!("Stream started successfully!");
+            stream
+        },
+        Err(e) => {
+            println!("Error connecting to Ollama: {}", e);
+            *spinner_running.lock().await = false;
+            spinner_handle.await.unwrap();
+            return;
+        }
+    };
 
     let mut stdout = io::stdout();
+    println!("Waiting for stream responses...");
     while let Some(res) = stream.next().await {
-        let responses = res.unwrap();
-        for resp in responses {
-            if *spinner_running.lock().await {
-                *spinner_running.lock().await = false;
+        match res {
+            Ok(responses) => {
+                for resp in responses {
+                    if *spinner_running.lock().await {
+                        *spinner_running.lock().await = false;
+                        println!("First response received, stopping spinner.");
+                    }
+                    stdout.write_all(resp.response.as_bytes()).await.unwrap();
+                    stdout.flush().await.unwrap();
+                }
+            },
+            Err(e) => {
+                println!("Stream error: {}", e);
+                break;
             }
-            stdout.write_all(resp.response.as_bytes()).await.unwrap();
-            stdout.flush().await.unwrap();
         }
     }
 
     *spinner_running.lock().await = false;
     spinner_handle.await.unwrap();
+    println!("Done!");
 }
-
-
 
 //TODO: To be done chat-mode
