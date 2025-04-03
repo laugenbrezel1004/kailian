@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use ollama_rs::generation::completion::request::GenerationRequest;
 use ollama_rs::Ollama;
 use tokio::io::{self, AsyncWriteExt};
@@ -6,16 +7,13 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::envs;
 use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use ollama_rs::history::ChatHistory;
 use crate::envs::EnvVariables;
 
-pub async fn api_completion_generation(prompt: &String) {
-    let env_variables = EnvVariables::new(); // Korrigierter Variablenname
-    let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
     let prompt = prompt.to_string();
-    let ollama = Ollama::default();
+    let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
@@ -40,7 +38,7 @@ pub async fn api_completion_generation(prompt: &String) {
     });
 
     let mut stream = ollama
-        .generate_stream(GenerationRequest::new(model, prompt))
+        .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt))
         .await
         .unwrap();
 
@@ -60,26 +58,6 @@ pub async fn api_completion_generation(prompt: &String) {
     spinner_handle.await.unwrap();
 }
 
-pub async fn api_chat_mode(prompt: &String) {
-    let env_variables = EnvVariables::new(); // Korrigierter Variablenname
-    let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
-    let prompt = prompt.to_string();
-    let mut ollama = Ollama::default();
-    // `Vec<ChatMessage>` implements `ChatHistory`,
-    // but you could also implement it yourself on a custom type
-    let mut history = vec![];
 
-    let res = ollama
-        .send_chat_messages_with_history(
-            &mut history, // <- messages will be saved here
-            ChatMessageRequest::new(
-                model,
-                vec![ChatMessage::user(prompt)], // <- You should provide only one message
-            ),
-        )
-        .await;
 
-    if let Ok(res) = res {
-        println!("{}", res.message.content);
-    }
-}
+//TODO: To be done chat-mode

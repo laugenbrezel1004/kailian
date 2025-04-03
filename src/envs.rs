@@ -1,7 +1,9 @@
+#![allow(unused_imports)]
 use std::{env, fs};
+
 pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
 
-
+#[derive(Debug)]
 pub struct EnvVariables {
     pub kailian_model: String,
     pub kailian_generate: String,
@@ -12,49 +14,44 @@ pub struct EnvVariables {
     pub kailian_show: String,
     pub kailian_system: String,
 }
+
 impl EnvVariables {
-    pub fn new() -> EnvVariables {
-        let content = fs::read_to_string(KAILIAN_CONF_PATH).expect("unable to read config file");
+    pub fn new() -> Result<EnvVariables, String> {
+        // Default-Struct erzeugen
+        let mut variables = EnvVariables {
+            kailian_model: String::new(),
+            kailian_generate: String::new(),
+            kailian_info: String::new(),
+            kailian_running_model: String::new(),
+            kailian_ollama_version: String::new(),
+            kailian_chat: String::new(),
+            kailian_show: String::new(),
+            kailian_system: String::new(),
+        };
 
+        // Config-Datei einlesen
+        let content = fs::read_to_string(KAILIAN_CONF_PATH)
+            .map_err(|_| format!("Error: Could not open config file '{}'", KAILIAN_CONF_PATH))?;
+
+        // Inhalt verarbeiten 
+        // Mögliche Fehlerquellen elimieren
         for line in content.lines() {
-            if line.trim().is_empty() || line.trim().starts_with('#') {
-                continue;
-            }
-
             if let Some((key, value)) = line.split_once('=') {
-                let key = key.trim();
-                let value = value.trim().trim_matches('"');
-
-                match key {
-                    key if key == "content" => self.kailian_model = value.to_string(),
-                    key if key == "endpoint_generate" => self.kailian_generate = value.to_string(),
-                    key if key == "endpoint_info" => self.kailian_info = value.to_string(),
-                    key if key == "endpoint_running_model" => self.kailian_running_model = value.to_string(),
-                    key if key == "endpoint_ollama_version" => self.kailian_ollama_version = value.to_string(),
-                    key if key == "endpoint_chat" => self.kailian_chat = value.to_string(),
-                    key if key == "endpoint_show" => self.kailian_show = value.to_string(),
-                    key if key == "system" => self.kailian_system = value.to_string(),
-                    _ => eprintln!("Unbekannter Konfigurationskey: {}", key),
+                match key.trim() {
+                    "name" => variables.kailian_model = value.trim().to_string(),
+                    "endpoint_generate" => variables.kailian_generate = value.trim().to_string(),
+                    "endpoint_info" => variables.kailian_info = value.trim().to_string(),
+                    "endpoint_running_model" => variables.kailian_running_model = value.trim().to_string(),
+                    "endpoint_ollama_version" => variables.kailian_ollama_version = value.trim().to_string(),
+                    "endpoint_chat" => variables.kailian_chat = value.trim().to_string(),
+                    "endpoint_show" => variables.kailian_show = value.trim().to_string(),
+                    "system" => variables.kailian_system = value.trim().to_string(),
+                    _ => {} // Unbekannte Schlüssel ignorieren
+                    // TODO: Fehler!!!! wenn kein schlüssel
                 }
             }
         }
-        
-    }
-    pub fn read_env(&mut self) {
-        let kailain_envs = EnvVariables {
-            kailian_model: env::var("KAILIAN_MODEL").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_generate: env::var("KAILIAN_GENERATE").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_info: env::var("KAILIAN_INFO").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_running_model:
-            env::var("KAILIAN_RUNNING_MODEL").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_ollama_version:
-            env::var("KAILIAN_OLLAMA_VERSION").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_chat:
-            env::var("KAILIAN_CHAT").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_show:
-            env::var("KAILIAN_SHOW").unwrap_or_else(|_| "default_model".to_string()),
-            kailian_system:
-            env::var("KAILIAN_SYSTEM").unwrap_or_else(|_| "default_model".to_string()),
-        };
+
+        Ok(variables)
     }
 }
