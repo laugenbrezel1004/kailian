@@ -52,6 +52,12 @@ impl EnvVariables {
             }
         }
 
+
+        // TODO: ENVS einlesen
+        match env::var("KAILIAN_MODEL") {
+           Ok(value) => variables.kailian_model = value,
+            Err(_) => (),
+        }
         Ok(variables)
     }
 }

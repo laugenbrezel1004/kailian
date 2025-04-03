@@ -4,6 +4,7 @@ pub mod envs;
 
 use std::process::exit;
 use ai::connect_to_ai;
+// TODO: help seite schreiben
 
 #[tokio::main]
 async fn main() {
@@ -23,9 +24,11 @@ async fn main() {
             exit(1); // Beendet das Programm im Fehlerfall
         }
     };
+    #[cfg(debug_assertions)]
     println!("Vars -> {:?}", env_vars);
 
     // TODO: Automatisches Starten des Daemons implementieren
+    #[cfg(debug_assertions)]
     println!("Kein Autodaemon vorhanden -> Bitte Ollama manuell starten.");
 
     // Aufruf der API zur Generierung

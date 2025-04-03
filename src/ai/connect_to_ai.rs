@@ -15,8 +15,7 @@ use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
     let prompt = prompt.to_string();
-    println!("Connecting to: {}", kailian_variables.kailian_generate);
-    println!("Using model: {}", kailian_variables.kailian_model);
+  
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
 
     let spinner_running = Arc::new(Mutex::new(true));
@@ -46,9 +45,8 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
         .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone()))
         .await {
         Ok(stream) => {
-            println!("Stream started successfully!");
             stream
-        },
+        }
         Err(e) => {
             println!("Error connecting to Ollama: {}", e);
             *spinner_running.lock().await = false;
@@ -58,19 +56,17 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
     };
 
     let mut stdout = io::stdout();
-    println!("Waiting for stream responses...");
     while let Some(res) = stream.next().await {
         match res {
             Ok(responses) => {
                 for resp in responses {
                     if *spinner_running.lock().await {
                         *spinner_running.lock().await = false;
-                        println!("First response received, stopping spinner.");
                     }
                     stdout.write_all(resp.response.as_bytes()).await.unwrap();
                     stdout.flush().await.unwrap();
                 }
-            },
+            }
             Err(e) => {
                 println!("Stream error: {}", e);
                 break;
