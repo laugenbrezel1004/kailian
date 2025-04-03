@@ -6,12 +6,13 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::kailian_env::EnvVariables; 
+use crate::envs;
 use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use ollama_rs::history::ChatHistory;
+use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String) {
-    let env_variables = EnvVariables::read(); // Korrigierter Variablenname
+    let env_variables = EnvVariables::new(); // Korrigierter Variablenname
     let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
     let prompt = prompt.to_string();
     let ollama = Ollama::default();
@@ -60,7 +61,7 @@ pub async fn api_completion_generation(prompt: &String) {
 }
 
 pub async fn api_chat_mode(prompt: &String) {
-    let env_variables = EnvVariables::read(); // Korrigierter Variablenname
+    let env_variables = EnvVariables::new(); // Korrigierter Variablenname
     let model = env_variables.kailian_model; // Verwende den Wert aus EnvVariables
     let prompt = prompt.to_string();
     let mut ollama = Ollama::default();
