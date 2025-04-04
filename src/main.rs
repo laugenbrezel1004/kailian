@@ -1,6 +1,7 @@
 mod ai;
 mod prompt;
 pub mod envs;
+pub mod coffee;
 
 use std::process::exit;
 use ai::connect_to_ai;
