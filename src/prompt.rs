@@ -4,7 +4,7 @@ use std::io::{self, BufRead, IsTerminal};
 use std::process;
 use crate::coffee;
 
-pub fn read_stdin() -> Option<String> {
+pub fn read_stdin() -> Result<String, String> {
     let matches = Command::new("kailian")
         .version("0.1.0")
         .author("Laurenz Schmidt")
@@ -94,19 +94,18 @@ pub fn read_stdin() -> Option<String> {
     if matches.get_flag("ask") {
         return build_prompt();
     }
-    None
+    Ok("hi".to_string())
     // TODO: Rückgabe
 }
   
 
-fn build_prompt() -> Option<String> {
+fn build_prompt() -> Result<String, String> {
 
     
     let argv: Vec<String> = env::args().collect();
     if argv.len() < 3 {
         // kailian -a hi -> 3 arguments at least
-       eprintln!("Too fex arguemnts\n Try --help for more info");
-        process::exit(1);
+        return Err("Too few arguments\nTry --help for more info".to_string());
     }
     
     let mut stdin_buffer = String::new();
@@ -131,5 +130,5 @@ fn build_prompt() -> Option<String> {
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
     }
-    Some(prompt)
+    Ok("hi".to_string())
 }

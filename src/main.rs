@@ -3,15 +3,21 @@ mod prompt;
 pub mod envs;
 pub mod coffee;
 
-use std::process::exit;
+use std::process;
 use ai::connect_to_ai;
 #[tokio::main]
 async fn main() {
     // Validierung des Prompts und der Flags 
-    let mut prompt = String::new();
-    if let Some(text) = prompt::read_stdin() {
-        prompt = text;
-    }
+    let prompt_result = prompt::read_stdin();
+    let prompt = match prompt_result {
+        Ok(value) => value, 
+        Err(error) => {
+            eprintln!("Error: {}", error);
+            process::exit(1); // Beende das Programm im Fehlerfall
+        }
+    };
+    
+    #[cfg(debug_assertions)]
     print!("Prompt -> {}\n", prompt);
 
     // Initialisierung der Umgebungsvariablen
@@ -23,8 +29,8 @@ async fn main() {
     let env_vars = match kailian_env {
         Ok(vars) => vars,
         Err(err) => {
-            eprintln!("{}", err);
-            exit(1); // Beendet das Programm im Fehlerfall
+            eprintln!("Error: {}", err);
+            process::exit(1); 
         }
     };
     #[cfg(debug_assertions)]
