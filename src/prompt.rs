@@ -1,7 +1,6 @@
 use clap::{Arg, Command};
 use std::env;
 use std::io::{self, BufRead, IsTerminal};
-use std::process;
 use crate::coffee;
 
 pub fn read_stdin() -> Result<String, String> {
@@ -9,13 +8,14 @@ pub fn read_stdin() -> Result<String, String> {
         .version("0.1.0")
         .author("Laurenz Schmidt")
         .about("A simple, yet powerful CLI wrapper for ollama")
-        // Option für den Prompt mit -a/--ask
+        // Option für den Prompt mit -a/--ask, erwartet einen Wert
         .arg(
             Arg::new("ask")
                 .short('a')
                 .long("ask")
                 .help("Ask the mighty ollama a question")
-                .action(clap::ArgAction::SetTrue),
+                .num_args(0..)
+            //.action(clap::ArgAction::SetTrue)
         )
         // Weitere Optionen
         .arg(
@@ -67,6 +67,8 @@ pub fn read_stdin() -> Result<String, String> {
                 .help("Kill a running ollama instance")
                 .action(clap::ArgAction::SetTrue),
         )
+        // Wichtig: Mindestens eine Option erforderlich
+        .arg_required_else_help(true)
         .get_matches_from(env::args().collect::<Vec<String>>());
 
     // Argumente auswerten
@@ -91,26 +93,33 @@ pub fn read_stdin() -> Result<String, String> {
     if matches.get_flag("kill_ollama") {
         todo!("Kill ollama instance");
     }
-    if matches.get_flag("ask") {
+    if matches.contains_id("ask") {
         return build_prompt();
     }
-    Ok("hi".to_string())
-    // TODO: Rückgabe
+
+    // Sollte nie erreicht werden wegen args_required_else_help
+    unreachable!("No arguments provided, but Clap should have caught this");
 }
-  
 
 fn build_prompt() -> Result<String, String> {
-
-    
-    let argv: Vec<String> = env::args().collect();
-    if argv.len() < 3 {
-        // kailian -a hi -> 3 arguments at least
-        return Err("Too few arguments\nTry --help for more info".to_string());
-    }
-    
-    let mut stdin_buffer = String::new();
     let mut prompt = String::new();
-    // wenn input von z. B. Pipe
+    let argv: Vec<String> = env::args().collect();
+   
+    #[cfg(debug_assertions)]
+    println!("argv -> {:?}", argv);
+
+    // Überprüfen, ob mindestens 3 Argumente vorhanden sind
+    if argv.len() < 3 {
+        // Beispiel: kailian -a hi -> 3 args (Programmname + Flag + Wert)
+        return Err("No prompt provided after -a/--ask\nTry --help for more info".to_string());
+    }
+
+    // Verarbeite alle Argumente ab Index 2 (ignoriere Programmname und Flag)
+    let args_prompt = argv[2..].join(" ");
+    prompt.push_str(&args_prompt);
+
+    // STDIN verarbeiten
+    let mut stdin_buffer = String::new();
     if !io::stdin().is_terminal() {
         let stdin = io::stdin();
         for line in stdin.lock().lines() {
@@ -120,15 +129,20 @@ fn build_prompt() -> Result<String, String> {
                     stdin_buffer.push('\n');
                 }
                 Err(e) => {
-                    eprintln!("Fehler beim Lesen von stdin: {}", e);
-                    process::exit(1);
+                    return Err(format!("Fehler beim Lesen von stdin: {}", e));
                 }
             }
         }
     }
 
+    // Kombiniere STDIN mit Argumenten, falls vorhanden
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
     }
-    Ok("hi".to_string())
+
+    // Entferne überflüssige Leerzeichen und überprüfe, ob der Prompt leer ist
+    prompt = prompt.trim().to_string();
+  
+
+    Ok(prompt)
 }
