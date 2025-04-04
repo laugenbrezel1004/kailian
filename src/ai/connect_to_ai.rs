@@ -8,6 +8,7 @@ use tokio::task;
 use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
+use std::thread::sleep;
 use tokio::sync::Mutex;
 use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use ollama_rs::history::ChatHistory;
@@ -40,7 +41,9 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
         stdout.flush().await.unwrap();
     });
 
+    #[cfg(debug_assertions)]
     println!("Sending request to Ollama...");
+    //sleep(Duration::from_millis(100));
     let mut stream = match ollama
         .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone()))
         .await {
@@ -76,7 +79,6 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 
     *spinner_running.lock().await = false;
     spinner_handle.await.unwrap();
-    println!("Done!");
 }
 
 //TODO: To be done chat-mode
