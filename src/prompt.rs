@@ -1,20 +1,29 @@
-use std::io::{self, BufRead, IsTerminal};
 use clap::{Arg, Command};
 use std::env;
+use std::io::{self, BufRead, IsTerminal};
 use std::process;
 use crate::coffee;
 
-pub fn read_stdin() -> String {
+pub fn read_stdin() -> Option<String> {
     let matches = Command::new("kailian")
         .version("0.1.0")
-        .author("Laurenz Schmdit")
+        .author("Laurenz Schmidt")
         .about("A simple, yet powerful CLI wrapper for ollama")
+        // Option für den Prompt mit -a/--ask
+        .arg(
+            Arg::new("ask")
+                .short('a')
+                .long("ask")
+                .help("Ask the mighty ollama a question")
+                .action(clap::ArgAction::SetTrue),
+        )
+        // Weitere Optionen
         .arg(
             Arg::new("create_config")
                 .short('c')
                 .long("create-config")
                 .help("Create a new default config file")
-                .action(clap::ArgAction::SetTrue), // Flag (true/false)
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("show_config")
@@ -58,46 +67,51 @@ pub fn read_stdin() -> String {
                 .help("Kill a running ollama instance")
                 .action(clap::ArgAction::SetTrue),
         )
-        .get_matches();
+        .get_matches_from(env::args().collect::<Vec<String>>());
 
     // Argumente auswerten
     if matches.get_flag("create_config") {
-        println!("Erstelle eine neue Standard-Konfigurationsdatei...");
+        todo!("Create Configuration");
     }
     if matches.get_flag("show_config") {
-        println!("Zeige die Konfigurationsdatei...");
+        todo!("Show Configuration");
     }
     if matches.get_flag("coffee") {
         coffee::sip_coffee();
     }
     if matches.get_flag("list_models") {
-        println!("Zeige alle verfügbaren AI-Modelle...");
+        todo!("list available models");
     }
     if matches.get_flag("running_model") {
-        println!("Zeige das aktuell laufende AI-Modell...");
+        todo!("Show running model");
     }
     if matches.get_flag("start_ollama") {
-        println!("Starte eine neue lokale Ollama-Instanz...");
+        todo!("Start new ollama instance as a daemon");
     }
     if matches.get_flag("kill_ollama") {
-        println!("Beende eine laufende Ollama-Instanz...");
+        todo!("Kill ollama instance");
     }
+    if matches.get_flag("ask") {
+        return build_prompt();
+    }
+    None
+    // TODO: Rückgabe
+}
+  
 
-    // Prüfen, ob überhaupt Argumente übergeben wurden
+fn build_prompt() -> Option<String> {
+
+    
     let argv: Vec<String> = env::args().collect();
-    if argv.len() < 2 && matches.subcommand().is_none() && !matches.args_present() {
-        eprintln!("Not enough arguments supplied. Use --help for more information.");
+    if argv.len() < 3 {
+        // kailian -a hi -> 3 arguments at least
+       eprintln!("Too fex arguemnts\n Try --help for more info");
         process::exit(1);
     }
-
-    let mut prompt = String::new();
-    for part in &argv[1..] {
-        prompt.push_str(part);
-        prompt.push_str(" ");
-    }
-    prompt = prompt.trim().to_string();
-
+    
     let mut stdin_buffer = String::new();
+    let mut prompt = String::new();
+    // wenn input von z. B. Pipe
     if !io::stdin().is_terminal() {
         let stdin = io::stdin();
         for line in stdin.lock().lines() {
@@ -117,6 +131,5 @@ pub fn read_stdin() -> String {
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
     }
-
-    prompt
+    Some(prompt)
 }

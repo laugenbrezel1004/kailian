@@ -5,12 +5,14 @@ pub mod coffee;
 
 use std::process::exit;
 use ai::connect_to_ai;
-// TODO: help seite schreiben
-
 #[tokio::main]
 async fn main() {
-    // Lesen des Prompts aus der Standardeingabe
-    let prompt: String = prompt::read_stdin();
+    // Validierung des Prompts und der Flags 
+    let mut prompt = String::new();
+    if let Some(text) = prompt::read_stdin() {
+        prompt = text;
+    }
+    print!("Prompt -> {}\n", prompt);
 
     // Initialisierung der Umgebungsvariablen
     // kann von jeder funktion global benutzt werden 
