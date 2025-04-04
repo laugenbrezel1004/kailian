@@ -2,6 +2,7 @@ use clap::{Arg, Command};
 use std::env;
 use std::io::{self, BufRead, IsTerminal};
 use crate::coffee;
+use crate::ai;
 
 pub fn read_stdin() -> Result<String, String> {
     let matches = Command::new("kailian")
@@ -83,6 +84,7 @@ pub fn read_stdin() -> Result<String, String> {
     }
     if matches.get_flag("list_models") {
         todo!("list available models");
+        ai::list_local_models::list_models();
     }
     if matches.get_flag("running_model") {
         todo!("Show running model");

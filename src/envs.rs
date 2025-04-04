@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 use std::{env, fs};
 
 pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
