@@ -94,7 +94,7 @@ tree | kailian "Summarize this directory mess"
 
 ## Environment Variables
 
-* `KAILIAN_CONFIG`: Override the default config path (e.g., `KAILIAN_CONFIG=/custom/path/kailian.conf kailian "hi"`).
+* `KAILIAN_MODEL` Overwrite the model set in the kailian.conf (maybe with `export` to use across shell sessions).
 ```
 
 Written by some local ai
