@@ -1,125 +1,99 @@
-# Kaillian - The Linux Admin's Quirky Sidekick! 🤖🎉
+<h1 style="text-align: center; background-color: #f0f0f0; padding: 10px; border: 1px solid #ccc;">🚧 STILL UNDER CONSTRUCTION 🚧</h1>
+# Kailian - The Linux Admin's Quirky Sidekick! 🤖🎉
 
-**Kailian** isn’t just a command-line tool—it’s your terminal’s quirky sidekick, built in C for Linux and powered by [Ollama](https://ollama.com/). Whether you’re interrogating a local AI, admiring ASCII coffee art, or piping in command output for sage advice, Kailian’s got your back. It leans on `libcurl` for HTTP wizardry, `cJSON` for JSON crunching and `llogger` for logging.
-
+**Kailian** is your terminal’s eccentric companion, now rebuilt in Rust for Linux and powered by [Ollama](https://ollama.com/). Ask it anything, admire ASCII coffee art, or pipe in command output for witty insights. With `curl` for HTTP magic, `ollama-rs` for AI streaming, and `clap` for slick CLI parsing, Kailian is here to make your admin life both efficient and entertaining.
 
 ## Prerequisites
-- GCC or another C compiler
-- Libraries:
-  - `cJSON` (e.g., `sudo pacman -S cjson` or `sudo apt-get install libcjson-dev`)
-  - `libcurl` (e.g., `sudo pacman -S curl` or `sudo apt-get install libcurl4-openssl-dev`)
-
+- Rust (latest stable recommended, install via `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`)
+- Cargo (comes with Rust)
+- Optional: `ollama` installed locally for AI functionality (`curl -fsSL https://ollama.com/install.sh | sh`)
 
 ## Building 🛠️
-Compile and install the source code:
 ```bash
-git clone https://github.com/laugenbrezel1004/kaillian.git
-cd kaillian
-make 
-sudo make install
+git clone https://github.com/laugenbrezel1004/kailian.git
+cd kailian
+cargo build --release
+sudo cp target/release/kailian /usr/local/bin/
+sudo mkdir -p /etc/kailian && sudo cp kailian.conf /etc/kailian/
 ```
-
-Drops Kailian into `/usr/local/bin` and the config into `/etc/kailian`. You’re official now.
-
+This drops Kailian into `/usr/local/bin` and the config into `/etc/kailian/`. You’re official now.
 
 ## Usage 🔧
 
-Command    | What It Does
-------------|-----------------
-`kaillian "question"`  | Ask the AI anything—from the profound to the preposterous (Just put "" if you don't want to activate shellglobbing, but remember, it’s a party here!)
-`--model`    | Flaunt the AI’s muscle (stats)
-`--show-models`   | Put all the AI models on the catwalk, strutting their stuff
-`--create-config`   | Create new config if old one is lost or corrupt
-`--coffee`     | Boil some liquid happiness for your terminal—alas, it's decaf
-`--help`     | If you’re lost and need directions to fun town
-`--info`     | Get some basic info about me
-`--show-environment`     | Peek into the kaillian.conf file
-`--start-ollama`     | Start a local ollama instance
-`--kill-ollama`     | Kill a local ollama instance
-`cat error.log`\| kaillian "Fix this!"| :) 🤖
-`man yes`\| kaillian Explain me this command| Yes! 🚀
-
+| Command                                     | What It Does                                      |
+|---------------------------------------------|---------------------------------------------------|
+| `kailian -a question`                       | Ask the AI anything—profound or absurd (quote it to avoid shell globbing chaos) |
+| `kailian --model`                           | Show the current AI model’s stats                 |
+| `kailian --show-models`                     | List all available AI models in style           |
+| `kailian --create-config`                   | Generate a fresh config if yours is missing or broken |
+| `kailian --coffee`                          | Brew some ASCII coffee—sadly, still decaf        |
+| `kailian --help`                            | Get directions to the fun zone                   |
+| `kailian --show-environment`                | Peek at the `kailian.conf` file                 |
+| `kailian --start-ollama`                    | Fire up a local Ollama instance                  |
+| `kailian --kill-ollama`                     | Shut down a local Ollama instance                 |
+| `cat error.log \| kailian "Fix this!"`      | Pipe in errors for AI analysis | 
+| `man yes \| kailian "Explain this command"` | Get AI explanations of commands |
 
 ## Configuration
 
-Kailian's config file hangs out at:
+Kailian’s config lives at:
 
-- `/etc/kailian/kailian.conf` 
+`/etc/kailian/kailian.conf`
 
-Sample Config 
-```bash
-name = "deepseek-r1:14" ; The AI’s stage name—sounds edgy
-endpoint = "http://localhost:11434/api/generate" ; Where answers are born
-info_endpoint = "http://localhost:11434/api/tags" ; Model gossip hub
-running_model_endpoint = "http://localhost:11434/api/ps" ; Who’s awake?
-ollama_version_endpoint = "http://localhost:11434/api/version" ; Ollama’s flex
-system = "You are a linux admin who answers correctly and without markdown" ; AI’s vibe—gruff but helpful
+**Sample Config:**
+
+```ini
+[config]
+name = "deepseek-r1:14" ; The AI’s codename—sounds cool, right?
+endpoint = "http://localhost:11434/api/generate" ; Where the magic happens
+info_endpoint = "http://localhost:11434/api/tags" ; Model info hub
+running_model_endpoint = "http://localhost:11434/api/ps" ; Who’s running?
+ollama_version_endpoint = "http://localhost:11434/api/version" ; Ollama’s brag
+system = "You are a linux admin who answers correctly and without markdown" ; AI’s personality—straight to the point
 ```
-Hack It: Change the system prompt to make the AI chatty, curt, or downright sarcastic.
+
+**Tweaks:** Adjust the `system` prompt to make the AI snarky, verbose, or whatever vibe you’re feeling.
 
 ## Examples
 
-Ask Something Smart:
+**Ask a Deep Question:**
+
 ```bash
-kailian "What is coffee?"
--> Coffee, my friend, is the elixir of life that allows us to function before we've fully processed the fact that it's still morning.
+kailian "What is the meaning of life?"
 ```
 
-Check the current model in use:
+**Show Model Info:**
+
 ```bash
 kailian --model
--> Model Name: mistral:latest
 ```
-See what’s powering the magic.
 
-Model Lineup:
+**List Available Models:**
+
 ```bash
 kailian --show-models
--> Model Name: qwen2.5:14b
-Model Name: granite3.2:latest
-Model Name: mistral:latest
-Model Name: deepseek-r1:32b
-Model Name: codellama:13b
-Model Name: deepseek-r1:14b
-Model Name: deepseek-r1:1.5b
-Model Name: deepseek-r1:latest
 ```
-Meet the AI crew.
 
-Coffee Time:
+**Brew Coffee:**
+
 ```bash
 kailian --coffee
-          ~      
-              ~    
-            ~      
-       _____________
-      <_____________> ___
-      |             |/ _ \
-      |               | | |
-      |               |_| |
-   ___|             |\___/
-  /    \___________/    \
-  \_____________________/
-       \___________/
-
 ```
-Sip virtually while you debug.
 
-Pipe Dreams:
+**Summarize Directory Mess:**
+
 ```bash
 tree | kailian "Summarize this directory mess"
-->  Looks like you're brewing your own Linux-powered robot, Kailian! With this many lines of code, I hope it can make me a cup of coffee when I ask it nicely.
 ```
-Kailian tidies up your thoughts.
 
 ## Troubleshooting
 
-“Config’s gone!”: Check `/etc/kailian/kailian.conf`. Make one if it’s lost with "--create-config".
+* **“Config’s AWOL!”:** Verify `/etc/kailian/kailian.conf`. Regenerate with `--create-config` if needed.
+* **“Ollama’s asleep!”:** Test it: `curl http://localhost:11434`. Wake it with `--start-ollama` if it’s dozing.
 
-“Ollama’s napping!”: Ping it: `curl http://localhost:11434`. Wake it up if it’s snoozing.
+## Environment Variables
 
+* `KAILIAN_CONFIG`: Override the default config path (e.g., `KAILIAN_CONFIG=/custom/path/kailian.conf kailian "hi"`).
+```
 
-
-
-
-KAILIAN_CONFIG -> for other configfile path
+Written by some local ai
