@@ -59,7 +59,8 @@ system = "You are a linux admin who answers correctly and without markdown" ; AI
 **Ask a Deep Question:**
 
 ```bash
-kailian "What is the meaning of life?"
+kailian -a "What is the meaning of life?"
+# " is only needed to mask special characters for the shell
 ```
 
 **Show Model Info:**
