@@ -1,4 +1,6 @@
 use std::{env, fs};
+use std::fmt;
+use std::fmt::Formatter;
 
 pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
 
@@ -14,7 +16,11 @@ pub struct EnvVariables {
     pub kailian_system: String,
 }
 
-impl EnvVariables {
+impl fmt::Display for EnvVariables {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Model: {}\n", self.kailian_model)
+    }}
+impl EnvVariables{
     pub fn new() -> Result<EnvVariables, String> {
         // Default-Struct erzeugen
         let mut variables = EnvVariables {

@@ -77,7 +77,8 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         todo!("Create Configuration");
     }
     if matches.get_flag("show_config") {
-        todo!("Show Configuration");
+        println!("Current configuration ->\n{}", &env_vars);
+        return Ok(());
     }
     if matches.get_flag("coffee") {
         coffee::sip_coffee();

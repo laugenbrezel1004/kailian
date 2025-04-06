@@ -8,6 +8,8 @@ use std::process;
 
 // TODO: Automatisches Starten des Daemons implementiere
 // TODO: Chat-Modus implementierenn
+// TODO: Konfig für kailian überarbeiten und nurnoch einen api wert / ip adresse haben (endpoints werden von ollama-rs definiert)
+// TODO: /api/ps in ollama-rs vorhanden? -> Wenn nicht von Hand implementieren 
 #[tokio::main]
 async fn main() {
    
