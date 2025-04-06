@@ -6,13 +6,11 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-//use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use crate::envs::EnvVariables;
 
-pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String>{
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
-    println!("laurez ist cool");
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
@@ -38,6 +36,7 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 
     #[cfg(debug_assertions)]
     println!("Sending request to Ollama...");
+   // TODO: Erste Junk von Ollama wird nicht in stdout angezeigt!!! 
     //sleep(Duration::from_millis(100));
     let mut stream = match ollama
         .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone()))
@@ -46,10 +45,9 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
             stream
         }
         Err(e) => {
-            println!("Error connecting to Ollama: {}", e);
             *spinner_running.lock().await = false;
             spinner_handle.await.unwrap();
-            return;
+            return Err(e.to_string());
         }
     };
 
@@ -73,8 +71,10 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
     }
 
     *spinner_running.lock().await = false;
-    spinner_handle.await.unwrap();
-    
+    if let Err(e) = spinner_handle.await {
+        return Err(e.to_string());
+    }
+    Ok(())
 }
 
 

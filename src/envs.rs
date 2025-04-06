@@ -19,8 +19,9 @@ pub struct EnvVariables {
 impl fmt::Display for EnvVariables {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "Model: {}\n", self.kailian_model)
-    }}
-impl EnvVariables{
+    }
+}
+impl EnvVariables {
     pub fn new() -> Result<EnvVariables, String> {
         // Default-Struct erzeugen
         let mut variables = EnvVariables {
@@ -35,8 +36,8 @@ impl EnvVariables{
         };
 
         // Config-Datei einlesen
-        let content = fs::read_to_string(KAILIAN_CONF_PATH)
-            .map_err(|_| format!("Error: Could not open config file '{}'", KAILIAN_CONF_PATH))?;
+        let content = fs::read_to_string(KAILIAN_CONF_PATH).map_err(|err| err.to_string())?;
+
 
         // Inhalt verarbeiten 
         // Mögliche Fehlerquellen elimieren
@@ -57,12 +58,10 @@ impl EnvVariables{
             }
         }
 
-
-        // TODO: ENVS einlesen
-        match env::var("KAILIAN_MODEL") {
-           Ok(value) => variables.kailian_model = value,
-            Err(_) => (),
+        if let Ok(value) = env::var("KAILIAN_MODEL") {
+                variables.kailian_model = value;
         }
+        
         Ok(variables)
     }
 }

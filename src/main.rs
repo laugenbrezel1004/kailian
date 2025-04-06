@@ -5,7 +5,7 @@ mod prompt;
 
 use std::process;
 
-// TODO: Automatisches Starten des Daemons implementiere
+// TODO: Automatisches Starten des Daemons implementieren
 // TODO: Chat-Modus implementierenn
 // TODO: Konfig für kailian überarbeiten und nurnoch einen api wert / ip adresse haben (endpoints werden von ollama-rs definiert)
 // TODO: /api/ps in ollama-rs vorhanden? -> Wenn nicht von Hand implementieren 
@@ -24,7 +24,7 @@ async fn main() {
     };
     
     #[cfg(debug_assertions)]
-    println!("Vars -> {:?}", kailian_env);
+    println!("Vars -> {:?}\n", kailian_env);
 
     // prompt macht hier die ganze logik
     let result = prompt::read_stdin(&kailian_env).await;

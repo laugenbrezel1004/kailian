@@ -75,7 +75,6 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     if matches.get_flag("create_config") {
         print!("TODO: Create config");
         return Ok(());
-        todo!("Create Configuration");
     }
     if matches.get_flag("show_config") {
         println!("Current configuration ->\n{}", &env_vars);
@@ -84,33 +83,26 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     if matches.get_flag("coffee") {
         //wird von user mit ^c beendet
         coffee::sip_coffee();
-        unreachable!("something went wrong");
-        return Ok(()); //
+        return Ok(());
     }
     if matches.get_flag("list_models") {
         //ohne env als übergabeparameter zum testen
-        ai::list_local_models::list_models(&env_vars).await;
-        return Ok(());
+        return ai::list_local_models::list_models(&env_vars).await;
     }
     if matches.get_flag("running_model") {
         println!("TODO: Show running model");
         return Ok(());
-        todo!("Show running model");
     }
     if matches.get_flag("start_ollama") {
         println!("TODO: Start ollama as daemon");
         return Ok(());
-        todo!("Start new ollama instance as a daemon");
     }
     if matches.get_flag("kill_ollama") {
         println!("TODO: Kill ollama daemon");
         return Ok(());
-        todo!("Kill ollama instance");
     }
     if matches.contains_id("ask") {
-        // TODO: Implement Result Type late in progress
-        build_prompt(&env_vars).await;
-        return Ok(());
+        return build_prompt(&env_vars).await;
     }
 
     // Sollte nie erreicht werden wegen args_required_else_help
@@ -119,7 +111,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
 
 
 //später Result wieder implementieren 
-async fn build_prompt(env_variables: &EnvVariables) {
+async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String>{
     let mut prompt = String::new();
     let argv: Vec<String> = env::args().collect();
 
@@ -129,7 +121,7 @@ async fn build_prompt(env_variables: &EnvVariables) {
     // Überprüfen, ob mindestens 3 Argumente vorhanden sind
     if argv.len() < 3 {
         // Beispiel: kailian -a hi -> 3 args (Programmname + Flag + Wert)
-        //return "prompt ist zu kurz, oder es ist erst gar keine vorhanden."
+        return Err("Too few arguments".to_string());
     }
 
     // Verarbeite alle Argumente ab Index 2 (ignoriere Programmname und Flag)
@@ -147,7 +139,7 @@ async fn build_prompt(env_variables: &EnvVariables) {
                     stdin_buffer.push('\n');
                 }
                 Err(e) => {
-                    //return Err(format!("Fehler beim Lesen von stdin: {}", e));
+                    return Err(e.to_string())
                 }
             }
         }
@@ -161,9 +153,5 @@ async fn build_prompt(env_variables: &EnvVariables) {
     // Entferne überflüssige Leerzeichen und überprüfe, ob der Prompt leer ist
     prompt = prompt.trim().to_string();
 
-    //Ok(prompt)
-    // TODO: Fehlercode abfangen
-    println!("Laurenz ist hier hahah");
-    ai::connect_to_ai::api_completion_generation(&prompt, &env_variables).await;
-    println!("ich bin schon groß und vier");
+   return  ai::connect_to_ai::api_completion_generation(&prompt, &env_variables).await;
 }
