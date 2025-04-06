@@ -1,4 +1,3 @@
-use std::process::exit;
 use ollama_rs::generation::completion::request::GenerationRequest;
 use ollama_rs::Ollama;
 use tokio::io::{self, AsyncWriteExt};
@@ -8,13 +7,13 @@ use tokio::time::{self, Duration};
 use std::sync::Arc;
 use std::thread::sleep;
 use tokio::sync::Mutex;
-use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
-use ollama_rs::history::ChatHistory;
+//use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
+    println!("laurez ist cool");
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
@@ -80,4 +79,3 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 }
 
 
-//TODO: To be done chat-mode - /^s*/
