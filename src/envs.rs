@@ -23,7 +23,7 @@ impl fmt::Display for EnvVariables {
 }
 impl EnvVariables {
     pub fn new() -> Result<EnvVariables, String> {
-  
+
         // Default-Struct erzeugen
         let mut variables = EnvVariables {
             kailian_model: String::new(),
@@ -64,4 +64,16 @@ impl EnvVariables {
         }
         Ok(variables)
     }
+}
+pub fn create_config() -> Result<(), String> {
+    std::fs::write(KAILIAN_CONF_PATH, "name = gemma3:27b
+endpoint_generate = http://localhost:11434
+endpoint_info = http://localhost:11434/api/tags
+endpoint_running_model = http://localhost:11434/api/ps
+endpoint_ollama_version = http://localhost:11434/api/version
+endpoint_chat = http://localhost:11434/api/chat
+endpoint_show = http://localhost:11434/api/show
+system = \"You are a highly efficient systems AI built to assist with programming, log analysis, and Linux commands. Provide short, precise answers. Excel at writing and debugging code, analyzing system logs for errors or patterns, and delivering accurate Linux command solutions. Use your expertise to optimize systems and troubleshoot issues quickly.\"
+").map_err(|e| e.to_string())?;
+    Ok(())
 }

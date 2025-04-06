@@ -1,4 +1,4 @@
-use crate::ai;
+use crate::{ai, envs};
 use crate::envs::EnvVariables;
 use crate::coffee;
 use clap::{Arg, Command};
@@ -73,8 +73,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
 
     // Argumente auswerten
     if matches.get_flag("create_config") {
-        print!("TODO: Create config");
-        return Ok(());
+        return envs::create_config();
     }
     if matches.get_flag("show_config") {
         println!("Current configuration ->\n{}", &env_vars);
@@ -111,7 +110,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
 
 
 //später Result wieder implementieren 
-async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String>{
+async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String> {
     let mut prompt = String::new();
     let argv: Vec<String> = env::args().collect();
 
@@ -153,5 +152,5 @@ async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String>{
     // Entferne überflüssige Leerzeichen und überprüfe, ob der Prompt leer ist
     prompt = prompt.trim().to_string();
 
-   return  ai::connect_to_ai::api_completion_generation(&prompt, &env_variables).await;
+    return ai::connect_to_ai::api_completion_generation(&prompt, &env_variables).await;
 }
