@@ -3,7 +3,6 @@ mod coffee;
 mod envs;
 mod prompt;
 
-use ai::connect_to_ai;
 use std::process;
 
 // TODO: Automatisches Starten des Daemons implementiere

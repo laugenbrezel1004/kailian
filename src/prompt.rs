@@ -1,10 +1,9 @@
 use crate::ai;
 use crate::envs::EnvVariables;
-use crate::{coffee, prompt};
+use crate::coffee;
 use clap::{Arg, Command};
 use std::env;
 use std::io::{self, BufRead, IsTerminal};
-use std::net::ToSocketAddrs;
 
 pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     let matches = Command::new("kailian")
@@ -90,7 +89,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     }
     if matches.get_flag("list_models") {
         //ohne env als übergabeparameter zum testen
-        ai::list_local_models::list_models().await;
+        ai::list_local_models::list_models(&env_vars).await;
         return Ok(());
     }
     if matches.get_flag("running_model") {
@@ -100,7 +99,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     }
     if matches.get_flag("start_ollama") {
         println!("TODO: Start ollama as daemon");
-        Ok(());
+        return Ok(());
         todo!("Start new ollama instance as a daemon");
     }
     if matches.get_flag("kill_ollama") {
@@ -118,6 +117,8 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     unreachable!("No arguments provided, but Clap should have caught this");
 }
 
+
+//später Result wieder implementieren 
 async fn build_prompt(env_variables: &EnvVariables) {
     let mut prompt = String::new();
     let argv: Vec<String> = env::args().collect();

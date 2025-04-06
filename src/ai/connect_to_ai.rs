@@ -5,7 +5,6 @@ use tokio::task;
 use tokio_stream::StreamExt;
 use tokio::time::{self, Duration};
 use std::sync::Arc;
-use std::thread::sleep;
 use tokio::sync::Mutex;
 //use ollama_rs::generation::chat::{ChatMessage, request::ChatMessageRequest};
 use crate::envs::EnvVariables;
