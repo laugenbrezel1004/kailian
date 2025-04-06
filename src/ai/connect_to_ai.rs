@@ -3,12 +3,12 @@ use ollama_rs::Ollama;
 use tokio::io::{self, AsyncWriteExt};
 use tokio::task;
 use tokio_stream::StreamExt;
-use tokio::time::{self, Duration};
+use tokio::time::{self, sleep, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use crate::envs::EnvVariables;
 
-pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String>{
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String> {
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
 
@@ -36,14 +36,9 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 
     #[cfg(debug_assertions)]
     println!("Sending request to Ollama...");
-   // TODO: Erste Junk von Ollama wird nicht in stdout angezeigt!!! 
-    //sleep(Duration::from_millis(100));
-    let mut stream = match ollama
-        .generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone()))
-        .await {
-        Ok(stream) => {
-            stream
-        }
+    // TODO: Erster Chunk von Ollama wird nicht in stdout angezeigt!!!
+    let mut stream = match ollama.generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone())).await {
+        Ok(stream) => stream,
         Err(e) => {
             *spinner_running.lock().await = false;
             spinner_handle.await.unwrap();
@@ -51,22 +46,25 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
         }
     };
 
+
+
     let mut stdout = io::stdout();
+    let mut is_first_message = true;
+
     while let Some(res) = stream.next().await {
-        match res {
-            Ok(responses) => {
-                for resp in responses {
-                    if *spinner_running.lock().await {
-                        *spinner_running.lock().await = false;
-                    }
-                    stdout.write_all(resp.response.as_bytes()).await.unwrap();
-                    stdout.flush().await.unwrap();
+        let responses = res.map_err(|e| e.to_string())?;
+        for resp in responses {
+            if is_first_message {
+                let mut spinner = spinner_running.lock().await;
+                if *spinner {
+                    *spinner = false;
+                    drop(spinner);
+                    sleep(Duration::from_millis(100)).await;
                 }
+                is_first_message = false;
             }
-            Err(e) => {
-                println!("Stream error: {}", e);
-                break;
-            }
+            stdout.write_all(resp.response.as_bytes()).await.map_err(|e|e.to_string())?;
+            stdout.flush().await.map_err(|e|e.to_string())?;
         }
     }
 

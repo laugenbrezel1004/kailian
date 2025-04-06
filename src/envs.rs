@@ -23,6 +23,7 @@ impl fmt::Display for EnvVariables {
 }
 impl EnvVariables {
     pub fn new() -> Result<EnvVariables, String> {
+  
         // Default-Struct erzeugen
         let mut variables = EnvVariables {
             kailian_model: String::new(),
@@ -59,9 +60,8 @@ impl EnvVariables {
         }
 
         if let Ok(value) = env::var("KAILIAN_MODEL") {
-                variables.kailian_model = value;
+            variables.kailian_model = value;
         }
-        
         Ok(variables)
     }
 }
