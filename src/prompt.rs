@@ -84,7 +84,7 @@ pub fn read_stdin() -> Result<String, String> {
     }
     if matches.get_flag("list_models") {
         todo!("list available models");
-        ai::list_local_models::list_models();
+        ai::list_local_models::list_models("hi");
     }
     if matches.get_flag("running_model") {
         todo!("Show running model");

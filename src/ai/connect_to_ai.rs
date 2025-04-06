@@ -1,5 +1,3 @@
-#![allow(unused_imports)]
-
 use std::process::exit;
 use ollama_rs::generation::completion::request::GenerationRequest;
 use ollama_rs::Ollama;
@@ -16,7 +14,6 @@ use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) {
     let prompt = prompt.to_string();
-  
     let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
 
     let spinner_running = Arc::new(Mutex::new(true));
@@ -79,6 +76,8 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 
     *spinner_running.lock().await = false;
     spinner_handle.await.unwrap();
+    
 }
 
-//TODO: To be done chat-mode
+
+//TODO: To be done chat-mode - /^s*/
