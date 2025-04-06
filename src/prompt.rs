@@ -74,6 +74,8 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
 
     // Argumente auswerten
     if matches.get_flag("create_config") {
+        print!("TODO: Create config");
+        return Ok(());
         todo!("Create Configuration");
     }
     if matches.get_flag("show_config") {
@@ -81,7 +83,10 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         return Ok(());
     }
     if matches.get_flag("coffee") {
+        //wird von user mit ^c beendet
         coffee::sip_coffee();
+        unreachable!("something went wrong");
+        return Ok(()); //
     }
     if matches.get_flag("list_models") {
         //ohne env als übergabeparameter zum testen
@@ -89,12 +94,18 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         return Ok(());
     }
     if matches.get_flag("running_model") {
+        println!("TODO: Show running model");
+        return Ok(());
         todo!("Show running model");
     }
     if matches.get_flag("start_ollama") {
+        println!("TODO: Start ollama as daemon");
+        Ok(());
         todo!("Start new ollama instance as a daemon");
     }
     if matches.get_flag("kill_ollama") {
+        println!("TODO: Kill ollama daemon");
+        return Ok(());
         todo!("Kill ollama instance");
     }
     if matches.contains_id("ask") {
