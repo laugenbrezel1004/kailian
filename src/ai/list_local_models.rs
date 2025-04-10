@@ -3,7 +3,7 @@ use crate::envs::EnvVariables;
 
 pub async fn list_models(env_variables: &EnvVariables) -> Result<(), String>{
     // Initialize the Ollama instance with the given environment variable and port
-    let ollama = Ollama::new(env_variables.kailian_generate.to_string(), 11434);
+    let ollama = Ollama::new(env_variables.kailian_endpoint.to_string(), 11434);
 
     // Attempt to list local models asynchronously
     match ollama.list_local_models().await {

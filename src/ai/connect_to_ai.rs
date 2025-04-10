@@ -10,7 +10,7 @@ use crate::envs::EnvVariables;
 
 pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String> {
     let prompt = prompt.to_string();
-    let ollama = Ollama::new(kailian_variables.kailian_generate.to_string(), 11434);
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);

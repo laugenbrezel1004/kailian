@@ -77,7 +77,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         return envs::create_config();
     }
     if matches.get_flag("show_config") {
-        println!("Current configuration ->\n{}", &env_vars);
+        println!("{}", &env_vars);
         return Ok(());
     }
     if matches.get_flag("coffee") {

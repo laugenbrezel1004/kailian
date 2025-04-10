@@ -29,7 +29,7 @@ async fn main() {
     };
     
     #[cfg(debug_assertions)]
-    println!("Vars -> {:?}\n", kailian_env);
+    println!("Vars ->\n {:?}\n", kailian_env);
 
     // prompt macht hier die ganze logik
     let result = prompt::read_stdin(&kailian_env).await;
