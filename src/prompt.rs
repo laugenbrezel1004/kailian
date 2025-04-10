@@ -4,6 +4,7 @@ use crate::coffee;
 use clap::{Arg, Command};
 use std::env;
 use std::io::{self, BufRead, IsTerminal};
+use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
 
 pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     let matches = Command::new("kailian")
@@ -93,12 +94,10 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         return Ok(());
     }
     if matches.get_flag("start_ollama") {
-        println!("TODO: Start ollama as daemon");
-        return Ok(());
+        return daemonize_ollama();
     }
     if matches.get_flag("kill_ollama") {
-        println!("TODO: Kill ollama daemon");
-        return Ok(());
+        return kill_ollama_daemon();
     }
     if matches.contains_id("ask") {
         return build_prompt(&env_vars).await;

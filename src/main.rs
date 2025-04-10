@@ -2,6 +2,7 @@ mod ai;
 mod coffee;
 mod envs;
 mod prompt;
+mod daemon;
 
 use std::process;
 
@@ -9,6 +10,9 @@ use std::process;
 // TODO: Chat-Modus implementierenn
 // TODO: Konfig für kailian überarbeiten und nurnoch einen api wert / ip adresse haben (endpoints werden von ollama-rs definiert)
 // TODO: /api/ps in ollama-rs vorhanden? -> Wenn nicht von Hand implementieren 
+// TODO: --self-destroy -> internal shutdown(flag) 
+// TODO: Markdown in CLI interpretieren 
+// TODO: Logging für Ollamad
 #[tokio::main]
 async fn main() {
    
