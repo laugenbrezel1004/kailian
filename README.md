@@ -9,9 +9,9 @@
 [![Rust Version](https://img.shields.io/badge/rust-1.70+-blue.svg)](https://www.rust-lang.org/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE)
 [![Ollama Powered](https://img.shields.io/badge/powered_by-Ollama-FF6C37)](https://ollama.com)
-</div>🎉
+</div>
 
-**Kailian** is the terminal companion you didn’t know you needed. Rebuilt in Rust for Linux and powered by [Ollama](https://ollama.com/), it answers your questions, analyzes command output, and serves ASCII coffee art with a side of humor. Whether you’re debugging logs or pondering life’s mysteries, Kailian’s got your back with `curl`, `ollama-rs`, and `clap` for a seamless, fun experience.
+**Kailian** is the terminal companion you didn’t know you needed. Rebuilt in Rust for Linux and powered by [Ollama](https://ollama.com/), it answers your questions, analyzes command output, and serves ASCII coffee art with a side of humor. Whether you’re debugging logs or pondering life’s mysteries, Kailian’s got your back for a seamless, fun experience.
 
 ## ✨ Features
 - **Ask Anything**: Query the AI for Linux tips, code fixes, or existential musings.
