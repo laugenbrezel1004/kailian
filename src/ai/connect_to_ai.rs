@@ -36,7 +36,7 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
 
     #[cfg(debug_assertions)]
     println!("Sending request to Ollama...");
-    // TODO: Erster Chunk von Ollama wird nicht in stdout angezeigt!!!
+    
     let mut stream = match ollama.generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone())).await {
         Ok(stream) => stream,
         Err(e) => {
