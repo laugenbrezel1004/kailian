@@ -17,9 +17,9 @@
 - **Ask Anything**: Query the AI for Linux tips, code fixes, or existential musings.
 - **Pipe It In**: Feed command output (e.g., `cat error.log`) for smart analysis.
 - **ASCII Art**: Brew virtual coffee to lighten your admin grind.
-- - **Model Management**: List, switch, and inspect AI models
+- **Model Management**: List, switch, and inspect AI models
 - **Rust-Powered**: Fast, safe, and built for the long haul.
-- **Customizable**: Tweak the AI’s vibe via a simple config file.
+- **Customizable**: Tweak the AI’s vibe via a simple config file and environment variables.
 
 
 ## 🚀 Quick Start
@@ -65,7 +65,7 @@ Kailian’s config lives at:
 
 ```ini
 name = "deepseek-r1:671b"
-endpoint = "http://localhost:11434/api/generate"
+endpoint = "http://localhost:11434"
 system = "You are a linux admin who answers correctly and without markdown"
 ```
 
@@ -80,7 +80,7 @@ kailian -a "What is the meaning of life?"
 # " is only needed to mask special characters for the shell
 ```
 
-**Show Model Info:**
+**Show Current Running model:**
 
 ```bash
 kailian --running-model
@@ -129,7 +129,7 @@ Main directories:
 - /mnt - Temporary mount points
 - /opt - Optional software packages
 - /proc - Process information pseudo-filesystem
-- /root - Root user's home directory
+- /root - Root user\´s home directory
 - /run - Runtime variable data
 - /sys - Kernel and driver information
 - /tmp - Temporary files
