@@ -86,7 +86,6 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
         return Ok(());
     }
     if matches.get_flag("list_models") {
-        //ohne env als übergabeparameter zum testen
         return ai::list_local_models::list_models(&env_vars).await;
     }
     if matches.get_flag("running_model") {

@@ -72,6 +72,8 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvV
     if let Err(e) = spinner_handle.await {
         return Err(e.to_string());
     }
+    //to get ride fo the "%" at the end of the answer
+    println!();
     Ok(())
 }
 
