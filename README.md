@@ -43,13 +43,13 @@ This drops Kailian into `/usr/local/bin` and the config into `/etc/kailian/`. Yo
 
 | Command                                     | What It Does                                      |
 |---------------------------------------------|---------------------------------------------------|
-| `kailian -a "question"`                       | Ask the AI anything—profound or absurd (quote it to avoid shell globbing chaos) |
+| `kailian -a "question"`                     | Ask the AI anything—profound or absurd (quote it to avoid shell globbing chaos) |
 | `kailian --running-model`                   | Show the current AI model’s stats                 |
 | `kailian --show-models`                     | List all available AI models in style           |
 | `kailian --create-config`                   | Generate a fresh config if yours is missing or broken |
 | `kailian --coffee`                          | Brew some ASCII coffee—sadly, still decaf        |
 | `kailian --help`                            | Get directions to the fun zone                   |
-| `kailian --show-environment`                | Peek at the `kailian.conf` file                 |
+| `kailian --show-config`                     | Peek at the `kailian.conf` file                 |
 | `kailian --start-ollama`                    | Fire up a local Ollama instance                  |
 | `kailian --kill-ollama`                     | Shut down a local Ollama instance                 |
 | `cat error.log \| kailian "Fix this!"`      | Pipe in errors for AI analysis | 
@@ -129,7 +129,7 @@ Main directories:
 - /mnt - Temporary mount points
 - /opt - Optional software packages
 - /proc - Process information pseudo-filesystem
-- /root - Root user\´s home directory
+- /root - Root user´s home directory
 - /run - Runtime variable data
 - /sys - Kernel and driver information
 - /tmp - Temporary files
