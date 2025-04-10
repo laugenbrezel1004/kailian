@@ -13,6 +13,7 @@ use std::process;
 // TODO: --self-destroy -> internal shutdown(flag) 
 // TODO: Markdown in CLI interpretieren 
 // TODO: Logging für Ollamad
+// TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
 #[tokio::main]
 async fn main() {
    

@@ -7,12 +7,7 @@ pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
 #[derive(Debug)]
 pub struct EnvVariables {
     pub kailian_model: String,
-    pub kailian_generate: String,
-    pub kailian_info: String,
-    pub kailian_running_model: String,
-    pub kailian_ollama_version: String,
-    pub kailian_chat: String,
-    pub kailian_show: String,
+    pub kailian_endpoint: String, 
     pub kailian_system: String,
 }
 
@@ -27,12 +22,7 @@ impl EnvVariables {
         // Default-Struct erzeugen
         let mut variables = EnvVariables {
             kailian_model: String::new(),
-            kailian_generate: String::new(),
-            kailian_info: String::new(),
-            kailian_running_model: String::new(),
-            kailian_ollama_version: String::new(),
-            kailian_chat: String::new(),
-            kailian_show: String::new(),
+            kailian_endpoint: String::new(),
             kailian_system: String::new(),
         };
 
@@ -46,12 +36,7 @@ impl EnvVariables {
             if let Some((key, value)) = line.split_once('=') {
                 match key.trim() {
                     "name" => variables.kailian_model = value.trim().to_string(),
-                    "endpoint_generate" => variables.kailian_generate = value.trim().to_string(),
-                    "endpoint_info" => variables.kailian_info = value.trim().to_string(),
-                    "endpoint_running_model" => variables.kailian_running_model = value.trim().to_string(),
-                    "endpoint_ollama_version" => variables.kailian_ollama_version = value.trim().to_string(),
-                    "endpoint_chat" => variables.kailian_chat = value.trim().to_string(),
-                    "endpoint_show" => variables.kailian_show = value.trim().to_string(),
+                    "endpoint" => variables.kailian_endpoint = value.trim().to_string(),
                     "system" => variables.kailian_system = value.trim().to_string(),
                     _ => {} // Unbekannte Schlüssel ignorieren
                     // TODO: Fehler!!!! wenn kein schlüssel
