@@ -720,6 +720,7 @@ dependencies = [
  "log",
  "nix",
  "ollama-rs",
+ "serde",
  "serde_json",
  "syslog",
  "tokio",

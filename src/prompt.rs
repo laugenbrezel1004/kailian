@@ -2,6 +2,7 @@ use crate::{ai, envs};
 use crate::coffee;
 use clap::{Arg, Command};
 use std::{env, io::{self, BufRead, IsTerminal}};
+use crate::ai::chat_mode::delete_old_context;
 use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
 
 pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
@@ -28,6 +29,13 @@ pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
                 .value_name("YourQuestion")
                 .help("Ask ollama a question with context awareness (quote if using wildcards)")
                 .num_args(1..),
+        )
+        .arg(
+            Arg::new("new_chat")
+                .short('n')
+                .long("new-chat")
+                .help("Delete old context and start with a fresh one")
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("create_config")
@@ -106,6 +114,9 @@ pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
     }
     if matches.get_flag("kill_ollama") {
         return kill_ollama_daemon();
+    }
+    if matches.get_flag("new_chat") {
+        return delete_old_context(); 
     }
     if matches.contains_id("ask") {
         return match build_prompt(&env_vars).await {
