@@ -83,14 +83,13 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     if matches.get_flag("coffee") {
         //wird von user mit ^c beendet
         coffee::sip_coffee();
-        return Ok(());
+        unreachable!("Something went wrong");
     }
     if matches.get_flag("list_models") {
         return ai::list_local_models::list_models(&env_vars).await;
     }
     if matches.get_flag("running_model") {
-        println!("TODO: Show running model");
-        return Ok(());
+        return ai::get_running_model::running_model(&env_vars);
     }
     if matches.get_flag("start_ollama") {
         return daemonize_ollama();
