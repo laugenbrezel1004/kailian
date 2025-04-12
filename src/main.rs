@@ -14,6 +14,7 @@ use std::process;
 // TODO: Markdown in CLI interpretieren 
 // TODO: Logging für Ollamad
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
+// TODO: markdown parser
 #[tokio::main]
 async fn main() {
    
