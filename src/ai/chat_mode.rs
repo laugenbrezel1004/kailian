@@ -1,27 +1,28 @@
 use std::fs;
 use nix::unistd;
-use tokio::io::{ AsyncWriteExt};
 use crate::envs;
 use ollama_rs::{
     generation::chat::{request::ChatMessageRequest, ChatMessage, MessageRole, ChatMessageResponseStream},
-    Ollama,
 };
-use std::sync::{Arc, Mutex};
 use tokio::io::{stdout};
-use tokio_stream::StreamExt;
 use serde::{Deserialize, Serialize};
 
+use ollama_rs::Ollama;
+use tokio::io::{self, AsyncWriteExt};
+use tokio::task;
+use tokio_stream::StreamExt;
+use tokio::time::{self, sleep, Duration};
+use std::sync::Arc;
+use tokio::sync::Mutex;
 // Custom struct for serializing/deserializing chat messages to/from the file
 #[derive(Serialize, Deserialize, Clone)]
 struct SerializableChatMessage {
     role: String,
     content: String,
-    // Optionally include images and tool_calls if you want to persist them
     images: Option<Vec<String>>,
     tool_calls: Vec<String>,
 }
 
-// Map ollama_rs::ChatMessage to SerializableChatMessage
 fn to_serializable(msg: &ChatMessage) -> SerializableChatMessage {
     SerializableChatMessage {
         role: match msg.role {
@@ -38,27 +39,49 @@ fn to_serializable(msg: &ChatMessage) -> SerializableChatMessage {
     }
 }
 
-// Map SerializableChatMessage back to ollama_rs::ChatMessage
 fn from_serializable(msg: SerializableChatMessage) -> ChatMessage {
     let role = match msg.role.as_str() {
         "user" => MessageRole::User,
         "assistant" => MessageRole::Assistant,
         "system" => MessageRole::System,
-        _ => MessageRole::User, // Default to User if unknown
+        _ => MessageRole::User,
     };
     ChatMessage {
         role,
         content: msg.content,
-        images: None, // Default for images
-        tool_calls: Vec::new(), // Default for tool_calls
+        images: None,
+        tool_calls: Vec::new(),
     }
 }
 
 pub async fn chat(prompt: &String, kailian_variables: &envs::EnvVariables) -> Result<(), String> {
     let prompt = prompt.to_string();
-    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
-    
     let uid = unistd::getuid();
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+
+
+    let spinner_running = Arc::new(Mutex::new(true));
+    let spinner_running_clone = Arc::clone(&spinner_running);
+
+    let spinner_handle = task::spawn(async move {
+        let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let mut index = 0;
+        let mut stdout = io::stdout();
+
+        while *spinner_running_clone.lock().await {
+            stdout
+                .write_all(format!("\r{}", spinner_chars[index]).as_bytes())
+                .await
+                .unwrap();
+            stdout.flush().await.unwrap();
+            index = (index + 1) % spinner_chars.len();
+            time::sleep(Duration::from_millis(100)).await;
+        }
+
+        stdout.write_all(b"\r\x1B[K").await.unwrap();
+        stdout.flush().await.unwrap();
+    });
+
     #[cfg(debug_assertions)]
     println!("uid -> {}", uid);
     let history_file = format!("/run/user/{}/kailian-session-context", uid);
@@ -66,7 +89,7 @@ pub async fn chat(prompt: &String, kailian_variables: &envs::EnvVariables) -> Re
     let mut stdout = stdout();
 
     #[cfg(debug_assertions)]
-    println!("tmpfile -> {}", history_file);
+    println!("History file -> {}", history_file);
 
     // Initialize history by reading from the file
     let history: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(
@@ -148,8 +171,7 @@ pub fn delete_old_context() -> Result<(), String> {
     let uid = unistd::getuid();
     #[cfg(debug_assertions)]
     println!("uid -> {}", uid);
-    let history_file = format!("/run/user/{}/kailian-session-context", uid);    
-    fs::write(history_file,"".to_string()).map_err(|e|e.to_string())?;
+    let history_file = format!("/run/user/{}/kailian-session-context", uid);
+    fs::write(history_file, "".to_string()).map_err(|e| e.to_string())?;
     Ok(())
-    
 }
