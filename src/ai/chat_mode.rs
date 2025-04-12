@@ -1,18 +1,12 @@
 use std::fs;
-use std::fs::OpenOptions;
-use std::io::Write;
 use nix::unistd;
-use ollama_rs::generation::completion::request::GenerationRequest;
-use tokio::io::{self, AsyncWriteExt};
-use tokio::task;
-use tokio::time::{self, sleep, Duration};
+use tokio::io::{ AsyncWriteExt};
 use crate::envs;
 use ollama_rs::{
     generation::chat::{request::ChatMessageRequest, ChatMessage, MessageRole, ChatMessageResponseStream},
     Ollama,
 };
 use std::sync::{Arc, Mutex};
-use clap::builder::Str;
 use tokio::io::{stdout};
 use tokio_stream::StreamExt;
 use serde::{Deserialize, Serialize};

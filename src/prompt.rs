@@ -116,10 +116,10 @@ pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
         return kill_ollama_daemon();
     }
     if matches.get_flag("new_chat") {
-        return delete_old_context(); 
+        return delete_old_context();
     }
     if matches.contains_id("ask") {
-        return match build_prompt(&env_vars).await {
+        return match build_prompt().await {
             Ok(prompt) => {
                 ai::connect_to_ai::api_completion_generation(&prompt, &env_vars).await
             }
@@ -127,7 +127,7 @@ pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
         };
     }
     if matches.contains_id("chat") {
-        return match build_prompt(&env_vars).await {
+        return match build_prompt().await {
             Ok(prompt) => {
                 ai::chat_mode::chat(&prompt, &env_vars).await
             }
@@ -141,7 +141,7 @@ pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
 
 
 //später Result wieder implementieren 
-async fn build_prompt(env_variables: &envs::EnvVariables) -> Result<String, String> {
+async fn build_prompt() -> Result<String, String> {
     let mut prompt = String::new();
     let argv: Vec<String> = env::args().collect();
 
