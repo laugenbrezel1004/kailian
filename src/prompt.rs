@@ -8,34 +8,39 @@ use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
 
 pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     let matches = Command::new("kailian")
-        .version("0.1.0")
+        .version("1.1.0")
         .author("Laurenz Schmidt")
         .about("A simple, yet powerful CLI wrapper for ollama")
         // Option für den Prompt mit -a/--ask, erwartet einen Wert
+        .after_help(
+            "ENVIRONMENT VARIABLES:\n\
+                     KAILIAN_MODEL    Overwrites the model set in the config file"
+        )
         .arg(
             Arg::new("ask")
                 .short('a')
                 .long("ask")
-                .help("Ask the mighty ollama a question")
-                .num_args(0..),
+                .value_name("YourQuestion")
+                .help("Ask ollama a question (quote if using wildcards)")
+                .num_args(1..),
         )
         .arg(
             Arg::new("create_config")
                 .short('c')
                 .long("create-config")
-                .help("Create a new default config file")
+                .help("Create a new default config file (overwrites existing")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("show_config")
                 .short('s')
                 .long("show-config")
-                .help("Show the config file")
+                .help("Show the current config file")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("coffee")
-                .short('C')
+                .short('f')
                 .long("coffee")
                 .help("Let's sip some virtual coffee")
                 .action(clap::ArgAction::SetTrue),
@@ -44,19 +49,19 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
             Arg::new("list_models")
                 .short('l')
                 .long("list-models")
-                .help("Show all available ai-models")
+                .help("Show all available AI models")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("running_model")
                 .short('r')
                 .long("running-model")
-                .help("Show the running ai-model")
+                .help("Show the currently running AI model (or none if no model is loaded")
                 .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("start_ollama")
-                .short('S')
+                .short('t')
                 .long("start-ollama")
                 .help("Start a new local ollama instance")
                 .action(clap::ArgAction::SetTrue),
@@ -65,7 +70,7 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
             Arg::new("kill_ollama")
                 .short('k')
                 .long("kill-ollama")
-                .help("Kill a running ollama instance")
+                .help("Kill the local running ollama instance")
                 .action(clap::ArgAction::SetTrue),
         )
         // Wichtig: Mindestens eine Option erforderlich
@@ -113,12 +118,6 @@ async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String> {
 
     #[cfg(debug_assertions)]
     println!("argv -> {:?}", argv);
-
-    // Überprüfen, ob mindestens 3 Argumente vorhanden sind
-    if argv.len() < 3 {
-        // Beispiel: kailian -a hi -> 3 args (Programmname + Flag + Wert)
-        return Err("Too few arguments".to_string());
-    }
 
     // Verarbeite alle Argumente ab Index 2 (ignoriere Programmname und Flag)
     let args_prompt = argv[2..].join(" ");
