@@ -43,7 +43,7 @@ This drops Kailian into `/usr/local/bin` and the config into `/etc/kailian/`. Yo
 
 | Command                                     | What It Does                                      |
 |---------------------------------------------|---------------------------------------------------|
-| `kailian -a "question"`                     | Ask the AI anything—profound or absurd (quote it to avoid shell globbing chaos) |
+| `kailian -a "question"`                     | Ask the AI anything—profound or absurd  |
 | `kailian --running-model`                   | Show the current AI model’s stats                 |
 | `kailian --show-models`                     | List all available AI models in style           |
 | `kailian --create-config`                   | Generate a fresh config if yours is missing or broken |

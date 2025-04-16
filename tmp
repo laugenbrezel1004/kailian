@@ -1,0 +1,955 @@
+use ollama_rs::generation::completion::request::GenerationRequest;
+use ollama_rs::Ollama;
+use tokio::io::{self, AsyncWriteExt};
+use tokio::task;
+use tokio_stream::StreamExt;
+use tokio::time::{self, sleep, Duration};
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use crate::envs::EnvVariables;
+
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String> {
+    let prompt = prompt.to_string();
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+
+    let spinner_running = Arc::new(Mutex::new(true));
+    let spinner_running_clone = Arc::clone(&spinner_running);
+
+    let spinner_handle = task::spawn(async move {
+        let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let mut index = 0;
+        let mut stdout = io::stdout();
+
+        while *spinner_running_clone.lock().await {
+            stdout
+                .write_all(format!("\r{}", spinner_chars[index]).as_bytes())
+                .await
+                .unwrap();
+            stdout.flush().await.unwrap();
+            index = (index + 1) % spinner_chars.len();
+            time::sleep(Duration::from_millis(100)).await;
+        }
+
+        stdout.write_all(b"\r\x1B[K").await.unwrap();
+        stdout.flush().await.unwrap();
+    });
+
+    #[cfg(debug_assertions)]
+    println!("Sending request to Ollama...");
+    
+    let mut stream = match ollama.generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone())).await {
+        Ok(stream) => stream,
+        Err(e) => {
+            *spinner_running.lock().await = false;
+            spinner_handle.await.unwrap();
+            return Err(e.to_string());
+        }
+    };
+
+
+
+    let mut stdout = io::stdout();
+    let mut is_first_message = true;
+
+    while let Some(res) = stream.next().await {
+        let responses = res.map_err(|e| e.to_string())?;
+        for resp in responses {
+            if is_first_message {
+                let mut spinner = spinner_running.lock().await;
+                if *spinner {
+                    *spinner = false;
+                    drop(spinner);
+                    sleep(Duration::from_millis(100)).await;
+                }
+                is_first_message = false;
+            }
+            stdout.write_all(resp.response.as_bytes()).await.map_err(|e|e.to_string())?;
+            stdout.flush().await.map_err(|e|e.to_string())?;
+        }
+    }
+
+    *spinner_running.lock().await = false;
+    if let Err(e) = spinner_handle.await {
+        return Err(e.to_string());
+    }
+    //to get ride fo the "%" at the end of the answer
+    println!();
+    Ok(())
+}
+
+
+use ollama_rs::Ollama;
+use crate::envs::EnvVariables;
+
+pub async fn list_models(env_variables: &EnvVariables) -> Result<(), String>{
+    // Initialize the Ollama instance with the given environment variable and port
+    let ollama = Ollama::new(env_variables.kailian_endpoint.to_string(), 11434);
+
+    // Attempt to list local models asynchronously
+    match ollama.list_local_models().await {
+        Ok(models) => {
+            println!("Available models: {:?}", models);
+        }
+        Err(e) => {
+            return Err(e.to_string());
+        }
+    }
+
+    Ok(())
+}use std::io::{stdout, Write};
+use crate::envs::EnvVariables;
+use curl::easy::Easy;
+
+pub fn running_model(env_variables: &EnvVariables) -> Result<(), String> {
+    let mut easy = Easy::new();
+    let url = format!("{}/api/ps", env_variables.kailian_endpoint);
+
+    #[cfg(debug_assertions)]
+    println!("url -> {}", url);
+
+    easy.url(&url).map_err(|e| e.to_string())?;
+    easy.write_function(|data| {
+        stdout().write_all(data).unwrap();
+        Ok(data.len())
+    }).map_err(|e|e.to_string())?;
+    easy.perform().map_err(|e|e.to_string())?;
+    println!(); // to get rid of the "%" at the end
+    Ok(())
+}use std::fs;
+use nix::unistd;
+use tokio::io::{ AsyncWriteExt};
+use crate::envs;
+use ollama_rs::{
+    generation::chat::{request::ChatMessageRequest, ChatMessage, MessageRole, ChatMessageResponseStream},
+    Ollama,
+};
+use std::sync::{Arc, Mutex};
+use tokio::io::{stdout};
+use tokio_stream::StreamExt;
+use serde::{Deserialize, Serialize};
+
+// Custom struct for serializing/deserializing chat messages to/from the file
+#[derive(Serialize, Deserialize, Clone)]
+struct SerializableChatMessage {
+    role: String,
+    content: String,
+    // Optionally include images and tool_calls if you want to persist them
+    images: Option<Vec<String>>,
+    tool_calls: Vec<String>,
+}
+
+// Map ollama_rs::ChatMessage to SerializableChatMessage
+fn to_serializable(msg: &ChatMessage) -> SerializableChatMessage {
+    SerializableChatMessage {
+        role: match msg.role {
+            MessageRole::User => "user".to_string(),
+            MessageRole::Assistant => "assistant".to_string(),
+            MessageRole::System => "system".to_string(),
+            _ => {
+                "error".to_string()
+            }
+        },
+        content: msg.content.clone(),
+        images: None,
+        tool_calls: vec![],
+    }
+}
+
+// Map SerializableChatMessage back to ollama_rs::ChatMessage
+fn from_serializable(msg: SerializableChatMessage) -> ChatMessage {
+    let role = match msg.role.as_str() {
+        "user" => MessageRole::User,
+        "assistant" => MessageRole::Assistant,
+        "system" => MessageRole::System,
+        _ => MessageRole::User, // Default to User if unknown
+    };
+    ChatMessage {
+        role,
+        content: msg.content,
+        images: None, // Default for images
+        tool_calls: Vec::new(), // Default for tool_calls
+    }
+}
+
+pub async fn chat(prompt: &String, kailian_variables: &envs::EnvVariables) -> Result<(), String> {
+    let prompt = prompt.to_string();
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+    
+    let uid = unistd::getuid();
+    #[cfg(debug_assertions)]
+    println!("uid -> {}", uid);
+    let history_file = format!("/run/user/{}/kailian-session-context", uid);
+
+    let mut stdout = stdout();
+
+    #[cfg(debug_assertions)]
+    println!("tmpfile -> {}", history_file);
+
+    // Initialize history by reading from the file
+    let history: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(
+        read_history_from_file(&history_file)
+            .map(|serializable_msgs| serializable_msgs.into_iter().map(from_serializable).collect())
+            .unwrap_or_else(|e| {
+                println!("Failed to read history from file (using empty history): {}", e);
+                vec![]
+            })
+    ));
+
+    // Append the user's prompt to the history
+    {
+        let mut history_lock = history.lock().map_err(|e| format!("Mutex poisoned: {}", e))?;
+        let user_message = ChatMessage::user(prompt.clone());
+        history_lock.push(user_message.clone());
+        // Save the updated history to the file
+        save_history_to_file(&history_file, &history_lock)?;
+    }
+
+    let mut stream: ChatMessageResponseStream = ollama
+        .send_chat_messages_with_history_stream(
+            history.clone(),
+            ChatMessageRequest::new(
+                kailian_variables.kailian_model.to_string(),
+                vec![ChatMessage::user(prompt.to_string())],
+            ),
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let mut response = String::new();
+    while let Some(Ok(res)) = stream.next().await {
+        stdout.write_all(res.message.content.as_bytes()).await.map_err(|e| e.to_string())?;
+        stdout.flush().await.map_err(|e| e.to_string())?;
+        response += res.message.content.as_str();
+    }
+
+    // Append the assistant's response to the history
+    {
+        let mut history_lock = history.lock().map_err(|e| format!("Mutex poisoned: {}", e))?;
+        let assistant_message = ChatMessage {
+            role: MessageRole::Assistant,
+            content: response.clone(),
+            images: None, // Default for images
+            tool_calls: Vec::new(), // Default for tool_calls
+        };
+        history_lock.push(assistant_message);
+        // Save the updated history to the file
+        save_history_to_file(&history_file, &history_lock)?;
+    }
+
+    #[cfg(debug_assertions)]
+    println!("current history -> {:?}", history.lock().unwrap());
+
+    Ok(())
+}
+
+// Read history from the file
+fn read_history_from_file(file_path: &str) -> Result<Vec<SerializableChatMessage>, String> {
+    let content = fs::read_to_string(file_path).map_err(|e| format!("Failed to read file: {}", e))?;
+    if content.trim().is_empty() || content == "empty" {
+        return Ok(vec![]);
+    }
+    let history: Vec<SerializableChatMessage> = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to deserialize history: {}", e))?;
+    Ok(history)
+}
+
+// Save history to the file by overwriting (since we store the full history)
+fn save_history_to_file(file_path: &str, history: &[ChatMessage]) -> Result<(), String> {
+    let serializable_history: Vec<SerializableChatMessage> = history.iter().map(to_serializable).collect();
+    let serialized = serde_json::to_string(&serializable_history)
+        .map_err(|e| format!("Failed to serialize history: {}", e))?;
+    fs::write(file_path, serialized).map_err(|e| format!("Failed to write to file: {}", e))?;
+    Ok(())
+}
+pub fn delete_old_context() -> Result<(), String> {
+    let uid = unistd::getuid();
+    #[cfg(debug_assertions)]
+    println!("uid -> {}", uid);
+    let history_file = format!("/run/user/{}/kailian-session-context", uid);    
+    fs::write(history_file,"".to_string()).map_err(|e|e.to_string())?;
+    Ok(())
+    
+}use std::io::{self, Write};
+use std::thread::sleep;
+use std::time::Duration;
+
+const COFFEE_FRAMES: [&str; 4] = [
+    r#"
+          ~      
+              ~    
+            ~      
+       _____________
+      <_____________> ___
+      |             |/ _ \
+      |             | | |
+      |             |_| |
+   ___|             |\___/
+  /    \___________/    \
+  \_____________________/
+       \___________/
+    "#,
+    r#"
+            ~      
+          ~    
+              ~      
+       _____________
+      <_____________> ___
+      |             |/ _ \
+      |             | | |
+      |             |_| |
+   ___|             |\___/
+  /    \___________/    \
+  \_____________________/
+       \___________/
+    "#,
+    r#"
+              ~      
+            ~    
+          ~      
+       _____________
+      <_____________> ___
+      |             |/ _ \
+      |             | | |
+      |             |_| |
+   ___|             |\___/
+  /    \___________/    \
+  \_____________________/
+       \___________/
+    "#,
+    r#"
+          ~      
+              ~    
+            ~      
+       _____________
+      <_____________> ___
+      |             |/ _ \
+      |             | | |
+      |             |_| |
+   ___|             |\___/
+  /    \___________/    \
+  \_____________________/
+       \___________/
+    "#,
+];
+
+pub fn sip_coffee() {
+    loop {
+        for frame in COFFEE_FRAMES.iter() {
+            print!("\x1B[2J\x1B[H");
+            io::stdout().flush().unwrap();
+            println!("{}", frame);
+            sleep(Duration::from_millis(400)); // 400ms pro Frame
+        }
+    }
+}use std::path::Path;
+use std::process::{self, Command};
+
+use nix::fcntl::{open, OFlag};
+use nix::sys::stat::Mode;
+use nix::unistd::{chdir, close, dup2, fork, setsid, ForkResult, };
+
+pub fn daemonize_ollama() -> Result<(), String> {
+
+    match unsafe { fork() } {
+        Ok(ForkResult::Parent { .. }) => {
+            process::exit(0);
+        }
+        Ok(ForkResult::Child) => {}
+        Err(e) => {
+            return Err(e.to_string());
+        }
+    }
+
+    if let Err(e) = setsid() {
+        return Err(e.to_string());
+    }
+
+    match unsafe { fork() } {
+        Ok(ForkResult::Parent { .. }) => {
+            process::exit(0);
+        }
+        Ok(ForkResult::Child) => {}
+        Err(e) => {
+            return Err(e.to_string());
+        }
+    }
+
+    if let Err(e) = chdir(Path::new("/")) {
+        return Err(e.to_string());
+    }
+
+    let dev_null = open(Path::new("/dev/null"), OFlag::O_RDWR, Mode::empty())
+        .map_err(|e| format!("open /dev/null fehlgeschlagen: {}", e))?;
+    dup2(dev_null, libc::STDIN_FILENO).map_err(|e| format!("dup2 stdin fehlgeschlagen: {}", e))?;
+    dup2(dev_null, libc::STDOUT_FILENO).map_err(|e| format!("dup2 stdout fehlgeschlagen: {}", e))?;
+    dup2(dev_null, libc::STDERR_FILENO).map_err(|e| format!("dup2 stderr fehlgeschlagen: {}", e))?;
+    if dev_null > 2 {
+        close(dev_null).map_err(|e| format!("close dev_null fehlgeschlagen: {}", e))?;
+    }
+
+    Command::new("ollama")
+        .arg("serve")
+        .spawn()
+        .map_err(|e| format!("Ollama starten fehlgeschlagen: {}", e))?;
+
+
+
+    Ok(())
+}
+
+pub fn kill_ollama_daemon() -> Result<(), String> {
+    Command::new("killall").arg("ollama").spawn().map_err(|e| e.to_string())?;
+    Ok(())
+}use std::{env, fs};
+use std::fmt;
+use std::fmt::Formatter;
+
+pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
+
+#[derive(Debug)]
+pub struct EnvVariables {
+    pub kailian_model: String,
+    pub kailian_endpoint: String, 
+    pub kailian_system: String,
+}
+
+impl fmt::Display for EnvVariables {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "Model: {0}\nEndpoint: {1}\nSystem prompt: {2}", self.kailian_model, self.kailian_endpoint, self.kailian_system)
+    }
+}
+impl EnvVariables {
+    pub fn new() -> Result<EnvVariables, String> {
+
+        // Default-Struct erzeugen
+        let mut variables = EnvVariables {
+            kailian_model: String::new(),
+            kailian_endpoint: String::new(),
+            kailian_system: String::new(),
+        };
+
+        // Config-Datei einlesen
+        let content = fs::read_to_string(KAILIAN_CONF_PATH).map_err(|err| err.to_string())?;
+
+
+        // Inhalt verarbeiten 
+        // Mögliche Fehlerquellen elimieren
+        for line in content.lines() {
+            if let Some((key, value)) = line.split_once('=') {
+                match key.trim() {
+                    "name" => variables.kailian_model = value.trim().to_string(),
+                    "endpoint" => variables.kailian_endpoint = value.trim().to_string(),
+                    "system" => variables.kailian_system = value.trim().to_string(),
+                    _ => {} // Unbekannte Schlüssel ignorieren
+                    // TODO: Fehler!!!! wenn kein schlüssel
+                }
+            }
+        }
+
+        if let Ok(value) = env::var("KAILIAN_MODEL") {
+            variables.kailian_model = value;
+        }
+        Ok(variables)
+    }
+}
+pub fn create_config() -> Result<(), String> {
+    std::fs::write(KAILIAN_CONF_PATH, "name = gemma3:27b
+endpoint = http://localhost:11434
+system = \"You are a highly efficient systems AI built to assist with programming, log analysis, and Linux commands. Provide short, precise answers. Excel at writing and debugging code, analyzing system logs for errors or patterns, and delivering accurate Linux command solutions. Use your expertise to optimize systems and troubleshoot issues quickly.\"
+").map_err(|e| e.to_string())?;
+    Ok(())
+}
+pub mod connect_to_ai;
+pub mod list_local_models;
+pub mod get_running_model;
+pub mod chat_mode;mod ai;
+mod coffee;
+mod envs;
+mod prompt;
+mod daemon;
+
+use std::process;
+
+// TODO: Automatisches Starten des Daemons implementieren
+// TODO: Chat-Modus implementierenn
+// TODO: Konfig für kailian überarbeiten und nurnoch einen api wert / ip adresse haben (endpoints werden von ollama-rs definiert)
+// TODO: /api/ps in ollama-rs vorhanden? -> Wenn nicht von Hand implementieren 
+// TODO: --self-destroy -> internal shutdown(flag) 
+// TODO: Markdown in CLI interpretieren 
+// TODO: Logging für Ollamad
+// TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
+// TODO: markdown parser
+#[tokio::main]
+async fn main() {
+   
+    
+    // /etc/kailian/kailain.conf und umgebungsvaraiblen auslesen 
+    let kailian_env = envs::EnvVariables::new();
+    let kailian_env = match kailian_env {
+        Ok(vars) => vars,
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            process::exit(1);
+        }
+    };
+    
+    #[cfg(debug_assertions)]
+    println!("Vars ->\n {:?}\n", kailian_env);
+
+    // prompt macht hier die ganze logik
+    let result = prompt::read_stdin(&kailian_env).await;
+    if let Err(e) = result {
+        eprintln!("Error: {}", e);
+        process::exit(1);
+    }
+}
+use crate::{ai, envs};
+use crate::coffee;
+use clap::{Arg, Command};
+use std::{env, io::{self, BufRead, IsTerminal}};
+use crate::ai::chat_mode::delete_old_context;
+use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
+
+pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
+    let matches = Command::new("kailian")
+        .version("1.1.0")
+        .author("Laurenz Schmidt")
+        .about("A simple, yet powerful CLI wrapper for ollama")
+        .after_help(
+            "ENVIRONMENT VARIABLES:\n\
+                     KAILIAN_MODEL    Overwrites the model set in the config file"
+        )
+        .arg(
+            Arg::new("ask")
+                .short('a')
+                .long("ask")
+                .value_name("YourQuestion")
+                .help("Ask ollama a question (quote if using wildcards)")
+                .num_args(1..),
+        )
+        .arg(
+            Arg::new("chat")
+                .short('u')
+                .long("chat")
+                .value_name("YourQuestion")
+                .help("Ask ollama a question with context awareness (quote if using wildcards)")
+                .num_args(1..),
+        )
+        .arg(
+            Arg::new("new_chat")
+                .short('n')
+                .long("new-chat")
+                .help("Delete old context and start with a fresh one")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("create_config")
+                .short('c')
+                .long("create-config")
+                .help("Create a new default config file (overwrites existing")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("show_config")
+                .short('s')
+                .long("show-config")
+                .help("Show the current config file")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("coffee")
+                .short('f')
+                .long("coffee")
+                .help("Let's sip some virtual coffee")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("list_models")
+                .short('l')
+                .long("list-models")
+                .help("Show all available AI models")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("running_model")
+                .short('r')
+                .long("running-model")
+                .help("Show the currently running AI model (or none if no model is loaded")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("start_ollama")
+                .short('t')
+                .long("start-ollama")
+                .help("Start a new local ollama instance")
+                .action(clap::ArgAction::SetTrue),
+        )
+        .arg(
+            Arg::new("kill_ollama")
+                .short('k')
+                .long("kill-ollama")
+                .help("Kill the local running ollama instance")
+                .action(clap::ArgAction::SetTrue),
+        )
+        // Wichtig: Mindestens eine Option erforderlich
+        .arg_required_else_help(true)
+        .get_matches_from(env::args().collect::<Vec<String>>());
+
+    // Argumente auswerten
+    if matches.get_flag("create_config") {
+        return envs::create_config();
+    }
+    if matches.get_flag("show_config") {
+        println!("{}", &env_vars);
+        return Ok(());
+    }
+    if matches.get_flag("coffee") {
+        //wird von user mit ^c beendet
+        coffee::sip_coffee();
+        unreachable!("Something went wrong");
+    }
+    if matches.get_flag("list_models") {
+        return ai::list_local_models::list_models(&env_vars).await;
+    }
+    if matches.get_flag("running_model") {
+        return ai::get_running_model::running_model(&env_vars);
+    }
+    if matches.get_flag("start_ollama") {
+        return daemonize_ollama();
+    }
+    if matches.get_flag("kill_ollama") {
+        return kill_ollama_daemon();
+    }
+    if matches.get_flag("new_chat") {
+        return delete_old_context();
+    }
+    if matches.contains_id("ask") {
+        return match build_prompt().await {
+            Ok(prompt) => {
+                ai::connect_to_ai::api_completion_generation(&prompt, &env_vars).await
+            }
+            Err(e) => Err(e)
+        };
+    }
+    if matches.contains_id("chat") {
+        return match build_prompt().await {
+            Ok(prompt) => {
+                ai::chat_mode::chat(&prompt, &env_vars).await
+            }
+            Err(e) => Err(e)
+        };
+    }
+
+    // Sollte nie erreicht werden wegen args_required_else_help
+    unreachable!("No arguments provided, but Clap should have caught this");
+}
+
+
+//später Result wieder implementieren 
+async fn build_prompt() -> Result<String, String> {
+    let mut prompt = String::new();
+    let argv: Vec<String> = env::args().collect();
+
+    #[cfg(debug_assertions)]
+    println!("argv -> {:?}", argv);
+
+    let args_prompt = argv[2..].join(" ");
+    prompt.push_str(&args_prompt);
+
+    let mut stdin_buffer = String::new();
+    if !io::stdin().is_terminal() {
+        let stdin = io::stdin();
+        for line in stdin.lock().lines() {
+            match line {
+                Ok(line) => {
+                    stdin_buffer.push_str(&line);
+                    stdin_buffer.push('\n');
+                }
+                Err(e) => {
+                    return Err(e.to_string())
+                }
+            }
+        }
+    }
+
+    // Kombiniere STDIN mit Argumenten, falls vorhanden
+    //nochmal genauer angucken
+    if !stdin_buffer.is_empty() {
+        prompt.push_str(&stdin_buffer);
+    }
+
+    prompt = prompt.trim().to_string();
+    return Ok(prompt);
+}
+use ollama_rs::generation::completion::request::GenerationRequest;
+use ollama_rs::Ollama;
+use tokio::io::{self, AsyncWriteExt};
+use tokio::task;
+use tokio_stream::StreamExt;
+use tokio::time::{self, sleep, Duration};
+use std::sync::Arc;
+use tokio::sync::Mutex;
+use crate::envs::EnvVariables;
+
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String> {
+    let prompt = prompt.to_string();
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+
+    let spinner_running = Arc::new(Mutex::new(true));
+    let spinner_running_clone = Arc::clone(&spinner_running);
+
+    let spinner_handle = task::spawn(async move {
+        let spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+        let mut index = 0;
+        let mut stdout = io::stdout();
+
+        while *spinner_running_clone.lock().await {
+            stdout
+                .write_all(format!("\r{}", spinner_chars[index]).as_bytes())
+                .await
+                .unwrap();
+            stdout.flush().await.unwrap();
+            index = (index + 1) % spinner_chars.len();
+            time::sleep(Duration::from_millis(100)).await;
+        }
+
+        stdout.write_all(b"\r\x1B[K").await.unwrap();
+        stdout.flush().await.unwrap();
+    });
+
+    #[cfg(debug_assertions)]
+    println!("Sending request to Ollama...");
+    
+    let mut stream = match ollama.generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone())).await {
+        Ok(stream) => stream,
+        Err(e) => {
+            *spinner_running.lock().await = false;
+            spinner_handle.await.unwrap();
+            return Err(e.to_string());
+        }
+    };
+
+
+
+    let mut stdout = io::stdout();
+    let mut is_first_message = true;
+
+    while let Some(res) = stream.next().await {
+        let responses = res.map_err(|e| e.to_string())?;
+        for resp in responses {
+            if is_first_message {
+                let mut spinner = spinner_running.lock().await;
+                if *spinner {
+                    *spinner = false;
+                    drop(spinner);
+                    sleep(Duration::from_millis(100)).await;
+                }
+                is_first_message = false;
+            }
+            stdout.write_all(resp.response.as_bytes()).await.map_err(|e|e.to_string())?;
+            stdout.flush().await.map_err(|e|e.to_string())?;
+        }
+    }
+
+    *spinner_running.lock().await = false;
+    if let Err(e) = spinner_handle.await {
+        return Err(e.to_string());
+    }
+    //to get ride fo the "%" at the end of the answer
+    println!();
+    Ok(())
+}
+
+
+use ollama_rs::Ollama;
+use crate::envs::EnvVariables;
+
+pub async fn list_models(env_variables: &EnvVariables) -> Result<(), String>{
+    // Initialize the Ollama instance with the given environment variable and port
+    let ollama = Ollama::new(env_variables.kailian_endpoint.to_string(), 11434);
+
+    // Attempt to list local models asynchronously
+    match ollama.list_local_models().await {
+        Ok(models) => {
+            println!("Available models: {:?}", models);
+        }
+        Err(e) => {
+            return Err(e.to_string());
+        }
+    }
+
+    Ok(())
+}use std::io::{stdout, Write};
+use crate::envs::EnvVariables;
+use curl::easy::Easy;
+
+pub fn running_model(env_variables: &EnvVariables) -> Result<(), String> {
+    let mut easy = Easy::new();
+    let url = format!("{}/api/ps", env_variables.kailian_endpoint);
+
+    #[cfg(debug_assertions)]
+    println!("url -> {}", url);
+
+    easy.url(&url).map_err(|e| e.to_string())?;
+    easy.write_function(|data| {
+        stdout().write_all(data).unwrap();
+        Ok(data.len())
+    }).map_err(|e|e.to_string())?;
+    easy.perform().map_err(|e|e.to_string())?;
+    println!(); // to get rid of the "%" at the end
+    Ok(())
+}use std::fs;
+use nix::unistd;
+use tokio::io::{ AsyncWriteExt};
+use crate::envs;
+use ollama_rs::{
+    generation::chat::{request::ChatMessageRequest, ChatMessage, MessageRole, ChatMessageResponseStream},
+    Ollama,
+};
+use std::sync::{Arc, Mutex};
+use tokio::io::{stdout};
+use tokio_stream::StreamExt;
+use serde::{Deserialize, Serialize};
+
+// Custom struct for serializing/deserializing chat messages to/from the file
+#[derive(Serialize, Deserialize, Clone)]
+struct SerializableChatMessage {
+    role: String,
+    content: String,
+    // Optionally include images and tool_calls if you want to persist them
+    images: Option<Vec<String>>,
+    tool_calls: Vec<String>,
+}
+
+// Map ollama_rs::ChatMessage to SerializableChatMessage
+fn to_serializable(msg: &ChatMessage) -> SerializableChatMessage {
+    SerializableChatMessage {
+        role: match msg.role {
+            MessageRole::User => "user".to_string(),
+            MessageRole::Assistant => "assistant".to_string(),
+            MessageRole::System => "system".to_string(),
+            _ => {
+                "error".to_string()
+            }
+        },
+        content: msg.content.clone(),
+        images: None,
+        tool_calls: vec![],
+    }
+}
+
+// Map SerializableChatMessage back to ollama_rs::ChatMessage
+fn from_serializable(msg: SerializableChatMessage) -> ChatMessage {
+    let role = match msg.role.as_str() {
+        "user" => MessageRole::User,
+        "assistant" => MessageRole::Assistant,
+        "system" => MessageRole::System,
+        _ => MessageRole::User, // Default to User if unknown
+    };
+    ChatMessage {
+        role,
+        content: msg.content,
+        images: None, // Default for images
+        tool_calls: Vec::new(), // Default for tool_calls
+    }
+}
+
+pub async fn chat(prompt: &String, kailian_variables: &envs::EnvVariables) -> Result<(), String> {
+    let prompt = prompt.to_string();
+    let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+    
+    let uid = unistd::getuid();
+    #[cfg(debug_assertions)]
+    println!("uid -> {}", uid);
+    let history_file = format!("/run/user/{}/kailian-session-context", uid);
+
+    let mut stdout = stdout();
+
+    #[cfg(debug_assertions)]
+    println!("tmpfile -> {}", history_file);
+
+    // Initialize history by reading from the file
+    let history: Arc<Mutex<Vec<ChatMessage>>> = Arc::new(Mutex::new(
+        read_history_from_file(&history_file)
+            .map(|serializable_msgs| serializable_msgs.into_iter().map(from_serializable).collect())
+            .unwrap_or_else(|e| {
+                println!("Failed to read history from file (using empty history): {}", e);
+                vec![]
+            })
+    ));
+
+    // Append the user's prompt to the history
+    {
+        let mut history_lock = history.lock().map_err(|e| format!("Mutex poisoned: {}", e))?;
+        let user_message = ChatMessage::user(prompt.clone());
+        history_lock.push(user_message.clone());
+        // Save the updated history to the file
+        save_history_to_file(&history_file, &history_lock)?;
+    }
+
+    let mut stream: ChatMessageResponseStream = ollama
+        .send_chat_messages_with_history_stream(
+            history.clone(),
+            ChatMessageRequest::new(
+                kailian_variables.kailian_model.to_string(),
+                vec![ChatMessage::user(prompt.to_string())],
+            ),
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let mut response = String::new();
+    while let Some(Ok(res)) = stream.next().await {
+        stdout.write_all(res.message.content.as_bytes()).await.map_err(|e| e.to_string())?;
+        stdout.flush().await.map_err(|e| e.to_string())?;
+        response += res.message.content.as_str();
+    }
+
+    // Append the assistant's response to the history
+    {
+        let mut history_lock = history.lock().map_err(|e| format!("Mutex poisoned: {}", e))?;
+        let assistant_message = ChatMessage {
+            role: MessageRole::Assistant,
+            content: response.clone(),
+            images: None, // Default for images
+            tool_calls: Vec::new(), // Default for tool_calls
+        };
+        history_lock.push(assistant_message);
+        // Save the updated history to the file
+        save_history_to_file(&history_file, &history_lock)?;
+    }
+
+    #[cfg(debug_assertions)]
+    println!("current history -> {:?}", history.lock().unwrap());
+
+    Ok(())
+}
+
+// Read history from the file
+fn read_history_from_file(file_path: &str) -> Result<Vec<SerializableChatMessage>, String> {
+    let content = fs::read_to_string(file_path).map_err(|e| format!("Failed to read file: {}", e))?;
+    if content.trim().is_empty() || content == "empty" {
+        return Ok(vec![]);
+    }
+    let history: Vec<SerializableChatMessage> = serde_json::from_str(&content)
+        .map_err(|e| format!("Failed to deserialize history: {}", e))?;
+    Ok(history)
+}
+
+// Save history to the file by overwriting (since we store the full history)
+fn save_history_to_file(file_path: &str, history: &[ChatMessage]) -> Result<(), String> {
+    let serializable_history: Vec<SerializableChatMessage> = history.iter().map(to_serializable).collect();
+    let serialized = serde_json::to_string(&serializable_history)
+        .map_err(|e| format!("Failed to serialize history: {}", e))?;
+    fs::write(file_path, serialized).map_err(|e| format!("Failed to write to file: {}", e))?;
+    Ok(())
+}
+pub fn delete_old_context() -> Result<(), String> {
+    let uid = unistd::getuid();
+    #[cfg(debug_assertions)]
+    println!("uid -> {}", uid);
+    let history_file = format!("/run/user/{}/kailian-session-context", uid);    
+    fs::write(history_file,"".to_string()).map_err(|e|e.to_string())?;
+    Ok(())
+    
+}

@@ -1,20 +1,19 @@
 use crate::{ai, envs};
-use crate::envs::EnvVariables;
 use crate::coffee;
 use clap::{Arg, Command};
-use std::env;
-use std::io::{self, BufRead, IsTerminal};
+use std::{env, io::{self, BufRead, IsTerminal}};
+use crate::ai::chat_mode::delete_old_context;
 use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
 
-pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
+pub async fn read_stdin(env_vars: &envs::ConfigVariables) -> Result<(), String> {
     let matches = Command::new("kailian")
         .version("1.1.0")
         .author("Laurenz Schmidt")
         .about("A simple, yet powerful CLI wrapper for ollama")
-        // Option für den Prompt mit -a/--ask, erwartet einen Wert
         .after_help(
             "ENVIRONMENT VARIABLES:\n\
-                     KAILIAN_MODEL    Overwrites the model set in the config file"
+                     KAILIAN_MODEL    Overwrites the model set in the config file
+                    KAILIAN_ENDPOINT    Overwrites the endpoint set in the config "
         )
         .arg(
             Arg::new("ask")
@@ -23,6 +22,21 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
                 .value_name("YourQuestion")
                 .help("Ask ollama a question (quote if using wildcards)")
                 .num_args(1..),
+        )
+        .arg(
+            Arg::new("chat")
+                .short('u')
+                .long("chat")
+                .value_name("YourQuestion")
+                .help("Ask ollama a question with context awareness (quote if using wildcards)")
+                .num_args(1..),
+        )
+        .arg(
+            Arg::new("new_chat")
+                .short('n')
+                .long("new-chat")
+                .help("Delete old context and start with a fresh one")
+                .action(clap::ArgAction::SetTrue),
         )
         .arg(
             Arg::new("create_config")
@@ -102,8 +116,24 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
     if matches.get_flag("kill_ollama") {
         return kill_ollama_daemon();
     }
+    if matches.get_flag("new_chat") {
+        return delete_old_context();
+    }
     if matches.contains_id("ask") {
-        return build_prompt(&env_vars).await;
+        return match build_prompt().await {
+            Ok(prompt) => {
+                ai::connect_to_ai::api_completion_generation(&prompt, &env_vars).await
+            }
+            Err(e) => Err(e)
+        };
+    }
+    if matches.contains_id("chat") {
+        return match build_prompt().await {
+            Ok(prompt) => {
+                ai::chat_mode::chat(&prompt, &env_vars).await
+            }
+            Err(e) => Err(e)
+        };
     }
 
     // Sollte nie erreicht werden wegen args_required_else_help
@@ -112,18 +142,16 @@ pub async fn read_stdin(env_vars: &EnvVariables) -> Result<(), String> {
 
 
 //später Result wieder implementieren 
-async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String> {
+async fn build_prompt() -> Result<String, String> {
     let mut prompt = String::new();
     let argv: Vec<String> = env::args().collect();
 
     #[cfg(debug_assertions)]
     println!("argv -> {:?}", argv);
 
-    // Verarbeite alle Argumente ab Index 2 (ignoriere Programmname und Flag)
     let args_prompt = argv[2..].join(" ");
     prompt.push_str(&args_prompt);
 
-    // STDIN verarbeiten
     let mut stdin_buffer = String::new();
     if !io::stdin().is_terminal() {
         let stdin = io::stdin();
@@ -141,12 +169,11 @@ async fn build_prompt(env_variables: &EnvVariables) -> Result<(), String> {
     }
 
     // Kombiniere STDIN mit Argumenten, falls vorhanden
+    //nochmal genauer angucken
     if !stdin_buffer.is_empty() {
         prompt.push_str(&stdin_buffer);
     }
 
-    // Entferne überflüssige Leerzeichen und überprüfe, ob der Prompt leer ist
     prompt = prompt.trim().to_string();
-
-    return ai::connect_to_ai::api_completion_generation(&prompt, &env_variables).await;
+    return Ok(prompt);
 }

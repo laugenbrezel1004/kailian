@@ -6,9 +6,9 @@ use tokio_stream::StreamExt;
 use tokio::time::{self, sleep, Duration};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use crate::envs::EnvVariables;
+use crate::envs::ConfigVariables;
 
-pub async fn api_completion_generation(prompt: &String, kailian_variables: &EnvVariables) -> Result<(), String> {
+pub async fn api_completion_generation(prompt: &String, kailian_variables: &ConfigVariables) -> Result<(), String> {
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
 

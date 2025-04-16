@@ -14,12 +14,13 @@ use std::process;
 // TODO: Markdown in CLI interpretieren 
 // TODO: Logging für Ollamad
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
+// TODO: markdown parser
 #[tokio::main]
 async fn main() {
    
     
     // /etc/kailian/kailain.conf und umgebungsvaraiblen auslesen 
-    let kailian_env = envs::EnvVariables::new();
+    let kailian_env = envs::ConfigVariables::new();
     let kailian_env = match kailian_env {
         Ok(vars) => vars,
         Err(err) => {
