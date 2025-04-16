@@ -17,8 +17,7 @@ pub fn daemonize_ollama() -> Result<(), String> {
         }
     }
 
-    if let Err(e) = setsid() {
-        return Err(e.to_string());
+    if let Err(e) = setsid() { return Err(e.to_string());
     }
 
     match unsafe { fork() } {
