@@ -5,14 +5,15 @@ use std::{env, io::{self, BufRead, IsTerminal}};
 use crate::ai::chat_mode::delete_old_context;
 use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
 
-pub async fn read_stdin(env_vars: &envs::EnvVariables) -> Result<(), String> {
+pub async fn read_stdin(env_vars: &envs::ConfigVariables) -> Result<(), String> {
     let matches = Command::new("kailian")
         .version("1.1.0")
         .author("Laurenz Schmidt")
         .about("A simple, yet powerful CLI wrapper for ollama")
         .after_help(
             "ENVIRONMENT VARIABLES:\n\
-                     KAILIAN_MODEL    Overwrites the model set in the config file"
+                     KAILIAN_MODEL    Overwrites the model set in the config file
+                    KAILIAN_ENDPOINT    Overwrites the endpoint set in the config "
         )
         .arg(
             Arg::new("ask")

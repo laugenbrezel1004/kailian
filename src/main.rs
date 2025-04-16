@@ -5,7 +5,6 @@ mod prompt;
 mod daemon;
 
 use std::process;
-use std
 
 // TODO: Automatisches Starten des Daemons implementieren
 // TODO: Chat-Modus implementierenn
@@ -21,7 +20,7 @@ async fn main() {
    
     
     // /etc/kailian/kailain.conf und umgebungsvaraiblen auslesen 
-    let kailian_env = envs::EnvVariables::new();
+    let kailian_env = envs::ConfigVariables::new();
     let kailian_env = match kailian_env {
         Ok(vars) => vars,
         Err(err) => {

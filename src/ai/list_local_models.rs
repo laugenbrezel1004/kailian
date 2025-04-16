@@ -1,7 +1,7 @@
 use ollama_rs::Ollama;
-use crate::envs::EnvVariables;
+use crate::envs::ConfigVariables;
 
-pub async fn list_models(env_variables: &EnvVariables) -> Result<(), String>{
+pub async fn list_models(env_variables: &ConfigVariables) -> Result<(), String>{
     // Initialize the Ollama instance with the given environment variable and port
     let ollama = Ollama::new(env_variables.kailian_endpoint.to_string(), 11434);
 
