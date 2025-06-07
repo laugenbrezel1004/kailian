@@ -8,10 +8,8 @@ use tokio::io::{stdout};
 use serde::{Deserialize, Serialize};
 
 use ollama_rs::Ollama;
-use tokio::io::{self, AsyncWriteExt};
-use tokio::task;
+use tokio::io::AsyncWriteExt;
 use tokio_stream::StreamExt;
-use tokio::time::{self, sleep, Duration};
 use std::sync::{Arc, Mutex}; // Verwende std::sync::Mutex statt tokio::sync::Mutex// Custom struct für Chat-Nachrichten
 // Custom struct für Chat-Nachrichten
 #[derive(Serialize, Deserialize, Clone)]
@@ -55,6 +53,7 @@ pub async fn chat(prompt: &String, kailian_variables: &envs::ConfigVariables) ->
     let prompt = prompt.to_string();
     let uid = unistd::getuid();
     let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+    
 
     #[cfg(debug_assertions)]
     println!("uid -> {}", uid);

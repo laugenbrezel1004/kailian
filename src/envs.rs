@@ -1,7 +1,6 @@
 use std::fmt;
 use std::fmt::Formatter;
 use std::{env, fs};
-use serde::de::Unexpected::Str;
 
 pub const KAILIAN_CONF_PATH: &str = "/etc/kailian/kailian.conf";
 

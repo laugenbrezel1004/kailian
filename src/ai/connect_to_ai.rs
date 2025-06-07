@@ -1,16 +1,18 @@
-use ollama_rs::generation::completion::request::GenerationRequest;
-use ollama_rs::Ollama;
-use tokio::io::{self, AsyncWriteExt};
-use tokio::task;
-use tokio_stream::StreamExt;
-use tokio::time::{self, sleep, Duration};
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use crate::envs::ConfigVariables;
+use ollama_rs::{Ollama, generation::{completion::request::GenerationRequest, parameters::KeepAlive}, models::ModelOptions, coordinator};
+use std::sync::Arc;
+use tokio::io::{self, AsyncWriteExt};
+use tokio::sync::Mutex;
+use tokio::task;
+use tokio::time::{self, Duration};
 
-pub async fn api_completion_generation(prompt: &String, kailian_variables: &ConfigVariables) -> Result<(), String> {
+pub async fn api_completion_generation(
+    prompt: &String,
+    kailian_variables: &ConfigVariables,
+) -> Result<(), String> {
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
+
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
@@ -36,8 +38,14 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &Conf
 
     #[cfg(debug_assertions)]
     println!("Sending request to Ollama...");
-    
-    let mut stream = match ollama.generate_stream(GenerationRequest::new(kailian_variables.kailian_model.to_string(), prompt.clone())).await {
+
+    let mut stream = match ollama
+        .generate_stream(GenerationRequest::new(
+            kailian_variables.kailian_model.to_string(),
+            prompt.clone(),
+        ))
+        .await
+    {
         Ok(stream) => stream,
         Err(e) => {
             *spinner_running.lock().await = false;
@@ -45,8 +53,6 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &Conf
             return Err(e.to_string());
         }
     };
-
-
 
     let mut stdout = io::stdout();
     let mut is_first_message = true;
@@ -63,8 +69,11 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &Conf
                 }
                 is_first_message = false;
             }
-            stdout.write_all(resp.response.as_bytes()).await.map_err(|e|e.to_string())?;
-            stdout.flush().await.map_err(|e|e.to_string())?;
+            stdout
+                .write_all(resp.response.as_bytes())
+                .await
+                .map_err(|e| e.to_string())?;
+            stdout.flush().await.map_err(|e| e.to_string())?;
         }
     }
 
@@ -76,5 +85,3 @@ pub async fn api_completion_generation(prompt: &String, kailian_variables: &Conf
     println!();
     Ok(())
 }
-
-
