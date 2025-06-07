@@ -15,6 +15,7 @@ use std::process;
 // TODO: Logging für Ollamad
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
 // TODO: markdown parser
+// TODO: variable for how to long to keep model aliave
 #[tokio::main]
 async fn main() {
    
