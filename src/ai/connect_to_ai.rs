@@ -1,10 +1,16 @@
-use crate::envs::ConfigVariables;
-use ollama_rs::{Ollama, generation::{completion::request::GenerationRequest, parameters::KeepAlive}, models::ModelOptions, coordinator};
+use crate::envs::core::ConfigVariables;
+use ollama_rs::{
+    Ollama,
+    generation::completion::request::GenerationRequest,
+};
 use std::sync::Arc;
-use tokio::io::{self, AsyncWriteExt};
-use tokio::sync::Mutex;
-use tokio::task;
-use tokio::time::{self, Duration};
+use tokio::{
+    io::{self, AsyncWriteExt},
+    sync::Mutex,
+    task,
+    time::{self, Duration, sleep},
+};
+use tokio_stream::StreamExt;
 
 pub async fn api_completion_generation(
     prompt: &String,
@@ -12,7 +18,6 @@ pub async fn api_completion_generation(
 ) -> Result<(), String> {
     let prompt = prompt.to_string();
     let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);
-
 
     let spinner_running = Arc::new(Mutex::new(true));
     let spinner_running_clone = Arc::clone(&spinner_running);
@@ -53,7 +58,6 @@ pub async fn api_completion_generation(
             return Err(e.to_string());
         }
     };
-
     let mut stdout = io::stdout();
     let mut is_first_message = true;
 
