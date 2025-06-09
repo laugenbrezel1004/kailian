@@ -14,12 +14,8 @@ use std::process;
 // TODO: Logging für Ollamad
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
 // TODO: markdown parser
-// TODO: List local mocdel besser gestalten
-// TODO: Struct für umgebungsvariablen
-
 // In Progress
 // TODO: variable for how to long to keep model aliave
-// TODO: Code refactoren
 #[tokio::main]
 async fn main() {
     if let Err(e) = run().await {
