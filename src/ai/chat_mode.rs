@@ -1,11 +1,11 @@
 use std::fs;
 use nix::unistd;
-use crate::envs;
 use ollama_rs::{
     generation::chat::{request::ChatMessageRequest, ChatMessage, MessageRole, ChatMessageResponseStream},
 };
 use tokio::io::{stdout};
 use serde::{Deserialize, Serialize};
+use crate::envs::core::ConfigVariables;
 
 use ollama_rs::Ollama;
 use tokio::io::AsyncWriteExt;
@@ -49,7 +49,7 @@ fn from_serializable(msg: SerializableChatMessage) -> ChatMessage {
     }
 }
 
-pub async fn chat(prompt: &String, kailian_variables: &envs::ConfigVariables) -> Result<(), String> {
+pub async fn chat(prompt: &String, kailian_variables: &ConfigVariables) -> Result<(), String> {
     let prompt = prompt.to_string();
     let uid = unistd::getuid();
     let ollama = Ollama::new(kailian_variables.kailian_endpoint.to_string(), 11434);

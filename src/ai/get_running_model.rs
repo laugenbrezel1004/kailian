@@ -1,14 +1,12 @@
 use std::io::{stdout, Write};
-use crate::envs::ConfigVariables;
+use crate::envs::core::ConfigVariables;
 use curl::easy::Easy;
 
 pub fn running_model(env_variables: &ConfigVariables) -> Result<(), String> {
     let mut easy = Easy::new();
     let url = format!("{}/api/ps", env_variables.kailian_endpoint);
 
-    #[cfg(debug_assertions)]
-    println!("url -> {}", url);
-
+    //make output cleaner
     easy.url(&url).map_err(|e| e.to_string())?;
     easy.write_function(|data| {
         stdout().write_all(data).unwrap();

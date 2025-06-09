@@ -1,9 +1,8 @@
 mod ai;
-mod coffee;
+mod daemon;
 mod envs;
 mod prompt;
-use envs::impls;
-mod daemon;
+mod utils;
 
 use std::process;
 
@@ -16,6 +15,7 @@ use std::process;
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
 // TODO: markdown parser
 // TODO: List local mocdel besser gestalten
+// TODO: Struct für umgebungsvariablen
 
 // In Progress
 // TODO: variable for how to long to keep model aliave
@@ -32,16 +32,10 @@ async fn run() -> Result<(), String> {
     let mut kailian_parameters = envs::core::new();
 
     // read config file and env vars
-    if let Err(e) = kailian_parameters.fill_config_variables() {
-        return Err(e);
-    }
+    kailian_parameters.fill_config_variables()?;
 
-    
-    
     // prompt makes all the logic of building the new prompt and sends it to the ai
-    let prompt = prompt::core::new();
-    if let Err(e) = prompt::read_stdin(&kailian_parameters).await {
-        return Err(e);
-    };
+    prompt::stdin::read_stdin_flags(&kailian_parameters).await?;
+
     Ok(())
 }

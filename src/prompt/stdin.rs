@@ -1,11 +1,10 @@
-use std::env;
-use clap::{Arg, ArgMatches, Command};
-use crate::{ai, coffee, envs};
-use crate::ai::chat_mode::delete_old_context;
-use crate::daemon::{daemonize_ollama, kill_ollama_daemon};
-use crate::prompt::build_prompt;
+use clap::{Arg,  Command};
+use std::{env, io};
+use std::io::{BufRead, IsTerminal};
+use crate::prompt::flags;
 
-pub async fn read_stdin(env_vars: &envs::core::ConfigVariables) -> Result<(), String> {
+use crate::envs::core::ConfigVariables;
+pub async fn read_stdin_flags(kailian_parameter: &ConfigVariables ) -> Result<(), String> {
     let matches = Command::new("kailian")
         .version("1.1.0")
         .author("Laurenz Schmidt")
@@ -90,51 +89,36 @@ pub async fn read_stdin(env_vars: &envs::core::ConfigVariables) -> Result<(), St
         // Wichtig: Mindestens eine Option erforderlich
         .arg_required_else_help(true)
         .get_matches_from(env::args().collect::<Vec<String>>());
+    flags::evaluate_flags(matches, kailian_parameter).await?;
+    Ok(())
 }
+pub async fn get_prompt() -> Result<String, String> {
+    let mut prompt = String::new();
+    let argv: Vec<String> = env::args().collect();
 
+    let args_prompt = argv[2..].join(" ");
+    prompt.push_str(&args_prompt);
 
-fn evaluate_stdin(matches: &ArgMatches) -> Result<(), String> {
-    // Argumente auswerten
-    if matches.get_flag("create_config") {
-        return envs::config::create_config();
-    }
-    if matches.get_flag("show_config") {
-        println!("{}", &env_vars);
-        return Ok(());
-    }
-    if matches.get_flag("coffee") {
-        //wird von user mit ^c beendet
-        coffee::sip_coffee();
-        unreachable!("Something went wrong");
-    }
-    if matches.get_flag("list_models") {
-        return ai::list_local_models::list_models(&env_vars).await;
-    }
-    if matches.get_flag("running_model") {
-        return ai::get_running_model::running_model(&env_vars);
-    }
-    if matches.get_flag("start_ollama") {
-        return daemonize_ollama();
-    }
-    if matches.get_flag("kill_ollama") {
-        return kill_ollama_daemon();
-    }
-    if matches.get_flag("new_chat") {
-        return delete_old_context();
-    }
-    if matches.contains_id("ask") {
-        return match build_prompt().await {
-            Ok(prompt) => ai::connect_to_ai::api_completion_generation(&prompt, &env_vars).await,
-            Err(e) => Err(e),
+    let mut stdin_buffer = String::new();
+    if !io::stdin().is_terminal() {
+        let stdin = io::stdin();
+        for line in stdin.lock().lines() {
+            match line {
+                Ok(line) => {
+                    stdin_buffer.push_str(&line);
+                    stdin_buffer.push('\n');
+                }
+                Err(e) => return Err(e.to_string()),
+            }
         }
     }
-    if matches.contains_id("chat") {
-        return match build_prompt().await {
-            Ok(prompt) => ai::chat_mode::chat(&prompt, &env_vars).await,
-            Err(e) => Err(e),
-        };
+
+    // Kombiniere STDIN mit Argumenten, falls vorhanden
+    //nochmal genauer angucken
+    if !stdin_buffer.is_empty() {
+        prompt.push_str(&stdin_buffer);
     }
 
-    // Sollte nie erreicht werden wegen args_required_else_help
-    unreachable!("No arguments provided, but Clap should have caught this");
+    Ok(prompt.trim().to_string())
 }
+
