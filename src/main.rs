@@ -11,8 +11,8 @@ use std::process;
 // TODO: /api/ps in ollama-rs vorhanden? -> Wenn nicht von Hand implementieren
 // TODO: --self-destroy -> internal shutdown(flag)
 // TODO: Markdown in CLI interpretieren
-// TODO: Logging für Ollamad
 // TODO: Einlesen der confis aus kailian.conf fehlerbeständiger machen
+// TODO: Config per user in homedir which overwrites the global configuration
 // TODO: markdown parser
 // In Progress
 // TODO: variable for how to long to keep model aliave

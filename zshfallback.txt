@@ -1,0 +1,8 @@
+command_not_found_handler() {
+    echo "Command '$1' not found. Running fallback..."
+    kailian -a "${*}"
+    
+    return 127  # Return command not found exit code
+}
+
+
